@@ -78,7 +78,7 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
 
       const element = invoiceRef.current
       const opt = {
-        margin: 10,
+        margin: [4, 4, 4, 4] as [number, number, number, number],
         filename: `${invoice.invoiceNumber}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: {
@@ -86,67 +86,109 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
           useCORS: true,
           logging: false,
           allowTaint: true,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: 1024,
           onclone: (clonedDoc: Document) => {
-            // Standardize any computed colors containing lab/oklch using Canvas 2D
-            const canvas = document.createElement('canvas')
-            canvas.width = 1
-            canvas.height = 1
-            const ctx = canvas.getContext('2d')
-
-            const sanitizeColorStr = (colorStr: string, fallback: string): string => {
-              if (!colorStr || colorStr === 'transparent' || colorStr === 'rgba(0, 0, 0, 0)') {
-                return 'transparent'
-              }
-              if (
-                colorStr.includes('lab') ||
-                colorStr.includes('oklch') ||
-                colorStr.includes('color(')
-              ) {
-                if (ctx) {
-                  try {
-                    ctx.fillStyle = '#000000'
-                    ctx.fillStyle = colorStr
-                    const res = ctx.fillStyle
-                    if (res && !res.includes('lab') && !res.includes('oklch')) {
-                      return res
-                    }
-                  } catch {
-                    // Fallback below
-                  }
-                }
-                return fallback
-              }
-              return colorStr
-            }
-
-            const allNodes = clonedDoc.querySelectorAll<HTMLElement>('*')
-            allNodes.forEach((node) => {
-              const comp = window.getComputedStyle(node)
-              if (comp.color) {
-                node.style.color = sanitizeColorStr(comp.color, '#0f172a')
-              }
-              if (comp.backgroundColor) {
-                node.style.backgroundColor = sanitizeColorStr(
-                  comp.backgroundColor,
-                  '#ffffff'
-                )
-              }
-              if (comp.borderColor) {
-                node.style.borderColor = sanitizeColorStr(
-                  comp.borderColor,
-                  '#e2e8f0'
-                )
-              }
-              if (
-                comp.boxShadow &&
-                (comp.boxShadow.includes('lab') || comp.boxShadow.includes('oklch'))
-              ) {
-                node.style.boxShadow = 'none'
+            // 1. Strip lab, oklch, and color(srgb...) from all <style> tags in cloned document
+            const styleTags = clonedDoc.querySelectorAll('style')
+            styleTags.forEach((styleTag) => {
+              if (styleTag.innerHTML) {
+                styleTag.innerHTML = styleTag.innerHTML
+                  .replace(/lab\([^)]+\)/gi, '#0f172a')
+                  .replace(/oklch\([^)]+\)/gi, '#0f172a')
+                  .replace(/color\(srgb[^)]+\)/gi, '#0f172a')
               }
             })
+
+            const printable = clonedDoc.querySelector('.printable-area')
+            if (printable) {
+              // Ensure header table cells retain white text on dark slate
+              const darkThs = printable.querySelectorAll<HTMLElement>('thead tr:first-child th')
+              darkThs.forEach((th) => {
+                th.style.color = '#ffffff'
+                th.style.backgroundColor = '#0f172a'
+              })
+
+              const canvas = document.createElement('canvas')
+              canvas.width = 1
+              canvas.height = 1
+              const ctx = canvas.getContext('2d')
+
+              const fixOklchColor = (colorStr: string): string => {
+                if (!colorStr || colorStr === 'transparent' || colorStr === 'rgba(0, 0, 0, 0)') {
+                  return 'transparent'
+                }
+                if (
+                  colorStr.includes('lab') ||
+                  colorStr.includes('oklch') ||
+                  colorStr.includes('color(')
+                ) {
+                  if (ctx) {
+                    try {
+                      ctx.fillStyle = '#000000'
+                      ctx.fillStyle = colorStr
+                      const res = ctx.fillStyle
+                      if (res && !res.includes('lab') && !res.includes('oklch')) {
+                        return res
+                      }
+                    } catch {
+                      // Fallback
+                    }
+                  }
+                  return '#0f172a'
+                }
+                return colorStr
+              }
+
+              const allNodes = clonedDoc.querySelectorAll<HTMLElement>('*')
+              allNodes.forEach((node) => {
+                // Sanitize inline style attribute string directly if present
+                const styleAttr = node.getAttribute('style')
+                if (
+                  styleAttr &&
+                  (styleAttr.includes('lab') || styleAttr.includes('oklch') || styleAttr.includes('color('))
+                ) {
+                  node.setAttribute(
+                    'style',
+                    styleAttr
+                      .replace(/lab\([^)]+\)/gi, '#0f172a')
+                      .replace(/oklch\([^)]+\)/gi, '#0f172a')
+                      .replace(/color\(srgb[^)]+\)/gi, '#0f172a')
+                  )
+                }
+
+                const comp = window.getComputedStyle(node)
+                if (
+                  comp.color &&
+                  (comp.color.includes('lab') || comp.color.includes('oklch'))
+                ) {
+                  node.style.color = fixOklchColor(comp.color)
+                }
+                if (
+                  comp.backgroundColor &&
+                  (comp.backgroundColor.includes('lab') || comp.backgroundColor.includes('oklch'))
+                ) {
+                  node.style.backgroundColor = fixOklchColor(comp.backgroundColor)
+                }
+                if (
+                  comp.borderColor &&
+                  (comp.borderColor.includes('lab') || comp.borderColor.includes('oklch'))
+                ) {
+                  node.style.borderColor = fixOklchColor(comp.borderColor)
+                }
+                if (
+                  comp.boxShadow &&
+                  (comp.boxShadow.includes('lab') || comp.boxShadow.includes('oklch'))
+                ) {
+                  node.style.boxShadow = 'none'
+                }
+              })
+            }
           },
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       }
 
       await html2pdf().set(opt).from(element).save()
