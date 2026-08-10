@@ -41,6 +41,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
 
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([])
   const [taxPercentage, setTaxPercentage] = useState(18)
+  const [cashDiscount, setCashDiscount] = useState(0)
   const [notes, setNotes] = useState('')
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       )
       setLineItems(initialInvoice.items || [])
       setTaxPercentage(initialInvoice.taxPercentage ?? 18)
+      setCashDiscount(initialInvoice.cashDiscount?.discountAmount ?? 0)
       setNotes(initialInvoice.notes || '')
     } else {
       setInvoiceNumber(getNextInvoiceNumber())
@@ -151,7 +153,9 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   }, 0)
 
   const totalTax = (subtotal * (Number(taxPercentage) || 0)) / 100
+  const discountAmount = Number(cashDiscount) || 0
   const grandTotal = subtotal + totalTax
+  const totalAfterDiscount = Math.max(grandTotal - discountAmount, 0)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -196,6 +200,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       sameAsBillTo,
       items: formattedLineItems,
       taxPercentage: Number(taxPercentage) || 0,
+      cashDiscount: discountAmount ? { discountAmount } : undefined,
       notes,
       status: initialInvoice?.status || 'draft',
     }
@@ -696,6 +701,21 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Cash Discount (₹)
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={cashDiscount}
+              onChange={(e) => setCashDiscount(parseFloat(e.target.value) || 0)}
+              placeholder="e.g. 500.00"
+              className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Notes / Payment Terms
             </label>
             <textarea
@@ -737,10 +757,16 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                 ₹{totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
+            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+              <span>Cash Discount:</span>
+              <span className="font-semibold text-slate-900 dark:text-white">
+                -₹{discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
             <div className="border-t pt-2 flex justify-between font-bold text-base text-slate-900 dark:text-white">
-              <span>Total Amount after Tax:</span>
+              <span>Payable Amount:</span>
               <span className="text-blue-600 dark:text-blue-400">
-                ₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                ₹{totalAfterDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>

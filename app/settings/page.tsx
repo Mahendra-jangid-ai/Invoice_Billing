@@ -29,8 +29,8 @@ export default function SettingsPage() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert('File size is too large. Please select an image under 2MB.')
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size is too large. Please select an image under 5MB.')
         return
       }
       const reader = new FileReader()

@@ -28,6 +28,7 @@ export async function PUT(
       items: body.items || [],
       taxPercentage: Number(body.taxPercentage) || 0,
       notes: body.notes || '',
+      cashDiscount: body.cashDiscount || null,
       status: body.status,
       updatedAt: new Date(),
     }

@@ -58,6 +58,9 @@ export interface Invoice {
   items: InvoiceLineItem[]
   taxPercentage?: number
   notes?: string
+  cashDiscount?: {
+    discountAmount?: number
+  }
   status: 'draft' | 'finalized' | 'paid'
 }
 

@@ -1,15 +1,586 @@
 'use client'
 
+import { Document, Font, Image, Page, PDFViewer, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { useBilling, Invoice } from '@/lib/context'
+
+Font.register({
+  family: 'Roboto',
+  fonts: [
+    {
+      src: 'https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbWmT.ttf',
+    },
+    {
+      src: 'https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuYjammT.ttf',
+      fontWeight: 'bold',
+    },
+  ],
+})
 
 interface InvoicePreviewProps {
   invoice: Invoice
 }
 
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'column',
+    backgroundColor: '#ffffff',
+    padding: 10,
+    fontFamily: 'Roboto',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    borderBottomWidth: 1,
+    borderBottomColor: '#0f172a',
+    paddingBottom: 4,
+    marginBottom: 4,
+  },
+  headerLeft: {
+    width: '35%',
+    justifyContent: 'center',
+  },
+  headerRight: {
+    width: '65%',
+    alignItems: 'flex-end',
+  },
+  logoWrapper: {
+    maxWidth: 160,
+    maxHeight: 80,
+    alignSelf: 'flex-start',
+  },
+  logo: {
+    width: 'auto',
+    height: 'auto',
+    resizeMode: 'contain',
+  },
+  logoPlaceholder: {
+    backgroundColor: '#0f172a',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  titleText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    color: '#0f172a',
+  },
+  companyName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    color: '#0f172a',
+    marginBottom: 3,
+  },
+  mutedText: {
+    fontSize: 9,
+    color: '#475569',
+    marginBottom: 2,
+  },
+  boldText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#0f172a',
+  },
+  banner: {
+    backgroundColor: '#0f172a',
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    borderRadius: 10,
+  },
+  bannerText: {
+    color: '#ffffff',
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  bannerSubtitle: {
+    color: '#ffffff',
+    fontSize: 7.5,
+    opacity: 0.85,
+  },
+  topSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 12,
+  },
+  infoBox: {
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: '#f8fafc',
+  },
+  infoBoxTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#0f172a',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  infoBoxText: {
+    fontSize: 8,
+    color: '#475569',
+    lineHeight: 1.4,
+  },
+  invoiceMeta: {
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: '#ffffff',
+  },
+  invoiceMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  invoiceMetaLabel: {
+    fontSize: 7.5,
+    color: '#475569',
+    width: '48%',
+  },
+  invoiceMetaValue: {
+    fontSize: 8.5,
+    color: '#0f172a',
+    fontWeight: 'bold',
+    width: '48%',
+    textAlign: 'right',
+  },
+  sectionCard: {
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: '#ffffff',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  label: {
+    fontSize: 9,
+    color: '#475569',
+    width: '42%',
+  },
+  value: {
+    fontSize: 9,
+    color: '#0f172a',
+    width: '55%',
+  },
+  twoColumn: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    gap: 10,
+  },
+  half: {
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: '#ffffff',
+  },
+  cardTitle: {
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    color: '#0f172a',
+    marginBottom: 6,
+  },
+  table: {
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    backgroundColor: '#0f172a',
+    minHeight: 20,
+  },
+  tableHeaderCell: {
+    color: '#ffffff',
+    fontSize: 7,
+    fontWeight: 'bold',
+    paddingVertical: 5,
+    paddingHorizontal: 3,
+    borderRightWidth: 1,
+    borderRightColor: '#334155',
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    minHeight: 22,
+  },
+  tableCell: {
+    fontSize: 7.5,
+    color: '#0f172a',
+    paddingVertical: 4,
+    paddingHorizontal: 3,
+    borderRightWidth: 1,
+    borderRightColor: '#e2e8f0',
+  },
+  currencyCell: {
+    fontSize: 7.5,
+    color: '#0f172a',
+    paddingVertical: 4,
+    paddingHorizontal: 3,
+    borderRightWidth: 1,
+    borderRightColor: '#e2e8f0',
+    whiteSpace: 'nowrap',
+  },
+  tableRowEven: {
+    backgroundColor: '#f8fafc',
+  },
+  summaryCard: {
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#ffffff',
+  },
+  summaryLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  summaryLabel: {
+    fontSize: 8.5,
+    color: '#475569',
+  },
+  summaryValue: {
+    fontSize: 8.5,
+    color: '#0f172a',
+    fontWeight: 'bold',
+  },
+  summaryTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  summaryTotalLabel: {
+    fontSize: 9.5,
+    color: '#0f172a',
+    fontWeight: 'bold',
+  },
+  summaryTotalValue: {
+    fontSize: 11,
+    color: '#0f172a',
+    fontWeight: 'bold',
+  },
+  amountWordsBox: {
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: '#f8fafc',
+    marginBottom: 10,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    gap: 8,
+  },
+  footerBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 10,
+    padding: 8,
+    backgroundColor: '#f8fafc',
+  },
+  footerTitle: {
+    fontSize: 8.5,
+    fontWeight: 'bold',
+    marginBottom: 6,
+    color: '#0f172a',
+  },
+  signatureBox: {
+    borderTopWidth: 1,
+    borderTopColor: '#cbd5e1',
+    marginTop: 16,
+    paddingTop: 6,
+  },
+  totalBox: {
+    backgroundColor: '#0f172a',
+    color: '#ffffff',
+    padding: 8,
+    borderRadius: 6,
+    marginTop: 6,
+  },
+  totalText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+})
+
+function InvoicePdfDocument({
+  invoice,
+  company,
+  companyName,
+  companyAddress,
+  companyGst,
+  companyState,
+  companyStateCode,
+  contactLine,
+  billTo,
+  shipTo,
+  itemsList,
+  subtotal,
+  cgstPercentage,
+  sgstPercentage,
+  totalCgst,
+  totalSgst,
+  totalTax,
+  rawTotal,
+  roundedTotal,
+  roundOff,
+  getAmountInWords,
+}: {
+  invoice: Invoice
+  company: any
+  companyName: string
+  companyAddress: string
+  companyGst: string
+  companyState: string
+  companyStateCode: string
+  contactLine: string
+  billTo: any
+  shipTo: any
+  itemsList: any[]
+  subtotal: number
+  cgstPercentage: number
+  sgstPercentage: number
+  totalCgst: number
+  totalSgst: number
+  totalTax: number
+  rawTotal: number
+  roundedTotal: number
+  roundOff: number
+  getAmountInWords: (num: number) => string
+}) {
+  const cashDiscountAmount = invoice.cashDiscount?.discountAmount || 0
+  const totalAfterDiscount = rawTotal - cashDiscountAmount
+  const roundedNetTotal = Math.round(totalAfterDiscount)
+  const netRoundOff = roundedNetTotal - totalAfterDiscount
+
+  const formatCurrency = (value: number) => {
+    return `₹\u00A0${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+  }
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {company.logoUrl ? (
+              <View style={styles.logoWrapper}>
+                <Image src={company.logoUrl} style={styles.logo} />
+              </View>
+            ) : (
+              <View style={styles.logoPlaceholder}>
+                <Text style={styles.titleText}>{companyName}</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.headerRight}>
+            {company.logoUrl ? <Text style={styles.companyName}>{companyName}</Text> : null}
+            <Text style={styles.mutedText}>{companyAddress}</Text>
+            <Text style={styles.boldText}>GSTIN NO. : {companyGst}</Text>
+            {contactLine ? <Text style={styles.mutedText}>{contactLine}</Text> : null}
+          </View>
+        </View>
+
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>Tax Invoice</Text>
+          <Text style={styles.bannerSubtitle}>Original for Recipient</Text>
+        </View>
+
+        <View style={styles.topSection}>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoBoxTitle}>Supplier</Text>
+            <Text style={styles.infoBoxText}>{companyName}</Text>
+            <Text style={styles.infoBoxText}>{companyAddress}</Text>
+            <Text style={styles.infoBoxText}>GSTIN: {companyGst}</Text>
+            {contactLine ? <Text style={styles.infoBoxText}>{contactLine}</Text> : null}
+          </View>
+
+          <View style={styles.invoiceMeta}>
+            <View style={styles.invoiceMetaRow}>
+              <Text style={styles.invoiceMetaLabel}>Invoice No</Text>
+              <Text style={styles.invoiceMetaValue}>{invoice.invoiceNumber || '-'}</Text>
+            </View>
+            <View style={styles.invoiceMetaRow}>
+              <Text style={styles.invoiceMetaLabel}>Invoice Date</Text>
+              <Text style={styles.invoiceMetaValue}>{invoice.date ? new Date(invoice.date).toLocaleDateString('en-GB') : '-'}</Text>
+            </View>
+            <View style={styles.invoiceMetaRow}>
+              <Text style={styles.invoiceMetaLabel}>WO No.</Text>
+              <Text style={styles.invoiceMetaValue}>{invoice.woNumber || '-'}</Text>
+            </View>
+            <View style={styles.invoiceMetaRow}>
+              <Text style={styles.invoiceMetaLabel}>Description</Text>
+              <Text style={styles.invoiceMetaValue}>{invoice.descriptionOfService || '-'}</Text>
+            </View>
+            <View style={styles.invoiceMetaRow}>
+              <Text style={styles.invoiceMetaLabel}>Period of Service</Text>
+              <Text style={styles.invoiceMetaValue}>{invoice.periodOfService || '-'}</Text>
+            </View>
+            <View style={styles.invoiceMetaRow}>
+              <Text style={styles.invoiceMetaLabel}>Charge Type</Text>
+              <Text style={styles.invoiceMetaValue}>{invoice.reverseCharge || 'No'}</Text>
+            </View>
+            <View style={styles.invoiceMetaRow}>
+              <Text style={styles.invoiceMetaLabel}>Place of Supply</Text>
+              <Text style={styles.invoiceMetaValue}>{invoice.placeOfService || companyState}</Text>
+            </View>
+            <View style={styles.invoiceMetaRow}>
+              <Text style={styles.invoiceMetaLabel}>Place of Supply Code</Text>
+              <Text style={styles.invoiceMetaValue}>{invoice.placeOfServiceCode || companyStateCode}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.twoColumn}>
+          <View style={styles.half}>
+            <Text style={styles.cardTitle}>Bill To</Text>
+            <Text style={styles.boldText}>{billTo.name || '-'}</Text>
+            <Text style={styles.mutedText}>{billTo.address || '-'}</Text>
+            <Text style={styles.mutedText}>GSTIN: {billTo.gstin || '-'}</Text>
+            <Text style={styles.mutedText}>State: {billTo.state || '-'} ({billTo.code || '-'})</Text>
+          </View>
+          <View style={styles.half}>
+            <Text style={styles.cardTitle}>Ship To</Text>
+            <Text style={styles.boldText}>{shipTo.name || billTo.name || '-'}</Text>
+            <Text style={styles.mutedText}>{shipTo.address || billTo.address || '-'}</Text>
+            <Text style={styles.mutedText}>GSTIN: {shipTo.gstin || billTo.gstin || '-'}</Text>
+            <Text style={styles.mutedText}>State: {shipTo.state || billTo.state || '-'} ({shipTo.code || billTo.code || '-'})</Text>
+          </View>
+        </View>
+
+        <View style={styles.table}>
+          <View style={styles.tableHeaderRow}>
+            <Text style={[styles.tableHeaderCell, { width: 32 }]}>Sr.</Text>
+            <Text style={[styles.tableHeaderCell, { width: 180 }]}>Description</Text>
+            <Text style={[styles.tableHeaderCell, { width: 42 }]}>SAC</Text>
+            <Text style={[styles.tableHeaderCell, { width: 36 }]}>Unit</Text>
+            <Text style={[styles.tableHeaderCell, { width: 36 }]}>Qty</Text>
+            <Text style={[styles.tableHeaderCell, { width: 64 }]}>Rate</Text>
+            <Text style={[styles.tableHeaderCell, { width: 64 }]}>Taxable</Text>
+            <Text style={[styles.tableHeaderCell, { width: 46 }]}>CGST</Text>
+            <Text style={[styles.tableHeaderCell, { width: 46 }]}>SGST</Text>
+            <Text style={[styles.tableHeaderCell, { width: 64 }]}>Total</Text>
+          </View>
+
+          {itemsList.map((item, index) => {
+            const qty = Number(item.quantity) || 0
+            const rate = Number(item.rate) || 0
+            const lineAmount = qty * rate
+            const lineCgst = (lineAmount * cgstPercentage) / 100
+            const lineSgst = (lineAmount * sgstPercentage) / 100
+            const lineTotal = lineAmount + lineCgst + lineSgst
+
+            return (
+              <View
+                key={index}
+                style={[
+                  styles.tableRow,
+                  index % 2 === 0 ? styles.tableRowEven : undefined,
+                ]}
+              >
+                <Text style={[styles.tableCell, { width: 32, textAlign: 'center' }]}>{index + 1}</Text>
+                <Text style={[styles.tableCell, { width: 180 }]}>{item.description || 'Service / Product'}</Text>
+                <Text style={[styles.tableCell, { width: 42, textAlign: 'center' }]}>{item.sacCode || '9954'}</Text>
+                <Text style={[styles.tableCell, { width: 36, textAlign: 'center' }]}>{item.unit || 'Nos'}</Text>
+                <Text style={[styles.tableCell, { width: 36, textAlign: 'center' }]}>{qty}</Text>
+                <Text style={[styles.currencyCell, { width: 64, textAlign: 'right' }]}>{rate ? formatCurrency(rate) : '-'}</Text>
+                <Text style={[styles.currencyCell, { width: 64, textAlign: 'right' }]}>{formatCurrency(lineAmount)}</Text>
+                <Text style={[styles.currencyCell, { width: 46, textAlign: 'right' }]}>{formatCurrency(lineCgst)}</Text>
+                <Text style={[styles.currencyCell, { width: 46, textAlign: 'right' }]}>{formatCurrency(lineSgst)}</Text>
+                <Text style={[styles.currencyCell, { width: 64, textAlign: 'right', borderRightWidth: 0 }]}>{formatCurrency(lineTotal)}</Text>
+              </View>
+            )
+          })}
+        </View>
+
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryLine}>
+            <Text style={styles.summaryLabel}>Taxable Value</Text>
+            <Text style={styles.summaryValue}>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.summaryLine}>
+            <Text style={styles.summaryLabel}>Total CGST ({cgstPercentage}%)</Text>
+            <Text style={styles.summaryValue}>₹{totalCgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.summaryLine}>
+            <Text style={styles.summaryLabel}>Total SGST ({sgstPercentage}%)</Text>
+            <Text style={styles.summaryValue}>₹{totalSgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.summaryLine}>
+            <Text style={styles.summaryLabel}>Cash Discount</Text>
+            <Text style={styles.summaryValue}>-₹{cashDiscountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.summaryTotalRow}>
+            <Text style={styles.summaryTotalLabel}>Total Amount Payable</Text>
+            <Text style={styles.summaryTotalValue}>₹{roundedNetTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+          </View>
+        </View>
+
+        <View style={styles.amountWordsBox}>
+          <Text style={{ fontSize: 9, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 4 }}>Amount in Words</Text>
+          <Text style={{ fontSize: 9, color: '#0f172a' }}>INR {getAmountInWords(roundedNetTotal)}</Text>
+        </View>
+
+        <View style={styles.footerRow}>
+          <View style={styles.footerBox}>
+            <Text style={styles.footerTitle}>Bank Details</Text>
+            <Text style={styles.mutedText}>Bank Name: {company.bankName || 'Axis Bank'}</Text>
+            <Text style={styles.mutedText}>A/C Name: {company.bankAccountName || `${companyName} Bank A/c No.`}</Text>
+            <Text style={styles.mutedText}>A/C No: {company.bankAccountNumber || '923020047215171'}</Text>
+            <Text style={styles.mutedText}>IFSC: {company.bankIfsc || 'UTIB0001584'}</Text>
+            <Text style={styles.mutedText}>Branch: {company.bankBranch || 'OLD NAGARDAS ROAD'}</Text>
+          </View>
+
+          <View style={styles.footerBox}>
+            <Text style={styles.footerTitle}>Terms & Signature</Text>
+            <Text style={styles.mutedText}>Payment due within 15 days of invoice date. Late payment may attract interest.</Text>
+            <View style={styles.signatureBox}>
+              <Text style={{ fontSize: 9, color: '#0f172a', fontWeight: 'bold' }}>Authorised Signature</Text>
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
 export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   const { customers, company } = useBilling()
 
-  // Find customer if billTo is not directly stored
   const customer = customers.find(
     (c) => String(c.id) === String(invoice.customerId)
   )
@@ -111,396 +682,34 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   const contactLine = [contactPerson, companyPhone].filter(Boolean).join(' • ')
 
   return (
-    <div
-      className="printable-area mx-auto w-[760px] max-w-full rounded-xl border border-slate-300 bg-white p-5 text-slate-900 font-sans shadow-md space-y-4"
-      style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
-    >
-      {/* 1. Header Block: Top Left Logo + Right Company Profile */}
-      <div className="flex items-center justify-between pb-3 border-b-2 border-slate-900 gap-4" style={{ borderColor: '#0f172a' }}>
-        {/* Top-Left Logo Container */}
-        <div className="w-1/3 flex justify-start items-center">
-          {company.logoUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={company.logoUrl}
-              alt={companyName}
-              className="max-h-20 max-w-[200px] object-contain"
+    <div className="w-full rounded-xl border border-slate-300 bg-white p-4 shadow-sm soft-card">
+      <div className="mb-3 text-sm font-semibold text-slate-700">PDF Preview</div>
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-2">
+          <PDFViewer style={{ width: '100%', height: '1000px', backgroundColor: '#ffffff' }}>
+            <InvoicePdfDocument
+            invoice={invoice}
+            company={company}
+            companyName={companyName}
+            companyAddress={companyAddress}
+            companyGst={companyGst}
+            companyState={companyState}
+            companyStateCode={companyStateCode}
+            contactLine={contactLine}
+            billTo={billTo}
+            shipTo={shipTo}
+            itemsList={itemsList}
+            subtotal={subtotal}
+            cgstPercentage={cgstPercentage}
+            sgstPercentage={sgstPercentage}
+            totalCgst={totalCgst}
+            totalSgst={totalSgst}
+            totalTax={totalTax}
+            rawTotal={rawTotal}
+            roundedTotal={roundedTotal}
+            roundOff={roundOff}
+            getAmountInWords={getAmountInWords}
             />
-          ) : (
-            <div
-              className="rounded-lg px-3 py-2"
-              style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
-            >
-              <h1 className="text-xl font-black uppercase tracking-wider" style={{ color: '#ffffff' }}>
-                {companyName}
-              </h1>
-            </div>
-          )}
-        </div>
-
-        {/* Company Info (Right Aligned) */}
-        <div className="w-2/3 flex flex-col items-end text-right space-y-1">
-          {company.logoUrl && (
-            <h1 className="text-xl font-black uppercase tracking-wide" style={{ color: '#0f172a' }}>
-              {companyName}
-            </h1>
-          )}
-
-          <p className="font-medium text-[11px] leading-snug max-w-md" style={{ color: '#334155' }}>
-            {companyAddress}
-          </p>
-
-          <div className="flex flex-col items-end pt-1 space-y-0.5 text-[11px]">
-            <p className="font-bold" style={{ color: '#0f172a' }}>
-              GSTIN NO. : {companyGst}
-            </p>
-            {contactLine && (
-              <p className="font-semibold" style={{ color: '#1e293b' }}>
-                {contactLine}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Banner Title: TAX INVOICE */}
-      <div
-        className="flex items-center justify-between px-4 py-2 rounded-lg"
-        style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
-      >
-        <span className="text-sm font-extrabold uppercase tracking-widest" style={{ color: '#ffffff' }}>
-          TAX INVOICE
-        </span>
-        <span className="text-[11px] font-semibold" style={{ color: '#cbd5e1' }}>
-          Original for Recipient
-        </span>
-      </div>
-
-      {/* 3. Invoice Metadata Grid (Aligned Key-Value Layout) */}
-      <div
-        className="grid grid-cols-2 gap-4 rounded-lg border p-3 text-[11px]"
-        style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}
-      >
-        {/* Left Column Metadata */}
-        <div className="space-y-1.5 border-r pr-3" style={{ borderColor: '#cbd5e1' }}>
-          <div className="flex items-center">
-            <span className="font-semibold w-36 shrink-0" style={{ color: '#475569' }}>Invoice Number:</span>
-            <span className="font-bold" style={{ color: '#0f172a' }}>{invoice.invoiceNumber || '-'}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="font-semibold w-36 shrink-0" style={{ color: '#475569' }}>Date of Issue:</span>
-            <span className="font-medium" style={{ color: '#0f172a' }}>
-              {invoice.date ? new Date(invoice.date).toLocaleDateString('en-GB') : '-'}
-            </span>
-          </div>
-          <div className="flex items-center">
-            <span className="font-semibold w-36 shrink-0" style={{ color: '#475569' }}>Reverse Charge:</span>
-            <span className="font-bold" style={{ color: '#0f172a' }}>{invoice.reverseCharge || 'No'}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="font-semibold w-36 shrink-0" style={{ color: '#475569' }}>Supplier State & Code:</span>
-            <span className="font-bold" style={{ color: '#0f172a' }}>
-              {invoice.companyState || companyState} ({invoice.companyStateCode || companyStateCode})
-            </span>
-          </div>
-        </div>
-
-        {/* Right Column Metadata */}
-        <div className="space-y-1.5 pl-1">
-          <div className="flex items-center">
-            <span className="font-semibold w-36 shrink-0" style={{ color: '#475569' }}>Work Order (WO) No:</span>
-            <span className="font-bold" style={{ color: '#0f172a' }}>{invoice.woNumber || '-'}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="font-semibold w-36 shrink-0" style={{ color: '#475569' }}>Description of Service:</span>
-            <span className="font-medium" style={{ color: '#0f172a' }}>{invoice.descriptionOfService || '-'}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="font-semibold w-36 shrink-0" style={{ color: '#475569' }}>Period of Service:</span>
-            <span className="font-medium" style={{ color: '#0f172a' }}>{invoice.periodOfService || '-'}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="font-semibold w-36 shrink-0" style={{ color: '#475569' }}>Place of Service:</span>
-            <span className="font-medium" style={{ color: '#0f172a' }}>{invoice.placeOfService || '-'}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Parties Cards: Bill To vs. Ship To */}
-      <div className="grid grid-cols-2 gap-3 text-[11px]">
-        {/* Bill to Party Card */}
-        <div className="rounded-lg border bg-white p-3 space-y-1 shadow-sm" style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0' }}>
-          <div className="flex items-center justify-between border-b pb-2 mb-1" style={{ borderColor: '#e2e8f0' }}>
-            <span className="font-bold uppercase tracking-wider text-[11px]" style={{ color: '#0f172a' }}>
-              Bill to Party
-            </span>
-            <span
-              className="inline-flex items-center justify-center rounded-full px-2.5 py-1 text-[10px] font-bold leading-none shrink-0"
-              style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}
-            >
-              Billing
-            </span>
-          </div>
-          <p className="font-bold text-xs pt-0.5" style={{ color: '#0f172a' }}>{billTo.name || '-'}</p>
-          <p className="leading-snug font-normal" style={{ color: '#334155' }}>{billTo.address || '-'}</p>
-          <div className="pt-1 flex flex-wrap items-center gap-2 text-[10px]">
-            <span className="font-semibold" style={{ color: '#475569' }}>GSTIN: <span className="font-bold" style={{ color: '#0f172a' }}>{billTo.gstin || '-'}</span></span>
-            <span style={{ color: '#cbd5e1' }}>•</span>
-            <span className="font-semibold" style={{ color: '#475569' }}>State: <span className="font-bold" style={{ color: '#0f172a' }}>{billTo.state || '-'} ({billTo.code || '-'})</span></span>
-          </div>
-        </div>
-
-        {/* Ship to Party Card */}
-        <div className="rounded-lg border bg-white p-3 space-y-1 shadow-sm" style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0' }}>
-          <div className="flex items-center justify-between border-b pb-2 mb-1" style={{ borderColor: '#e2e8f0' }}>
-            <span className="font-bold uppercase tracking-wider text-[11px]" style={{ color: '#0f172a' }}>
-              Ship to Party (Site Address)
-            </span>
-            <span
-              className="inline-flex items-center justify-center rounded-full px-2.5 py-1 text-[10px] font-bold leading-none shrink-0"
-              style={{ backgroundColor: '#d1fae5', color: '#065f46' }}
-            >
-              Shipping
-            </span>
-          </div>
-          <p className="font-bold text-xs pt-0.5" style={{ color: '#0f172a' }}>{shipTo.name || billTo.name || '-'}</p>
-          <p className="leading-snug font-normal" style={{ color: '#334155' }}>{shipTo.address || billTo.address || '-'}</p>
-          <div className="pt-1 flex flex-wrap items-center gap-2 text-[10px]">
-            <span className="font-semibold" style={{ color: '#475569' }}>GSTIN: <span className="font-bold" style={{ color: '#0f172a' }}>{shipTo.gstin || billTo.gstin || '-'}</span></span>
-            <span style={{ color: '#cbd5e1' }}>•</span>
-            <span className="font-semibold" style={{ color: '#475569' }}>State: <span className="font-bold" style={{ color: '#0f172a' }}>{shipTo.state || billTo.state || '-'} ({shipTo.code || billTo.code || '-'})</span></span>
-          </div>
-        </div>
-      </div>
-
-      {/* 5. Products & Services Table (With Explicit Styles on EVERY TH Cell) */}
-      <div className="rounded-lg border overflow-hidden shadow-sm" style={{ borderColor: '#cbd5e1' }}>
-        <table className="w-full border-collapse text-[11px] text-left">
-          <thead>
-            <tr className="align-middle">
-              <th rowSpan={2} className="p-2 text-center border-r align-middle font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#334155', width: '38px' }}>Sr.</th>
-              <th rowSpan={2} className="p-2 text-left border-r align-middle font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#334155' }}>Product / Service Description</th>
-              <th rowSpan={2} className="p-2 text-center border-r align-middle font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#334155', width: '55px' }}>SAC</th>
-              <th rowSpan={2} className="p-2 text-center border-r align-middle font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#334155', width: '45px' }}>Unit</th>
-              <th rowSpan={2} className="p-2 text-center border-r align-middle font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#334155', width: '38px' }}>Qty</th>
-              <th rowSpan={2} className="p-2 text-right border-r align-middle font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#334155', width: '75px' }}>Rate</th>
-              <th rowSpan={2} className="p-2 text-right border-r align-middle font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#334155', width: '85px' }}>Taxable Value</th>
-              <th colSpan={2} className="p-1.5 text-center border-r font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#334155' }}>
-                CGST
-              </th>
-              <th colSpan={2} className="p-1.5 text-center border-r font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#334155' }}>
-                SGST
-              </th>
-              <th rowSpan={2} className="p-2 text-right align-middle font-bold" style={{ backgroundColor: '#0f172a', color: '#ffffff', width: '90px' }}>Total</th>
-            </tr>
-            <tr className="align-middle border-b" style={{ borderColor: '#cbd5e1' }}>
-              <th className="p-1 text-center border-r font-semibold text-[10px]" style={{ backgroundColor: '#f1f5f9', color: '#0f172a', borderColor: '#cbd5e1', width: '38px' }}>Rate</th>
-              <th className="p-1 text-right border-r font-semibold text-[10px]" style={{ backgroundColor: '#f1f5f9', color: '#0f172a', borderColor: '#cbd5e1', width: '65px' }}>Amount</th>
-              <th className="p-1 text-center border-r font-semibold text-[10px]" style={{ backgroundColor: '#f1f5f9', color: '#0f172a', borderColor: '#cbd5e1', width: '38px' }}>Rate</th>
-              <th className="p-1 text-right border-r font-semibold text-[10px]" style={{ backgroundColor: '#f1f5f9', color: '#0f172a', borderColor: '#cbd5e1', width: '65px' }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {itemsList.map((item, index) => {
-              const qty = Number(item.quantity) || 0
-              const rate = Number(item.rate) || 0
-              const lineAmount = qty * rate
-              const lineCgst = (lineAmount * cgstPercentage) / 100
-              const lineSgst = (lineAmount * sgstPercentage) / 100
-              const lineTotal = lineAmount + lineCgst + lineSgst
-
-              return (
-                <tr
-                  key={index}
-                  className="border-b text-[11px]"
-                  style={{ borderColor: '#e2e8f0', backgroundColor: '#ffffff' }}
-                >
-                  <td className="p-2 text-center font-medium border-r" style={{ color: '#64748b', borderColor: '#e2e8f0' }}>
-                    {index + 1}
-                  </td>
-                  <td className="p-2 font-semibold border-r" style={{ color: '#0f172a', borderColor: '#e2e8f0' }}>
-                    {item.description || 'Service / Product'}
-                  </td>
-                  <td className="p-2 text-center border-r font-mono text-[10px]" style={{ color: '#475569', borderColor: '#e2e8f0' }}>
-                    {item.sacCode || '9954'}
-                  </td>
-                  <td className="p-2 text-center border-r font-medium" style={{ color: '#475569', borderColor: '#e2e8f0' }}>
-                    {item.unit || 'Nos'}
-                  </td>
-                  <td className="p-2 text-center border-r font-bold" style={{ color: '#0f172a', borderColor: '#e2e8f0' }}>
-                    {qty}
-                  </td>
-                  <td className="p-2 text-right border-r font-medium" style={{ color: '#1e293b', borderColor: '#e2e8f0' }}>
-                    ₹{rate ? rate.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '-'}
-                  </td>
-                  <td className="p-2 text-right border-r font-medium" style={{ color: '#0f172a', borderColor: '#e2e8f0' }}>
-                    ₹{lineAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="p-1 text-center border-r text-[10px]" style={{ color: '#64748b', borderColor: '#e2e8f0' }}>
-                    {cgstPercentage}%
-                  </td>
-                  <td className="p-1 text-right border-r text-[10px]" style={{ color: '#334155', borderColor: '#e2e8f0' }}>
-                    ₹{lineCgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="p-1 text-center border-r text-[10px]" style={{ color: '#64748b', borderColor: '#e2e8f0' }}>
-                    {sgstPercentage}%
-                  </td>
-                  <td className="p-1 text-right border-r text-[10px]" style={{ color: '#334155', borderColor: '#e2e8f0' }}>
-                    ₹{lineSgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="p-2 text-right font-bold" style={{ color: '#0f172a' }}>
-                    ₹{lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              )
-            })}
-
-            {/* Total Summary Row */}
-            <tr className="border-t-2 font-bold text-[11px]" style={{ backgroundColor: '#f1f5f9', color: '#0f172a', borderColor: '#0f172a' }}>
-              <td className="p-2 text-center border-r" colSpan={4} style={{ color: '#0f172a', borderColor: '#cbd5e1' }}>
-                TOTAL SUMMARY
-              </td>
-              <td className="p-2 text-center border-r font-bold" style={{ color: '#0f172a', borderColor: '#cbd5e1' }}>
-                {itemsList.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0)}
-              </td>
-              <td className="p-2 border-r" style={{ borderColor: '#cbd5e1' }}></td>
-              <td className="p-2 text-right border-r font-bold" style={{ color: '#0f172a', borderColor: '#cbd5e1' }}>
-                ₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </td>
-              <td className="p-1 border-r" style={{ borderColor: '#cbd5e1' }}></td>
-              <td className="p-1 text-right border-r font-bold" style={{ color: '#0f172a', borderColor: '#cbd5e1' }}>
-                ₹{totalCgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </td>
-              <td className="p-1 border-r" style={{ borderColor: '#cbd5e1' }}></td>
-              <td className="p-1 text-right border-r font-bold" style={{ color: '#0f172a', borderColor: '#cbd5e1' }}>
-                ₹{totalSgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </td>
-              <td className="p-2 text-right font-bold" style={{ color: '#0f172a' }}>
-                ₹{rawTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* 6. Footer Section: Amount in Words, Bank Details, Seal vs. Totals Summary */}
-      <div className="space-y-3">
-        {/* Amount in Words Card */}
-        <div
-          className="rounded-lg border p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 text-[11px]"
-          style={{ backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }}
-        >
-          <span className="font-bold uppercase tracking-wider shrink-0" style={{ color: '#1e3a8a' }}>
-            Total Invoice Amount in Words:
-          </span>
-          <span className="font-extrabold text-xs italic" style={{ color: '#0f172a' }}>
-            INR {getAmountInWords(roundedTotal)}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-12 gap-3 text-[11px]">
-          {/* Left Column: Bank Details & Common Seal */}
-          <div className="col-span-7 space-y-3">
-            {/* Bank Details Box */}
-            <div
-              className="rounded-lg border p-3 space-y-1.5"
-              style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}
-            >
-              <h3 className="font-bold border-b pb-1 uppercase text-[10px] tracking-wider" style={{ color: '#0f172a', borderColor: '#cbd5e1' }}>
-                Bank Account Details (Payment via NEFT/RTGS)
-              </h3>
-              <div className="space-y-1 text-[11px]">
-                <div className="flex items-center">
-                  <span className="font-semibold w-28 shrink-0" style={{ color: '#475569' }}>Bank Name:</span>
-                  <span className="font-bold" style={{ color: '#0f172a' }}>{company.bankName || 'Axis Bank'}</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="font-semibold w-28 shrink-0" style={{ color: '#475569' }}>Bank A/c Name:</span>
-                  <span className="font-bold" style={{ color: '#0f172a' }}>
-                    {company.bankAccountName || `${companyName} Bank A/c No.`} {company.bankAccountNumber || '923020047215171'}
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <span className="font-semibold w-28 shrink-0" style={{ color: '#475569' }}>IFSC Code:</span>
-                  <span className="font-bold" style={{ color: '#0f172a' }}>{company.bankIfsc || 'UTIB0001584'}</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="font-semibold w-28 shrink-0" style={{ color: '#475569' }}>Branch:</span>
-                  <span className="font-bold" style={{ color: '#0f172a' }}>{company.bankBranch || 'OLD NAGARDAS ROAD'}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Common Seal Box */}
-            <div
-              className="rounded-lg border border-dashed p-2.5 text-center font-semibold uppercase text-[10px] tracking-widest"
-              style={{ backgroundColor: '#f8fafc', color: '#94a3b8', borderColor: '#cbd5e1' }}
-            >
-              Common Seal
-            </div>
-          </div>
-
-          {/* Right Column: Totals Breakdown & Authorised Signatory */}
-          <div className="col-span-5 flex flex-col justify-between space-y-3">
-            <div
-              className="rounded-lg border p-3 space-y-1 text-[11px]"
-              style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}
-            >
-              <div className="flex justify-between py-0.5">
-                <span style={{ color: '#475569' }}>Total Amount before Tax:</span>
-                <span className="font-bold" style={{ color: '#0f172a' }}>
-                  ₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between py-0.5">
-                <span style={{ color: '#475569' }}>Add: CGST ({cgstPercentage}%):</span>
-                <span className="font-semibold" style={{ color: '#0f172a' }}>
-                  ₹{totalCgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between py-0.5">
-                <span style={{ color: '#475569' }}>Add: SGST ({sgstPercentage}%):</span>
-                <span className="font-semibold" style={{ color: '#0f172a' }}>
-                  ₹{totalSgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between border-t pt-1" style={{ borderColor: '#cbd5e1' }}>
-                <span className="font-semibold" style={{ color: '#334155' }}>Total Tax Amount:</span>
-                <span className="font-bold" style={{ color: '#0f172a' }}>
-                  ₹{totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between py-0.5">
-                <span style={{ color: '#475569' }}>Round Off:</span>
-                <span className="font-mono" style={{ color: '#1e293b' }}>
-                  {roundOff >= 0 ? `+${roundOff.toFixed(2)}` : roundOff.toFixed(2)}
-                </span>
-              </div>
-              <div
-                className="flex justify-between items-center border-t-2 pt-1.5 p-2 rounded mt-1"
-                style={{ backgroundColor: '#0f172a', color: '#ffffff', borderColor: '#0f172a' }}
-              >
-                <span className="font-bold text-[10px] uppercase tracking-wider" style={{ color: '#ffffff' }}>Total Amount after Tax:</span>
-                <span className="font-extrabold text-sm" style={{ color: '#ffffff' }}>
-                  ₹{roundedTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-
-            {/* Authorised Signatory Box */}
-            <div
-              className="rounded-lg border p-2.5 flex flex-col justify-between h-20 text-right bg-white"
-              style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0' }}
-            >
-              <p className="font-bold text-[10px]" style={{ color: '#0f172a' }}>
-                For {companyName}
-              </p>
-              <p className="font-bold text-[10px] border-t pt-1 inline-block ml-auto" style={{ color: '#64748b', borderColor: '#e2e8f0' }}>
-                Authorised Signatory
-              </p>
-            </div>
-          </div>
-        </div>
+          </PDFViewer>
       </div>
     </div>
   )

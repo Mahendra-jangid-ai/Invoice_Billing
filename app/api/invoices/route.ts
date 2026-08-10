@@ -24,6 +24,7 @@ export async function GET() {
       items: inv.items || [],
       taxPercentage: Number(inv.taxPercentage) || 0,
       notes: inv.notes || '',
+      cashDiscount: inv.cashDiscount || null,
       status: inv.status || 'draft',
     }))
     return NextResponse.json(formatted)
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
       items: body.items || [],
       taxPercentage: Number(body.taxPercentage) || 0,
       notes: body.notes || '',
+      cashDiscount: body.cashDiscount || null,
       status: body.status || 'draft',
       createdAt: new Date(),
     }
