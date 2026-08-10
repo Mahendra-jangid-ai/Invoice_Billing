@@ -15,6 +15,13 @@ export async function GET() {
         pan: '',
         state: '',
         code: '',
+        logoUrl: '',
+        contactPerson: '',
+        bankName: '',
+        bankAccountName: '',
+        bankAccountNumber: '',
+        bankIfsc: '',
+        bankBranch: '',
       })
     }
 
@@ -23,10 +30,17 @@ export async function GET() {
       address: company.address || '',
       phone: company.phone || '',
       email: company.email || '',
+      contactPerson: company.contactPerson || '',
       gstnumber: company.gstnumber || '',
       pan: company.pan || '',
       state: company.state || '',
       code: company.code || '',
+      logoUrl: company.logoUrl || '',
+      bankName: company.bankName || '',
+      bankAccountName: company.bankAccountName || '',
+      bankAccountNumber: company.bankAccountNumber || '',
+      bankIfsc: company.bankIfsc || '',
+      bankBranch: company.bankBranch || '',
     })
   } catch (error) {
     console.error('Failed to fetch company profile:', error)
@@ -44,10 +58,17 @@ export async function PUT(request: Request) {
       address: body.address || '',
       phone: body.phone || '',
       email: body.email || '',
+      contactPerson: body.contactPerson || '',
       gstnumber: body.gstnumber || '',
       pan: body.pan || '',
       state: body.state || '',
       code: body.code || '',
+      logoUrl: body.logoUrl || '',
+      bankName: body.bankName || '',
+      bankAccountName: body.bankAccountName || '',
+      bankAccountNumber: body.bankAccountNumber || '',
+      bankIfsc: body.bankIfsc || '',
+      bankBranch: body.bankBranch || '',
       updatedAt: new Date(),
     }
 

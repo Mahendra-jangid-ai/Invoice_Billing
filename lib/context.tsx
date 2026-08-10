@@ -9,6 +9,8 @@ export interface Customer {
   phone: string
   address: string
   gstnumber: string
+  state?: string
+  code?: string
 }
 
 export interface Item {
@@ -21,17 +23,40 @@ export interface Item {
 
 export interface InvoiceLineItem {
   itemId: string
+  description?: string
+  sacCode?: string
+  unit?: string
   quantity: number
   rate: number
+  taxRate?: number
+}
+
+export interface InvoiceParty {
+  name: string
+  address: string
+  gstin: string
+  state: string
+  code: string
 }
 
 export interface Invoice {
   id: string
   invoiceNumber: string
   date: string
-  customerId: string
+  reverseCharge?: string
+  companyState?: string
+  companyStateCode?: string
+  woNumber?: string
+  descriptionOfService?: string
+  periodOfService?: string
+  placeOfService?: string
+  placeOfServiceCode?: string
+  customerId?: string
+  billTo?: InvoiceParty
+  shipTo?: InvoiceParty
+  sameAsBillTo?: boolean
   items: InvoiceLineItem[]
-  taxPercentage: number
+  taxPercentage?: number
   notes?: string
   status: 'draft' | 'finalized' | 'paid'
 }
@@ -41,10 +66,17 @@ export interface Company {
   address: string
   phone: string
   email: string
+  contactPerson?: string
   gstnumber: string
   pan: string
   state: string
   code: string
+  logoUrl?: string
+  bankName?: string
+  bankAccountName?: string
+  bankAccountNumber?: string
+  bankIfsc?: string
+  bankBranch?: string
 }
 
 interface BillingContextType {
@@ -78,10 +110,17 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
     address: '',
     phone: '',
     email: '',
+    contactPerson: '',
     gstnumber: '',
     pan: '',
     state: '',
     code: '',
+    logoUrl: '',
+    bankName: '',
+    bankAccountName: '',
+    bankAccountNumber: '',
+    bankIfsc: '',
+    bankBranch: '',
   })
 
   // Fetch initial data from MongoDB API routes
