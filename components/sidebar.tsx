@@ -72,8 +72,8 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
     >
       <div className="flex h-full flex-col">
         <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-4 md:hidden">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#111827] text-base font-semibold text-white shadow-sm shadow-[#111827]/20">
-            BS
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm">
+            <img src="/logo.png" alt="Billing Studio logo" className="h-9 w-auto object-contain" />
           </div>
           <button
             type="button"
@@ -85,7 +85,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
         </div>
 
         <div className="border-b border-[#E5E7EB] px-6 py-4">
-          <h1 className="text-base font-semibold text-[#111827]">Billing Studio</h1>
+          <img src="/logo.png" alt="Billing Studio logo" className="h-15 justify-content-center w-auto object-contain" />
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-4">
@@ -121,7 +121,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
         </div>
 
         <div className="border-t border-[#E5E7EB] px-6 py-4">
-          <p className="text-xs text-[#6B7280]">© 2025 Billing Studio</p>
+          <p className="text-xs text-[#6B7280]">© 2025 <img src="/logo.png" alt="Billing Studio logo" className="inline-block ml-1 h-4 w-auto object-contain" /></p>
         </div>
       </div>
     </aside>

@@ -179,15 +179,75 @@ export default function SettingsPage() {
     <AppLayout>
       <div className="space-y-6">
         <section className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-6 shadow-sm">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#6B7280]">Settings</p>
-              <h1 className="mt-2 text-3xl font-semibold text-[#111827]">Website preferences and security</h1>
-              <p className="mt-2 max-w-2xl text-sm text-[#4B5563]">Change the public-facing name, support details, language, and manage active sessions for this web app.</p>
+          <div className="grid gap-6 xl:grid-cols-[1.3fr_0.95fr]">
+            <div className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#6B7280]">Website settings</p>
+                <h1 className="mt-2 text-3xl font-semibold text-[#111827]">Public-facing preferences</h1>
+                <p className="mt-2 max-w-2xl text-sm text-[#4B5563]">Update the name, contact details, and footer text shown across your billing portal.</p>
+                {settings.updatedAt && (
+                  <p className="mt-3 text-sm text-[#6B7280]">Last updated {new Date(settings.updatedAt).toLocaleString()}</p>
+                )}
+                {error && (
+                  <div className="mt-4 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-[#B91C1C]">
+                    {error}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 grid gap-4">
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-[#111827]">Website name</label>
+                  <Input
+                    value={settings.websiteName}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, websiteName: e.target.value }))}
+                    placeholder="Website name"
+                    className="border-[#E5E7EB]"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-[#111827]">Tagline</label>
+                  <Input
+                    value={settings.tagline}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, tagline: e.target.value }))}
+                    placeholder="Short tagline"
+                    className="border-[#E5E7EB]"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-[#111827]">Support email</label>
+                  <Input
+                    type="email"
+                    value={settings.supportEmail}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, supportEmail: e.target.value }))}
+                    placeholder="support@example.com"
+                    className="border-[#E5E7EB]"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-[#111827]">Support phone</label>
+                  <Input
+                    value={settings.supportPhone}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, supportPhone: e.target.value }))}
+                    placeholder="Support phone"
+                    className="border-[#E5E7EB]"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-[#111827]">Footer text</label>
+                  <Textarea
+                    value={settings.footerText}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, footerText: e.target.value }))}
+                    rows={3}
+                    className="border-[#E5E7EB]"
+                    placeholder="Footer text"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="grid gap-3 sm:min-w-[280px]">
-              <div className="rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-4 text-left">
+            <div className="space-y-4">
+              <div className="rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#DBEAFE] text-sm font-semibold text-[#1D4ED8]">
                     {profileInitial}
@@ -214,16 +274,20 @@ export default function SettingsPage() {
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-3">
-                {savedMessage && (
-                  <div className="inline-flex items-center gap-2 rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-2 text-sm text-[#15803D]">
-                    <CheckCircle className="h-4 w-4" />
-                    Saved
-                  </div>
-                )}
-                <Button type="button" onClick={handleSubmit} disabled={saving} className="gap-2">
-                  {saving ? 'Saving...' : 'Save changes'}
-                </Button>
+              <div className="rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-4">
+                <p className="text-sm font-semibold text-[#111827]">Save changes</p>
+                <p className="mt-1 text-sm text-[#6B7280]">Save the current website settings and language preference for your account.</p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  {savedMessage && (
+                    <div className="inline-flex items-center gap-2 rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-2 text-sm text-[#15803D]">
+                      <CheckCircle className="h-4 w-4" />
+                      Saved
+                    </div>
+                  )}
+                  <Button type="button" onClick={handleSubmit} disabled={saving} className="gap-2">
+                    {saving ? 'Saving...' : 'Save changes'}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

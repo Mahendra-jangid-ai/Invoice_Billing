@@ -11,7 +11,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
           <img src="/logo.png" alt="Billing Studio logo" className="mx-auto mb-4 h-16 w-auto object-contain" />
-          <h1 className="text-2xl font-semibold text-[#111827]">Billing Studio</h1>
+          <p className="sr-only">Billing Studio</p>
           <p className="mt-2 text-sm text-[#475569]">Modern invoicing with a premium, efficient workspace.</p>
         </div>
         {children}

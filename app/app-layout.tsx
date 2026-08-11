@@ -16,34 +16,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     setIsProfileOpen(false)
   }, [pathname])
 
-  const pageTitle = pathname === '/dashboard'
-    ? 'Dashboard'
-    : pathname.startsWith('/invoices')
-      ? 'Invoices'
-      : pathname === '/customers'
-        ? 'Customers'
-        : pathname === '/items'
-          ? 'Items'
-          : pathname === '/company-settings'
-            ? 'Company Settings'
-            : pathname === '/setting'
-              ? 'Settings'
-            : 'Billing Workspace'
-
-  const pageSubtitle = pathname === '/dashboard'
-    ? 'Your business snapshot in one place'
-    : pathname.startsWith('/invoices')
-      ? 'Create and manage invoice workflows'
-      : pathname === '/customers'
-        ? 'Keep customer details organized'
-        : pathname === '/items'
-          ? 'Maintain your catalog with ease'
-          : pathname === '/company-settings'
-            ? 'Align your branding and company profile'
-            : pathname === '/setting'
-              ? 'Manage web preferences and session security'
-            : 'Manage your day-to-day billing tasks'
-
   const pageLabel = pathname === '/dashboard'
     ? 'Dashboard'
     : pathname.startsWith('/invoices')

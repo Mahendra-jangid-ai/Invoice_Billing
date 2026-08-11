@@ -7,7 +7,7 @@ import { InvoicePreview } from '@/components/invoice-preview'
 import { Button } from '@/components/ui/button'
 import { Edit, Trash2, Loader2 } from 'lucide-react'
 import { AppLayout } from '@/app/app-layout'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -17,7 +17,6 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
   const router = useRouter()
   const { invoices, loading, deleteInvoice, updateInvoice } = useBilling()
   const [id, setId] = useState<string | null>(null)
-  const invoiceRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     paramsPromise.then((params) => {
@@ -128,7 +127,7 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
           </div>
 
           {/* Invoice Preview - Printable */}
-          <div ref={invoiceRef}>
+          <div>
             <InvoicePreview invoice={invoice} />
           </div>
         </div>
