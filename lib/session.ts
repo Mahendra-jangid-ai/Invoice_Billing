@@ -1,5 +1,4 @@
 import 'server-only'
-import crypto from 'crypto'
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
@@ -63,7 +62,7 @@ export async function decrypt(token: string | undefined): Promise<SessionPayload
 
 export async function createSession(userId: string, email: string, name: string): Promise<{ sessionId: string; expiresAt: Date }> {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
-  const sessionId = crypto.randomUUID()
+  const sessionId = globalThis.crypto.randomUUID()
   const token = await encrypt({ sessionId, userId, email, name, expiresAt })
   const cookieStore = await cookies()
   cookieStore.set(SESSION_COOKIE, token, {
