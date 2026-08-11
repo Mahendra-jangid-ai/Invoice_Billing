@@ -47,7 +47,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="md:flex">
         <Sidebar open={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 md:ml-72">
           <div className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 px-4 py-3 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/85 md:hidden">
             <div className="flex items-center justify-between gap-4">
               <button
