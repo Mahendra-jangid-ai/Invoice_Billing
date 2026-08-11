@@ -113,7 +113,7 @@ export default function ItemsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
                       }
-                      className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                      className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                       placeholder="Item name"
                       required
                     />
@@ -134,7 +134,7 @@ export default function ItemsPage() {
                           unitprice: parseFloat(e.target.value) || 0,
                         })
                       }
-                      className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                      className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                       placeholder="0.00"
                       required
                     />
@@ -150,7 +150,7 @@ export default function ItemsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, hsnsac: e.target.value })
                       }
-                      className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                      className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                       placeholder="HSN/SAC code"
                     />
                   </div>
@@ -185,7 +185,7 @@ export default function ItemsPage() {
 
           {loading ? (
             <div className="flex h-48 items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-900" />
             </div>
           ) : items.length === 0 ? (
             <div className="rounded-lg border border-slate-200 bg-white p-8 text-center dark:border-slate-800 dark:bg-slate-900">
@@ -193,7 +193,7 @@ export default function ItemsPage() {
                 No items in catalog yet.{' '}
                 <button
                   onClick={() => setShowForm(true)}
-                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                  className="text-slate-950 hover:text-slate-700 dark:text-slate-100 dark:hover:text-slate-300 font-medium"
                 >
                   Add your first item
                 </button>
@@ -241,15 +241,15 @@ export default function ItemsPage() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button
+                                  <button
                             onClick={() => handleEdit(item)}
-                            className="inline-flex items-center rounded px-2 py-1 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900"
+                            className="inline-flex items-center rounded px-2 py-1 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(item.id)}
-                            className="inline-flex items-center rounded px-2 py-1 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900"
+                            className="inline-flex items-center rounded px-2 py-1 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

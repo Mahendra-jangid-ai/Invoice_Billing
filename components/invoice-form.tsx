@@ -340,7 +340,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
             <select
               value={customerId}
               onChange={(e) => handleCustomerSelect(e.target.value)}
-              className="w-full rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-slate-900 focus:border-blue-600 focus:outline-none dark:border-blue-800 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-900 focus:border-slate-950 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             >
               <option value="">-- Select Customer (Auto-fill) --</option>
               {customers.map((customer) => (
@@ -424,7 +424,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               <h3 className="font-semibold text-sm text-slate-900 dark:text-white">
                 Ship to Party (Site Address)
               </h3>
-              <label className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 cursor-pointer">
+              <label className="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={sameAsBillTo}
@@ -432,7 +432,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                     setSameAsBillTo(e.target.checked)
                     if (e.target.checked) handleCopyBillTo()
                   }}
-                  className="rounded border-slate-300 text-blue-600"
+                  className="rounded border-slate-300 text-slate-900"
                 />
                 Same as Bill To
               </label>
@@ -518,7 +518,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
             type="button"
             onClick={addLineItem}
             variant="outline"
-            className="gap-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400"
+            className="gap-2 border-slate-300 text-slate-900 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-100"
           >
             <Plus className="h-4 w-4" />
             Add Row
@@ -546,7 +546,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                     <button
                       type="button"
                       onClick={() => removeLineItem(index)}
-                      className="text-red-600 hover:text-red-700 text-xs flex items-center gap-1"
+                      className="text-slate-700 hover:text-slate-900 text-xs flex items-center gap-1 dark:text-slate-300 dark:hover:text-slate-100"
                     >
                       <Trash2 className="h-3.5 w-3.5" /> Remove Row
                     </button>
@@ -765,13 +765,13 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
             </div>
             <div className="border-t pt-2 flex justify-between font-bold text-base text-slate-900 dark:text-white">
               <span>Payable Amount:</span>
-              <span className="text-blue-600 dark:text-blue-400">
+            <span className="text-slate-950 dark:text-slate-100">
                 ₹{totalAfterDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3">
+          <Button type="submit" className="w-full bg-slate-950 hover:bg-slate-800 text-white font-semibold py-3">
             {initialInvoice ? 'Update Invoice' : 'Generate GST Invoice'}
           </Button>
         </div>

@@ -125,14 +125,14 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent invoices</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400">Newest activity from your billing workflow.</p>
             </div>
-            <Link href="/invoices" className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+            <Link href="/invoices" className="inline-flex items-center gap-1 text-sm font-medium text-slate-900 hover:text-slate-700 dark:text-slate-200 dark:hover:text-slate-100">
               View all <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
 
           {recentInvoices.length === 0 ? (
             <div className="p-8 text-center text-slate-600 dark:text-slate-400">
-              No invoices yet. <Link href="/invoices/new" className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">Create one</Link>
+              No invoices yet. <Link href="/invoices/new" className="font-medium text-slate-950 hover:text-slate-700 dark:text-slate-100">Create one</Link>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -162,7 +162,7 @@ export default function DashboardPage() {
                     return (
                       <tr key={invoice.id} className="border-b border-slate-200/80 last:border-b-0 hover:bg-slate-50/70 dark:border-slate-800 dark:hover:bg-slate-900/60">
                         <td className="px-5 py-3">
-                          <Link href={`/invoices/${invoice.id}`} className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                          <Link href={`/invoices/${invoice.id}`} className="font-medium text-slate-900 hover:text-slate-700 dark:text-slate-100">
                             {invoice.invoiceNumber}
                           </Link>
                         </td>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                         <td className="px-5 py-3 text-sm text-slate-900 dark:text-slate-100">{customer?.name || 'Unknown'}</td>
                         <td className="px-5 py-3 text-right text-sm font-semibold text-slate-900 dark:text-slate-100">₹{total.toFixed(2)}</td>
                         <td className="px-5 py-3">
-                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${invoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : invoice.status === 'finalized' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'}`}>
+                          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-900 dark:bg-slate-800 dark:text-slate-100">
                             {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                           </span>
                         </td>

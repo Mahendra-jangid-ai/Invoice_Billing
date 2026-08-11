@@ -94,7 +94,7 @@ export default function InvoicesPage() {
                                 <Edit className="h-4 w-4" />
                               </Link>
                             )}
-                            <button onClick={() => deleteInvoice(invoice.id)} className="inline-flex items-center rounded-lg px-2 py-1 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900">
+                            <button onClick={() => deleteInvoice(invoice.id)} className="inline-flex items-center rounded-lg px-2 py-1 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>

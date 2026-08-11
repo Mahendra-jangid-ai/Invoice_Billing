@@ -47,38 +47,38 @@
 
 :root {
   color-scheme: light;
-  --background: #ffffff;
+  --background: #f8fafc;
   --foreground: #0f172a;
   --card: #ffffff;
   --card-foreground: #0f172a;
-  --popover: #ffffff;
+  --popover: #f8fafc;
   --popover-foreground: #0f172a;
-  --primary: #2563eb;
-  --primary-foreground: #f8fafc;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
+  --primary: #0f172a;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2f7;
+  --secondary-foreground: #475569;
+  --muted: #e2e8f0;
   --muted-foreground: #64748b;
-  --accent: #eff6ff;
-  --accent-foreground: #1d4ed8;
+  --accent: #cbd5e1;
+  --accent-foreground: #0f172a;
   --destructive: #ef4444;
-  --border: #e2e8f0;
+  --border: #d2dce7;
   --input: #e2e8f0;
-  --ring: #60a5fa;
+  --ring: #94a3b8;
   --chart-1: #cbd5e1;
   --chart-2: #64748b;
   --chart-3: #475569;
   --chart-4: #334155;
   --chart-5: #1e293b;
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --sidebar: #f8fafc;
   --sidebar-foreground: #0f172a;
-  --sidebar-primary: #2563eb;
-  --sidebar-primary-foreground: #f8fafc;
-  --sidebar-accent: #eff6ff;
-  --sidebar-accent-foreground: #1d4ed8;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #60a5fa;
+  --sidebar-primary: #0f172a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef2f7;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #d2dce7;
+  --sidebar-ring: #94a3b8;
 }
 
 .dark {
@@ -87,54 +87,64 @@
   --foreground: #f8fafc;
   --card: #0f172a;
   --card-foreground: #f8fafc;
-  --popover: #0f172a;
+  --popover: #111827;
   --popover-foreground: #f8fafc;
-  --primary: #60a5fa;
+  --primary: #f8fafc;
   --primary-foreground: #0f172a;
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
+  --secondary: #111827;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1f2937;
   --muted-foreground: #94a3b8;
-  --accent: #1e3a8a;
-  --accent-foreground: #dbeafe;
+  --accent: #334155;
+  --accent-foreground: #e2e8f0;
   --destructive: #ef4444;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.15);
-  --ring: #60a5fa;
+  --border: #1f2937;
+  --input: #1f2937;
+  --ring: #64748b;
   --chart-1: #cbd5e1;
   --chart-2: #64748b;
   --chart-3: #475569;
   --chart-4: #334155;
-  --chart-5: #1e293b;
+  --chart-5: #111827;
   --sidebar: #0f172a;
   --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #60a5fa;
-  --sidebar-primary-foreground: #f8fafc;
-  --sidebar-accent: #1e3a8a;
-  --sidebar-accent-foreground: #dbeafe;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #60a5fa;
+  --sidebar-primary: #f8fafc;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #111827;
+  --sidebar-accent-foreground: #cbd5e1;
+  --sidebar-border: #1f2937;
+  --sidebar-ring: #64748b;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply min-h-screen bg-slate-50 text-foreground antialiased;
+    @apply min-h-screen bg-slate-50 text-slate-950 antialiased;
     background-image: none;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
+
+  .dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
+
+  button, input, textarea, select {
+    font: inherit;
+  }
+
   input, textarea, select {
     color: inherit;
   }
-  input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
-  textarea,
-  select {
-    color: var(--foreground);
-  }
+
   ::selection {
-    background-color: rgba(15, 23, 42, 0.08);
+    background-color: rgba(15, 23, 42, 0.12);
     color: inherit;
   }
 }

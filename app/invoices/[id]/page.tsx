@@ -30,7 +30,7 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
     return (
       <AppLayout>
         <div className="flex h-64 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-slate-900" />
         </div>
       </AppLayout>
     )
@@ -260,7 +260,7 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
               )}
               <button
                 onClick={handleDelete}
-                className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 dark:border-red-800 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete

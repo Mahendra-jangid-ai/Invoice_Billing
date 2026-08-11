@@ -132,7 +132,7 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min. 8 characters"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
             />
             <button
               type="button"
@@ -176,7 +176,7 @@ export default function SignupPage() {
             />
           </div>
           {confirmPassword.length > 0 && confirmPassword !== password && (
-            <p className="mt-1 text-xs text-red-500">Passwords do not match</p>
+            <p className="mt-1 text-xs text-slate-700 dark:text-slate-300">Passwords do not match</p>
           )}
         </div>
 

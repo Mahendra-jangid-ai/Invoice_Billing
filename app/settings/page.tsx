@@ -71,9 +71,9 @@ export default function SettingsPage() {
         <div className="flex-1 p-8">
           <div className="mx-auto max-w-4xl space-y-6">
             {savedMessage && (
-              <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 dark:border-green-900 dark:bg-green-950">
-                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="text-sm font-medium text-green-800 dark:text-green-200">
+              <div className="flex items-center gap-3 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
+                <CheckCircle className="h-5 w-5 text-slate-950 dark:text-slate-100" />
+                <span className="text-sm font-medium text-slate-950 dark:text-slate-100">
                   Company details saved successfully!
                 </span>
               </div>
@@ -111,7 +111,7 @@ export default function SettingsPage() {
                             <button
                               type="button"
                               onClick={handleRemoveLogo}
-                              className="absolute -top-2 -right-2 rounded-full bg-red-600 p-1 text-white hover:bg-red-700 shadow-md transition"
+                              className="absolute -top-2 -right-2 rounded-full bg-slate-950 p-1 text-white hover:bg-slate-800 shadow-md transition"
                               title="Remove Logo"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -133,7 +133,7 @@ export default function SettingsPage() {
                           </label>
                           <div className="flex gap-2">
                             <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-medium text-slate-700 border border-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700">
-                              <Upload className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              <Upload className="h-4 w-4 text-slate-900 dark:text-slate-100" />
                               <span>Choose Image File</span>
                               <input
                                 type="file"
@@ -370,10 +370,10 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex gap-3">
-                      <AlertCircle className="h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
-                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                      <AlertCircle className="h-5 w-5 flex-shrink-0 text-slate-900 dark:text-slate-100" />
+                      <p className="text-sm text-slate-700 dark:text-slate-300">
                         These details will appear on all your invoices. Make sure the information is accurate.
                       </p>
                     </div>
@@ -382,7 +382,7 @@ export default function SettingsPage() {
                   <div className="flex gap-3 pt-4">
                     <Button
                       type="submit"
-                      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                      className="bg-slate-950 hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
                     >
                       Save Company Details
                     </Button>
