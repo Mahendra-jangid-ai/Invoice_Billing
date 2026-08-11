@@ -37,10 +37,10 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 p-5 text-white shadow-[0_20px_70px_-25px_rgba(15,23,42,0.45)]">
+        <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-slate-950 p-5 text-white shadow-[0_20px_70px_-25px_rgba(15,23,42,0.45)]">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
-              <p className="mb-3 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium text-blue-100">
+              <p className="mb-3 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium text-white/80">
                 Welcome back • {company.name || 'Your Company'}
               </p>
               <h1 className="text-3xl font-semibold sm:text-4xl">Everything you need to run billing smoothly.</h1>
@@ -49,7 +49,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="rounded-2xl border border-white/20 bg-white/10 px-3 py-3 backdrop-blur">
-              <p className="text-sm text-blue-100">Ready for today</p>
+              <p className="text-sm text-white/80">Ready for today</p>
               <p className="text-xl font-semibold">{invoices.filter((invoice) => invoice.status === 'draft').length} draft invoices</p>
             </div>
           </div>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{stat.label}</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{stat.value}</p>
                   </div>
-                  <div className="rounded-2xl bg-blue-50 p-3 text-blue-600 dark:bg-blue-950/70 dark:text-blue-300">
+                  <div className="rounded-2xl bg-slate-100 p-3 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>

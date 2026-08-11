@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
+import { requireAuth } from '@/lib/auth'
 
 export async function GET() {
+  const { user, errorResponse } = await requireAuth()
+  if (errorResponse) return errorResponse
+
   try {
     const db = await getDatabase()
-    const invoices = await db.collection('invoices').find({}).toArray()
+    const invoices = await db.collection('invoices').find({ userId: user.userId }).toArray()
     const formatted = invoices.map((inv) => ({
       id: inv.id || inv._id.toString(),
       invoiceNumber: inv.invoiceNumber || '',
@@ -29,18 +33,22 @@ export async function GET() {
     }))
     return NextResponse.json(formatted)
   } catch (error) {
-    console.error('Failed to fetch invoices:', error)
+    console.error('Failed to fetch invoices:', error instanceof Error ? error.message : 'Unknown error')
     return NextResponse.json({ error: 'Failed to fetch invoices' }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
+  const { user, errorResponse } = await requireAuth()
+  if (errorResponse) return errorResponse
+
   try {
     const body = await request.json()
     const db = await getDatabase()
 
     const newInvoice = {
       id: body.id || Date.now().toString(),
+      userId: user.userId, // Ownership field — always from server session
       invoiceNumber: body.invoiceNumber,
       date: body.date,
       reverseCharge: body.reverseCharge || 'No',
@@ -66,7 +74,7 @@ export async function POST(request: Request) {
     await db.collection('invoices').insertOne(newInvoice)
     return NextResponse.json(newInvoice, { status: 201 })
   } catch (error) {
-    console.error('Failed to create invoice:', error)
+    console.error('Failed to create invoice:', error instanceof Error ? error.message : 'Unknown error')
     return NextResponse.json({ error: 'Failed to create invoice' }, { status: 500 })
   }
 }

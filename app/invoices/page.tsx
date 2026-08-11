@@ -17,7 +17,7 @@ export default function InvoicesPage() {
         <section className="rounded-[30px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_70px_-30px_rgba(15,23,42,0.3)] backdrop-blur sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-blue-600">Invoices</p>
+              <p className="text-sm font-semibold text-slate-950 dark:text-slate-100">Invoices</p>
               <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Manage every invoice in one place</h1>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Create, preview, and organize invoices with a cleaner workflow.</p>
             </div>
@@ -33,7 +33,7 @@ export default function InvoicesPage() {
         {sortedInvoices.length === 0 ? (
           <div className="soft-card p-8 text-center text-slate-600 dark:text-slate-400">
             No invoices yet.{' '}
-            <Link href="/invoices/new" className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+            <Link href="/invoices/new" className="font-medium text-slate-950 hover:text-slate-700 dark:text-slate-100">
               Create one
             </Link>
           </div>
@@ -80,13 +80,13 @@ export default function InvoicesPage() {
                         <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">{customer?.name || 'Unknown'}</td>
                         <td className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-white">₹{total.toFixed(2)}</td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${invoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : invoice.status === 'finalized' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'}`}>
+                          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-900 dark:bg-slate-800 dark:text-slate-100">
                             {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-center gap-2">
-                            <Link href={`/invoices/${invoice.id}`} className="inline-flex items-center rounded-lg px-2 py-1 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900">
+                            <Link href={`/invoices/${invoice.id}`} className="inline-flex items-center rounded-lg px-2 py-1 text-slate-950 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800">
                               <Eye className="h-4 w-4" />
                             </Link>
                             {invoice.status === 'draft' && (

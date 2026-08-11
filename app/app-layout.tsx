@@ -68,7 +68,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="mx-auto max-w-6xl px-4 py-0 sm:px-6 lg:px-8 lg:py-2">
             <div className="mb-4 hidden rounded-[30px] border border-slate-200/80 bg-white/80 px-6 py-4 shadow-[0_18px_50px_-25px_rgba(15,23,42,0.25)] backdrop-blur sm:flex sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900/70 lg:px-8">
               <div>
-                <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">{pageTitle}</p>
+                <p className="text-sm font-semibold text-slate-950 dark:text-slate-100">{pageTitle}</p>
                 <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">{pageSubtitle}</h2>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
