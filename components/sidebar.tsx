@@ -2,127 +2,122 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Users, Package, Settings } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, Package, Settings, Building2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+const groups = [
+  {
+    title: 'Overview',
+    items: [
+      { href: '/dashboard',        icon: LayoutDashboard, label: 'Dashboard'  },
+    ],
+  },
+  {
+    title: 'Billing',
+    items: [
+      { href: '/invoices',         icon: FileText,        label: 'Invoices'  },
+      { href: '/customers',        icon: Users,           label: 'Customers' },
+      { href: '/items',            icon: Package,         label: 'Items'     },
+    ],
+  },
+  {
+    title: 'Manage',
+    items: [
+      { href: '/company-settings', icon: Building2,       label: 'Company Settings' },
+      { href: '/setting',          icon: Settings,        label: 'Settings'  },
+    ],
+  },
+]
 
 export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const pathname = usePathname()
 
-  const groups = [
-    {
-      title: 'Overview',
-      items: [
-        {
-          href: '/dashboard',
-          icon: LayoutDashboard,
-          label: 'Dashboard',
-          active: pathname === '/dashboard',
-        },
-      ],
-    },
-    {
-      title: 'Billing',
-      items: [
-        {
-          href: '/invoices',
-          icon: FileText,
-          label: 'Invoices',
-          active: pathname.startsWith('/invoices'),
-        },
-        {
-          href: '/customers',
-          icon: Users,
-          label: 'Customers',
-          active: pathname === '/customers',
-        },
-        {
-          href: '/items',
-          icon: Package,
-          label: 'Items',
-          active: pathname === '/items',
-        },
-      ],
-    },
-    {
-      title: 'System',
-      items: [
-        {
-          href: '/company-settings',
-          icon: Settings,
-          label: 'Company Settings',
-          active: pathname === '/company-settings',
-        },
-        {
-          href: '/setting',
-          icon: Settings,
-          label: 'Settings',
-          active: pathname === '/setting',
-        },
-      ],
-    },
-  ]
+  const isActive = (href: string) =>
+    href === '/dashboard'
+      ? pathname === '/dashboard'
+      : href === '/invoices'
+      ? pathname.startsWith('/invoices')
+      : pathname === href
 
   return (
     <aside
       className={cn(
-        'fixed inset-y-0 left-0 z-40 w-72 border-r border-[#E5E7EB] bg-white/95 backdrop-blur-xl transition-transform duration-300',
+        'fixed inset-y-0 left-0 z-40 flex w-72 flex-col',
+        'border-r border-gray-200 bg-white',
+        'transition-transform duration-300 ease-in-out will-change-transform',
         open ? 'translate-x-0' : '-translate-x-full',
-        'md:translate-x-0'    
+        'md:translate-x-0'
       )}
     >
-      <div className="flex h-full flex-col">
-        <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-4 md:hidden">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm">
-            <img src="/logo.png" alt="Billing Studio logo" className="h-9 w-auto object-contain" />
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-sm font-medium text-[#111827] shadow-sm transition hover:bg-[#F9FAFB]"
-          >
-            Close
-          </button>
-        </div>
+      {/* ── Logo area (mobile: with close button) ── */}
+      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 md:hidden">
+        <img src="/logo.png" alt="Billing Studio logo" className="h-9 w-auto object-contain" />
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm hover:bg-gray-50 transition"
+        >
+          Close
+        </button>
+      </div>
 
-        <div className="border-b border-[#E5E7EB] px-6 py-4">
-          <img src="/logo.png" alt="Billing Studio logo" className="h-15 justify-content-center w-auto object-contain" />
-        </div>
+      {/* ── Logo area (desktop) ── */}
+      <div className="hidden border-b border-gray-100 px-5 py-5 md:block">
+        <img src="/logo.png" alt="Billing Studio logo" className="h-10 w-auto object-contain" />
+      </div>
 
-        <div className="flex-1 overflow-y-auto px-3 py-4">
-          {groups.map((group) => (
-            <div key={group.title} className="mb-6 last:mb-0">
-              <p className="px-4 pb-2 text-xs uppercase tracking-[0.2em] text-[#6B7280]">
-                {group.title}
-              </p>
-              <nav className="space-y-1">
-                {group.items.map((route) => {
-                  const Icon = route.icon
-                  return (
+      {/* ── Navigation ── */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        {groups.map((group) => (
+          <div key={group.title} className="mb-5 last:mb-0">
+            <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400">
+              {group.title}
+            </p>
+            <ul className="space-y-0.5">
+              {group.items.map((item) => {
+                const active = isActive(item.href)
+                const Icon = item.icon
+                return (
+                  <li key={item.href}>
                     <Link
-                      key={route.href}
-                      href={route.href}
+                      href={item.href}
                       className={cn(
-                        'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition duration-200',
-                        route.active
-                          ? 'bg-[#2563EB] text-white shadow-sm shadow-[#2563EB]/10'
-                          : 'text-[#374151] hover:bg-[#F9FAFB]'
+                        'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150',
+                        active
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                       )}
                     >
-                      <span className={cn('grid h-10 w-10 place-items-center rounded-2xl', route.active ? 'bg-white/15' : 'bg-[#F3F4F6]')}>
-                        <Icon className="h-5 w-5" />
+                      <span
+                        className={cn(
+                          'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md',
+                          active
+                            ? 'bg-white/20 text-white'
+                            : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200 group-hover:text-gray-700'
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
                       </span>
-                      {route.label}
+                      <span className="truncate">{item.label}</span>
                     </Link>
-                  )
-                })}
-              </nav>
-            </div>
-          ))}
-        </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
+      </nav>
 
-        <div className="border-t border-[#E5E7EB] px-6 py-4">
-          <p className="text-xs text-[#6B7280]">© 2025 <img src="/logo.png" alt="Billing Studio logo" className="inline-block ml-1 h-4 w-auto object-contain" /></p>
-        </div>
+      {/* ── Footer ── */}
+      <div className="border-t border-gray-100 px-5 py-4">
+        <p className="text-xs text-gray-400">
+          © 2025{' '}
+          <img
+            src="/logo.png"
+            alt="Billing Studio logo"
+            className="inline-block ml-1 h-4 w-auto object-contain"
+          />
+        </p>
       </div>
     </aside>
   )

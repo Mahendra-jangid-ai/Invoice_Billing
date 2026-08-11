@@ -1,100 +1,170 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useBilling } from '@/lib/context'
 import { Button } from '@/components/ui/button'
-import { Plus, Eye, Edit, Trash2, ArrowRight } from 'lucide-react'
-import { AppLayout } from '@/app/app-layout'
+import { Plus, Eye, Edit, Trash2, FileText } from 'lucide-react'
+import { SkeletonInvoicesPage } from '@/components/ui/skeleton'
+
+// ── Lazy-load layout ──────────────────────────────────────────────────────────
+const AppLayout = dynamic(
+  () => import('@/app/app-layout').then((m) => ({ default: m.AppLayout })),
+  { ssr: false, loading: () => null }
+)
+
+const STATUS_MAP: Record<string, { label: string; cls: string }> = {
+  draft:     { label: 'Draft',     cls: 'badge badge-gray'  },
+  finalized: { label: 'Finalized', cls: 'badge badge-blue'  },
+  paid:      { label: 'Paid',      cls: 'badge badge-green' },
+}
 
 export default function InvoicesPage() {
-  const { invoices, customers, items, deleteInvoice } = useBilling()
+  const { invoices, customers, items, deleteInvoice, loading } = useBilling()
 
-  const sortedInvoices = [...invoices].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  if (loading) {
+    return (
+      <AppLayout>
+        <SkeletonInvoicesPage />
+      </AppLayout>
+    )
+  }
+
+  const sortedInvoices = [...invoices].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <section className="rounded-[30px] border border-[#E5E7EB] bg-white/90 p-6 shadow-[0_20px_70px_-30px_rgba(17,24,39,0.12)] backdrop-blur sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="space-y-6 animate-fade-in">
+
+        {/* ── Hero ── */}
+        <div className="hero-card px-8 py-7">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-[#111827]">Invoices</p>
-              <h1 className="text-2xl font-semibold text-[#111827]">Manage every invoice in one place</h1>
-              <p className="mt-2 text-sm text-[#4B5563]">Create, preview, and organize invoices with a cleaner workflow.</p>
+              <p className="section-label">Billing</p>
+              <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl tracking-tight">
+                Invoice Management
+              </h1>
+              <p className="mt-1.5 text-sm text-slate-500">
+                Create, track, and manage all your invoices in one place.
+              </p>
             </div>
             <Link href="/invoices/new">
-              <Button className="gap-2">
+              <Button className="gap-2 shadow-md shadow-indigo-200/50">
                 <Plus className="h-4 w-4" />
-                Create invoice
+                New Invoice
               </Button>
             </Link>
           </div>
-        </section>
 
+          {/* Summary chips */}
+          <div className="mt-5 flex flex-wrap gap-3">
+            {[
+              { label: 'Total', value: invoices.length, cls: 'bg-slate-100 text-slate-700' },
+              { label: 'Draft', value: invoices.filter(i => i.status === 'draft').length,     cls: 'bg-slate-100 text-slate-500' },
+              { label: 'Finalized', value: invoices.filter(i => i.status === 'finalized').length, cls: 'bg-indigo-100 text-indigo-700' },
+              { label: 'Paid', value: invoices.filter(i => i.status === 'paid').length,       cls: 'bg-emerald-100 text-emerald-700' },
+            ].map(chip => (
+              <div key={chip.label} className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold ${chip.cls}`}>
+                <span>{chip.label}</span>
+                <span className="font-bold">{chip.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Table ── */}
         {sortedInvoices.length === 0 ? (
-          <div className="soft-card p-8 text-center text-[#4B5563]">
-            No invoices yet.{' '}
-            <Link href="/invoices/new" className="font-medium text-[#2563EB] hover:text-[#1D4ED8]">
-              Create one
+          <div className="premium-card flex flex-col items-center justify-center gap-4 py-20 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+              <FileText className="h-8 w-8 text-slate-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-slate-800">No invoices yet</p>
+              <p className="mt-1 text-sm text-slate-400">Start billing your clients by creating your first invoice.</p>
+            </div>
+            <Link href="/invoices/new">
+              <Button className="gap-2 mt-1">
+                <Plus className="h-4 w-4" /> Create Invoice
+              </Button>
             </Link>
           </div>
         ) : (
-          <div className="soft-card overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-5">
+          <div className="premium-card overflow-hidden p-0">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
               <div>
-                <h2 className="text-lg font-semibold text-[#111827]">Invoice list</h2>
-                <p className="text-sm text-[#6B7280]">Recent invoices are sorted by date.</p>
+                <h2 className="text-sm font-bold text-slate-900">All Invoices</h2>
+                <p className="text-xs text-slate-400 mt-0.5">Sorted by most recent date</p>
               </div>
-              <div className="inline-flex items-center gap-1 text-sm font-medium text-[#6B7280]">
-                Latest <ArrowRight className="h-4 w-4" />
-              </div>
+              <span className="rounded-xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                {sortedInvoices.length} records
+              </span>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-[#E5E7EB]">
-                <thead className="bg-[#F9FAFB]">
+              <table className="min-w-full">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-[#111827]">Invoice #</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-[#111827]">Date</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-[#111827]">Customer</th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-[#111827]">Amount</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-[#111827]">Status</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-[#111827]">Actions</th>
+                    <th className="px-6 py-3.5 text-left">Invoice #</th>
+                    <th className="px-6 py-3.5 text-left">Date</th>
+                    <th className="px-6 py-3.5 text-left">Customer</th>
+                    <th className="px-6 py-3.5 text-right">Amount</th>
+                    <th className="px-6 py-3.5 text-left">Status</th>
+                    <th className="px-6 py-3.5 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sortedInvoices.map((invoice) => {
                     const customer = customers.find((c) => String(c.id) === String(invoice.customerId))
-                    const itemsList = invoice.items || []
-                    const amount = itemsList.reduce((sum, lineItem) => {
-                      const catalogItem = items.find((i) => String(i.id) === String(lineItem.itemId))
-                      const rate = Number(lineItem.rate) || Number(catalogItem?.unitprice) || 0
-                      const qty = Number(lineItem.quantity) || 0
-                      return sum + qty * rate
+                    const subtotal = (invoice.items ?? []).reduce((s, li) => {
+                      const cat = items.find((i) => String(i.id) === String(li.itemId))
+                      return s + (Number(li.rate) || Number(cat?.unitprice) || 0) * (Number(li.quantity) || 0)
                     }, 0)
-                    const taxPercentage = Number(invoice.taxPercentage) || 0
-                    const total = amount + (amount * taxPercentage) / 100
+                    const total = subtotal + (subtotal * (Number(invoice.taxPercentage) || 0)) / 100
+                    const badge = STATUS_MAP[invoice.status] ?? { label: invoice.status, cls: 'badge badge-gray' }
 
                     return (
-                      <tr key={invoice.id} className="border-b border-[#E5E7EB] last:border-b-0 hover:bg-[#F9FAFB]">
-                        <td className="px-6 py-4 font-medium text-[#111827]">{invoice.invoiceNumber}</td>
-                        <td className="px-6 py-4 text-sm text-[#4B5563]">{invoice.date ? new Date(invoice.date).toLocaleDateString() : '-'}</td>
-                        <td className="px-6 py-4 text-sm text-[#111827]">{customer?.name || 'Unknown'}</td>
-                        <td className="px-6 py-4 text-right text-sm font-semibold text-[#111827]">₹{total.toFixed(2)}</td>
+                      <tr key={invoice.id}>
                         <td className="px-6 py-4">
-                          <span className="inline-flex items-center rounded-full bg-[#EFF6FF] px-3 py-1 text-xs font-medium text-[#111827]">
-                            {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                          <span className="font-bold text-slate-900">{invoice.invoiceNumber}</span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-500">
+                          {invoice.date ? new Date(invoice.date).toLocaleDateString('en-IN') : '—'}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-medium text-slate-800">{customer?.name || 'Unknown'}</span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <span className="font-bold text-slate-900">
+                            ₹{total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center justify-center gap-2">
-                            <Link href={`/invoices/${invoice.id}`} className="inline-flex items-center rounded-lg px-2 py-1 text-[#111827] hover:bg-[#F9FAFB]">
+                          <span className={badge.cls}>{badge.label}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center gap-1">
+                            <Link
+                              href={`/invoices/${invoice.id}`}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition"
+                              title="View"
+                            >
                               <Eye className="h-4 w-4" />
                             </Link>
                             {invoice.status === 'draft' && (
-                              <Link href={`/invoices/${invoice.id}/edit`} className="inline-flex items-center rounded-lg px-2 py-1 text-[#6B7280] hover:bg-[#F9FAFB]">
+                              <Link
+                                href={`/invoices/${invoice.id}/edit`}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-amber-50 hover:text-amber-600 transition"
+                                title="Edit"
+                              >
                                 <Edit className="h-4 w-4" />
                               </Link>
                             )}
-                            <button onClick={() => deleteInvoice(invoice.id)} className="inline-flex items-center rounded-lg px-2 py-1 text-[#374151] hover:bg-[#F9FAFB]">
+                            <button
+                              onClick={() => deleteInvoice(invoice.id)}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                              title="Delete"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -107,6 +177,7 @@ export default function InvoicesPage() {
             </div>
           </div>
         )}
+
       </div>
     </AppLayout>
   )

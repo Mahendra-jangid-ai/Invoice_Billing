@@ -1,202 +1,230 @@
 "use client"
 
+import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Sidebar } from '@/components/sidebar'
 import { useAuth } from '@/lib/auth-context'
+import {
+  Menu,
+  ChevronRight,
+  LogOut,
+  Settings,
+  User,
+} from 'lucide-react'
 
+// ── Lazy-load the sidebar (it's heavy with icons + nav) ─────────────────────
+const Sidebar = dynamic(
+  () => import('@/components/sidebar').then((m) => ({ default: m.Sidebar })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="fixed inset-y-0 left-0 z-40 w-72 border-r border-gray-200 bg-white" />
+    ),
+  }
+)
+
+/* ─── helpers ──────────────────────────────────────────────────────────────── */
+function getPageMeta(pathname: string): { label: string; breadcrumbs: { label: string; href: string }[] } {
+  if (pathname === '/dashboard')
+    return { label: 'Dashboard', breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }] }
+
+  if (pathname === '/customers')
+    return { label: 'Customers', breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Customers', href: '/customers' }] }
+
+  if (pathname === '/items')
+    return { label: 'Items', breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Items', href: '/items' }] }
+
+  if (pathname === '/company-settings')
+    return { label: 'Company Settings', breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Company Settings', href: '/company-settings' }] }
+
+  if (pathname === '/setting')
+    return { label: 'Settings', breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings', href: '/setting' }] }
+
+  if (pathname === '/invoices')
+    return { label: 'Invoices', breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Invoices', href: '/invoices' }] }
+
+  if (pathname === '/invoices/new')
+    return {
+      label: 'New Invoice',
+      breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Invoices', href: '/invoices' }, { label: 'New Invoice', href: '/invoices/new' }],
+    }
+
+  const m = pathname.match(/^\/invoices\/([^/]+)(?:\/(edit))?$/)
+  if (m)
+    return {
+      label: m[2] === 'edit' ? 'Edit Invoice' : `Invoice ${m[1]}`,
+      breadcrumbs: [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Invoices', href: '/invoices' },
+        { label: m[1], href: `/invoices/${m[1]}` },
+        ...(m[2] === 'edit' ? [{ label: 'Edit', href: `/invoices/${m[1]}/edit` }] : []),
+      ],
+    }
+
+  return { label: 'Workspace', breadcrumbs: [{ label: 'Workspace', href: pathname }] }
+}
+
+/* ─── Layout ────────────────────────────────────────────────────────────────── */
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const pathname = usePathname()
-
-  useEffect(() => {
-    setIsSidebarOpen(false)
-    setIsProfileOpen(false)
-  }, [pathname])
-
-  const pageLabel = pathname === '/dashboard'
-    ? 'Dashboard'
-    : pathname.startsWith('/invoices')
-      ? 'Invoices'
-      : pathname === '/customers'
-        ? 'Customers'
-        : pathname === '/items'
-          ? 'Items'
-          : pathname === '/company-settings'
-            ? 'Company Settings'
-            : pathname === '/setting'
-              ? 'Settings'
-            : 'Workspace'
-
-  const breadcrumbItems = (() => {
-    if (pathname === '/dashboard') {
-      return [{ label: 'Dashboard', href: '/dashboard' }]
-    }
-
-    if (pathname === '/customers') {
-      return [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Customers', href: '/customers' },
-      ]
-    }
-
-    if (pathname === '/items') {
-      return [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Items', href: '/items' },
-      ]
-    }
-
-    if (pathname === '/company-settings') {
-      return [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Company Settings', href: '/company-settings' },
-      ]
-    }
-
-    if (pathname === '/setting') {
-      return [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Settings', href: '/setting' },
-      ]
-    }
-
-    if (pathname === '/invoices') {
-      return [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Invoices', href: '/invoices' },
-      ]
-    }
-
-    if (pathname === '/invoices/new') {
-      return [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Invoices', href: '/invoices' },
-        { label: 'Create Invoice', href: '/invoices/new' },
-      ]
-    }
-
-    const invoiceMatch = pathname.match(/^\/invoices\/([^/]+)(?:\/(edit))?$/)
-    if (invoiceMatch) {
-      const invoiceId = invoiceMatch[1]
-      const isEdit = invoiceMatch[2] === 'edit'
-
-      return [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Invoices', href: '/invoices' },
-        { label: invoiceId, href: `/invoices/${invoiceId}` },
-        ...(isEdit ? [{ label: 'Edit', href: `/invoices/${invoiceId}/edit` }] : []),
-      ]
-    }
-
-    return [{ label: pageLabel, href: pathname || '/dashboard' }]
-  })()
-
   const { user, logout } = useAuth()
   const router = useRouter()
 
+  // Close everything on navigation
+  useEffect(() => {
+    setSidebarOpen(false)
+    setProfileOpen(false)
+  }, [pathname])
+
+  // Close profile on outside click
+  useEffect(() => {
+    if (!profileOpen) return
+    const handle = (e: MouseEvent) => {
+      const target = e.target as Element
+      if (!target.closest('[data-profile-menu]')) setProfileOpen(false)
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [profileOpen])
+
+  const { label, breadcrumbs } = getPageMeta(pathname)
+  const initials = user?.name
+    ? user.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'U'
+
   return (
-    <div className="relative min-h-screen bg-[#F9FAFB] text-[#111827] transition-colors duration-200">
+    <div className="relative min-h-screen bg-[#F6F7FB]">
+
+      {/* ── Mobile backdrop ── */}
       <div
-        className={`fixed inset-0 z-40 bg-[#111827]/40 transition-opacity duration-300 md:hidden ${
-          isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-sm md:hidden transition-opacity duration-300 ${
+          sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
-        onClick={() => setIsSidebarOpen(false)}
-        aria-hidden={!isSidebarOpen}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden
       />
 
-      <div className="md:flex">
-        <Sidebar open={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      {/* ── Sidebar ── */}
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <div className="flex-1 min-w-0 md:ml-72">
-          <div className="sticky top-0 z-30 border-b border-[#E5E7EB] bg-white/95 px-4 py-4 shadow-sm backdrop-blur-xl">
-            <div className="mx-auto flex max-w-7xl flex-col gap-3 px-2 sm:px-6 lg:px-8 xl:flex-row xl:items-center xl:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#6B7280]">{pageLabel}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-medium text-[#111827] md:text-base">
-                  {breadcrumbItems.map((item, index) => (
-                    <div key={item.href} className="flex items-center gap-2">
-                      {index > 0 && <span className="text-[#9CA3AF]">/</span>}
-                      {index === breadcrumbItems.length - 1 ? (
-                        <span>{item.label}</span>
-                      ) : (
-                        <Link href={item.href} className="text-[#6B7280] hover:text-[#111827]">
-                          {item.label}
-                        </Link>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+      {/* ── Main area ── */}
+      <div className="md:pl-72 flex flex-col min-h-screen">
 
-              <div className="flex items-center justify-between gap-3 xl:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setIsSidebarOpen((open) => !open)}
-                  className="inline-flex items-center rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-sm font-medium text-[#111827] shadow-sm transition hover:bg-[#F9FAFB] md:hidden"
-                >
-                  Menu
-                </button>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsProfileOpen((open) => !open)}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#111827] shadow-sm transition hover:bg-[#F9FAFB]"
-                  >
-                    <span>{user?.name || 'Profile'}</span>
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#EFF6FF] text-[#111827]">
-                      {user?.name?.charAt(0).toUpperCase() || 'U'}
-                    </span>
-                  </button>
-                  {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-3xl border border-[#E5E7EB] bg-white p-3 shadow-xl shadow-[#111827]/10">
-                      <div className="mb-3 rounded-2xl bg-[#F9FAFB] p-3 text-sm text-[#374151]">
-                        <p className="font-semibold text-[#111827]">{user?.name || 'Your Account'}</p>
-                        <p className="text-xs text-[#6B7280]">{user?.email || 'No email available'}</p>
-                      </div>
-                      <div className="space-y-2 text-center">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            await logout()
-                            router.push('/login')
-                          }}
-                          className="w-full rounded-2xl bg-[#2563EB] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#1D4ED8]"
-                        >
-                          Logout
-                        </button>
-                        <Link
-                          href="/company-settings"
-                          className="block rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-center text-sm font-medium text-[#111827] transition hover:bg-[#F9FAFB]"
-                        >
-                          Account settings
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsProfileOpen(false)
-                            router.push('/setting#sessions')
-                          }}
-                          className="block w-full rounded-2xl border border-transparent px-3 py-2 text-center text-sm font-medium text-[#6B7280] hover:text-[#111827]"
-                        >
-                          Session info
-                        </button>
-                      </div>
-                    </div>
+        {/* ── Top bar ── */}
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white/80 px-4 py-3 backdrop-blur-xl sm:px-6 lg:px-8 shadow-sm">
+
+          {/* Left: hamburger + breadcrumb */}
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((o) => !o)}
+              className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 transition"
+              aria-label="Toggle menu"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+
+            <nav className="flex items-center gap-1 text-sm min-w-0">
+              {breadcrumbs.map((crumb, i) => (
+                <span key={crumb.href} className="flex items-center gap-1 min-w-0">
+                  {i > 0 && <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-slate-300" />}
+                  {i === breadcrumbs.length - 1 ? (
+                    <span className="font-semibold text-slate-900 truncate">{crumb.label}</span>
+                  ) : (
+                    <Link
+                      href={crumb.href}
+                      className="text-slate-400 hover:text-slate-700 transition truncate"
+                    >
+                      {crumb.label}
+                    </Link>
                   )}
-                </div>
-              </div>
-            </div>
+                </span>
+              ))}
+            </nav>
           </div>
 
-          <main className="pb-10">
-            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-              {children}
+          {/* Right: profile */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="relative" data-profile-menu>
+              <button
+                type="button"
+                onClick={() => setProfileOpen((o) => !o)}
+                className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:bg-slate-50 transition"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">
+                  {initials}
+                </div>
+                <span className="hidden sm:block text-sm font-medium text-slate-700 max-w-[120px] truncate">
+                  {user?.name || 'Profile'}
+                </span>
+              </button>
+
+              {/* Dropdown */}
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/60 animate-scale-in z-50">
+                  {/* User info */}
+                  <div className="mb-2 rounded-xl bg-slate-50 px-3 py-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white flex-shrink-0">
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-900 truncate">
+                          {user?.name || 'Your Account'}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {user?.email || 'No email'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <Link
+                      href="/company-settings"
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 transition"
+                    >
+                      <User className="h-4 w-4 text-slate-400" />
+                      Account settings
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => { setProfileOpen(false); router.push('/setting#sessions') }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 transition"
+                    >
+                      <Settings className="h-4 w-4 text-slate-400" />
+                      Session info
+                    </button>
+                  </div>
+
+                  <div className="mt-2 pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await logout()
+                        router.push('/login')
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          </main>
-        </div>
+          </div>
+        </header>
+
+        {/* ── Page content ── */}
+        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl animate-fade-in">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   )

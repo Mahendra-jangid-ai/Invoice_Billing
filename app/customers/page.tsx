@@ -1,247 +1,229 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import { useBilling, Customer } from '@/lib/context'
 import { Button } from '@/components/ui/button'
-import { Plus, Edit, Trash2, X, Loader2 } from 'lucide-react'
-import { AppLayout } from '@/app/app-layout'
+import { Plus, Edit, Trash2, X, Users } from 'lucide-react'
+import { SkeletonListPage } from '@/components/ui/skeleton'
+
+// ── Lazy-load layout ──────────────────────────────────────────────────────────
+const AppLayout = dynamic(
+  () => import('@/app/app-layout').then((m) => ({ default: m.AppLayout })),
+  { ssr: false, loading: () => null }
+)
+
+const EMPTY_FORM: Partial<Customer> = {
+  name: '', email: '', phone: '', address: '', gstnumber: '', state: '', code: '',
+}
 
 export default function CustomersPage() {
-  const { customers, loading, addCustomer, updateCustomer, deleteCustomer } =
-    useBilling()
-  const [showForm, setShowForm] = useState(false)
+  const { customers, loading, addCustomer, updateCustomer, deleteCustomer } = useBilling()
+  const [showForm, setShowForm]   = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [formData, setFormData] = useState<Partial<Customer>>({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    gstnumber: '',
-    state: '',
-    code: '',
-  })
+  const [formData, setFormData]   = useState<Partial<Customer>>(EMPTY_FORM)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!formData.name || !formData.email) {
       alert('Please fill in required fields (Name and Email)')
       return
     }
-
     if (editingId) {
       await updateCustomer(editingId, formData as Customer)
       setEditingId(null)
     } else {
       await addCustomer(formData as Customer)
     }
-
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      gstnumber: '',
-    })
+    setFormData(EMPTY_FORM)
     setShowForm(false)
   }
 
-  const handleEdit = (customer: Customer) => {
-    setFormData(customer)
-    setEditingId(customer.id)
+  const handleEdit = (c: Customer) => {
+    setFormData(c)
+    setEditingId(c.id)
     setShowForm(true)
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this customer?')) {
-      await deleteCustomer(id)
-    }
+    if (confirm('Delete this customer?')) await deleteCustomer(id)
   }
 
   const handleCancel = () => {
     setShowForm(false)
     setEditingId(null)
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      gstnumber: '',
-    })
+    setFormData(EMPTY_FORM)
   }
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <SkeletonListPage cols={7} />
+      </AppLayout>
+    )
+  }
+
+  const field = (
+    label: string,
+    key: keyof Customer,
+    opts?: { type?: string; required?: boolean; placeholder?: string }
+  ) => (
+    <div>
+      <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+        {label} {opts?.required && <span className="text-red-500">*</span>}
+      </label>
+      <input
+        type={opts?.type || 'text'}
+        value={(formData[key] as string) || ''}
+        onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+        className="field-input"
+        placeholder={opts?.placeholder || label}
+        required={opts?.required}
+      />
+    </div>
+  )
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <section className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-6 shadow-sm">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <div className="space-y-6 animate-fade-in">
+
+        {/* ── Hero ── */}
+        <div className="hero-card px-8 py-7">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#6B7280]">Customers</p>
-              <h1 className="mt-2 text-3xl font-semibold text-[#111827]">Manage customers</h1>
-              <p className="mt-2 max-w-2xl text-sm text-[#4B5563]">Add, edit and organize your customer details in one place.</p>
+              <p className="section-label">People</p>
+              <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl tracking-tight">
+                Customer Management
+              </h1>
+              <p className="mt-1.5 text-sm text-slate-500">
+                Add and manage all your billing clients in one place.
+              </p>
+              <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/80 border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
+                <Users className="h-3.5 w-3.5 text-indigo-500" />
+                {customers.length} customer{customers.length !== 1 ? 's' : ''} registered
+              </div>
             </div>
-            <Button onClick={() => setShowForm(true)} className="gap-2 self-start xl:self-center">
-              <Plus className="h-4 w-4" />
-              Add customer
+            <Button onClick={() => setShowForm(true)} className="gap-2 shadow-md shadow-indigo-200/50 self-start xl:self-center">
+              <Plus className="h-4 w-4" /> Add Customer
             </Button>
           </div>
-        </section>
+        </div>
 
+        {/* ── Add/Edit form ── */}
         {showForm && (
-          <section className="soft-card rounded-[32px] p-6">
-            <div className="mb-4 flex items-center justify-between gap-4">
+          <div className="premium-card p-6 animate-scale-in">
+            <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-[#111827]">
-                  {editingId ? 'Edit customer' : 'Add new customer'}
+                <h2 className="text-base font-bold text-slate-900">
+                  {editingId ? 'Edit Customer' : 'New Customer'}
                 </h2>
-                <p className="text-sm text-[#6B7280]">Fill in the customer details below.</p>
+                <p className="text-xs text-slate-400 mt-0.5">Fill in the customer details below.</p>
               </div>
               <button
                 onClick={handleCancel}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E5E7EB] text-[#6B7280] transition hover:border-[#2563EB] hover:text-[#111827]"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-[#374151]">Name *</label>
-                  <input
-                    type="text"
-                    value={formData.name || ''}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
-                    placeholder="Customer name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#374151]">Email *</label>
-                  <input
-                    type="email"
-                    value={formData.email || ''}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
-                    placeholder="email@example.com"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#374151]">Phone</label>
-                  <input
-                    type="tel"
-                    value={formData.phone || ''}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
-                    placeholder="+91 XXXXXXXXXX"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#374151]">GST number</label>
-                  <input
-                    type="text"
-                    value={formData.gstnumber || ''}
-                    onChange={(e) => setFormData({ ...formData, gstnumber: e.target.value })}
-                    className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
-                    placeholder="GST number"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#374151]">State</label>
-                  <input
-                    type="text"
-                    value={formData.state || ''}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
-                    placeholder="State name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#374151]">State code</label>
-                  <input
-                    type="text"
-                    value={formData.code || ''}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                    className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
-                    placeholder="State code"
-                  />
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {field('Name',        'name',      { required: true,  placeholder: 'Customer name' })}
+                {field('Email',       'email',     { type: 'email', required: true, placeholder: 'email@example.com' })}
+                {field('Phone',       'phone',     { type: 'tel',  placeholder: '+91 XXXXXXXXXX' })}
+                {field('GST Number',  'gstnumber', { placeholder: 'GSTIN' })}
+                {field('State',       'state',     { placeholder: 'e.g. Maharashtra' })}
+                {field('State Code',  'code',      { placeholder: 'e.g. 27' })}
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-[#374151]">Address</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Address</label>
                 <textarea
                   value={formData.address || ''}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
-                  placeholder="Customer address"
-                  rows={4}
+                  className="field-input resize-none"
+                  placeholder="Full billing address"
+                  rows={3}
                 />
               </div>
-
-              <div className="flex flex-wrap gap-3">
-                <Button type="submit">{editingId ? 'Update customer' : 'Save customer'}</Button>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Button type="submit" className="gap-2">
+                  {editingId ? 'Update Customer' : 'Save Customer'}
+                </Button>
                 <Button type="button" variant="outline" onClick={handleCancel}>Cancel</Button>
               </div>
             </form>
-          </section>
+          </div>
         )}
 
-        {loading ? (
-          <div className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-12 text-center text-[#4B5563] shadow-sm">
-            Loading customers...
-          </div>
-        ) : customers.length === 0 ? (
-          <section className="rounded-[32px] border border-dashed border-[#D1D5DB] bg-white/95 p-12 text-center">
-            <p className="text-lg font-semibold text-[#111827]">No customers yet</p>
-            <p className="mt-2 text-sm text-[#4B5563]">Start by adding your first customer to manage invoices faster.</p>
-            <Button className="mt-6 gap-2" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" />
-              Add customer
+        {/* ── List ── */}
+        {customers.length === 0 ? (
+          <div className="premium-card flex flex-col items-center justify-center gap-4 py-20 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+              <Users className="h-8 w-8 text-slate-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-slate-800">No customers yet</p>
+              <p className="mt-1 text-sm text-slate-400">Add your first customer to start billing.</p>
+            </div>
+            <Button className="mt-1 gap-2" onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4" /> Add Customer
             </Button>
-          </section>
+          </div>
         ) : (
-          <section className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-4 shadow-sm">
+          <div className="premium-card overflow-hidden p-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h2 className="text-sm font-bold text-slate-900">All Customers</h2>
+              <span className="rounded-xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                {customers.length} total
+              </span>
+            </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-left">
-                <thead className="border-b border-[#E5E7EB]">
+              <table className="min-w-full">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-5 py-3 text-sm font-semibold text-[#111827]">Name</th>
-                    <th className="px-5 py-3 text-sm font-semibold text-[#111827]">Email</th>
-                    <th className="px-5 py-3 text-sm font-semibold text-[#111827]">Phone</th>
-                    <th className="px-5 py-3 text-sm font-semibold text-[#111827]">State</th>
-                    <th className="px-5 py-3 text-sm font-semibold text-[#111827]">State code</th>
-                    <th className="px-5 py-3 text-sm font-semibold text-[#111827]">GST number</th>
-                    <th className="px-5 py-3 text-center text-sm font-semibold text-[#111827]">Actions</th>
+                    <th className="px-6 py-3.5 text-left">Name</th>
+                    <th className="px-6 py-3.5 text-left">Email</th>
+                    <th className="px-6 py-3.5 text-left">Phone</th>
+                    <th className="px-6 py-3.5 text-left">State</th>
+                    <th className="px-6 py-3.5 text-left">Code</th>
+                    <th className="px-6 py-3.5 text-left">GST</th>
+                    <th className="px-6 py-3.5 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E5E7EB]">
+                <tbody>
                   {customers.map((customer) => (
-                    <tr key={customer.id} className="hover:bg-[#F9FAFB]">
-                      <td className="px-5 py-4 font-medium text-[#111827]">{customer.name}</td>
-                      <td className="px-5 py-4 text-sm text-[#4B5563]">{customer.email}</td>
-                      <td className="px-5 py-4 text-sm text-[#4B5563]">{customer.phone || '-'}</td>
-                      <td className="px-5 py-4 text-sm text-[#4B5563]">{customer.state || '-'}</td>
-                      <td className="px-5 py-4 text-sm text-[#4B5563]">{customer.code || '-'}</td>
-                      <td className="px-5 py-4 text-sm text-[#4B5563]">{customer.gstnumber || '-'}</td>
-                      <td className="px-5 py-4 text-center">
-                        <div className="inline-flex items-center gap-2">
+                    <tr key={customer.id}>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-xs font-bold text-indigo-700">
+                            {customer.name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                          <span className="font-semibold text-slate-900">{customer.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500">{customer.email}</td>
+                      <td className="px-6 py-4 text-slate-500">{customer.phone || '—'}</td>
+                      <td className="px-6 py-4 text-slate-500">{customer.state || '—'}</td>
+                      <td className="px-6 py-4 text-slate-500">{customer.code || '—'}</td>
+                      <td className="px-6 py-4">
+                        {customer.gstnumber ? (
+                          <span className="font-mono text-xs text-slate-700">{customer.gstnumber}</span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleEdit(customer)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#E5E7EB] text-[#374151] transition hover:bg-[#F9FAFB] hover:text-[#111827]"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-amber-50 hover:text-amber-600 transition"
+                            title="Edit"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(customer.id)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#E5E7EB] text-[#374151] transition hover:bg-[#F9FAFB] hover:text-[#111827]"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                            title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -252,8 +234,9 @@ export default function CustomersPage() {
                 </tbody>
               </table>
             </div>
-          </section>
+          </div>
         )}
+
       </div>
     </AppLayout>
   )
