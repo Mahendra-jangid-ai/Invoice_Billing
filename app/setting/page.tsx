@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { CheckCircle, RefreshCw, Shield, Trash2 } from 'lucide-react'
+import { CheckCircle, RefreshCw, Trash2 } from 'lucide-react'
 import { AppLayout } from '@/app/app-layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -231,68 +231,6 @@ export default function SettingsPage() {
 
         <section className="soft-card rounded-[32px] p-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-            <div className="space-y-6">
-              <div className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-                <div className="flex items-center gap-3">
-                  <Shield className="h-5 w-5 text-[#2563EB]" />
-                  <div>
-                    <h2 className="text-lg font-semibold text-[#111827]">Web identity</h2>
-                    <p className="text-sm text-[#6B7280]">These values are shown to users across the web app.</p>
-                  </div>
-                </div>
-
-                <div className="mt-5 grid gap-4">
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">Website name</label>
-                    <Input value={settings.websiteName} onChange={(e) => setSettings((prev) => ({ ...prev, websiteName: e.target.value }))} className="border-[#E5E7EB]" placeholder="Website name" />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">Tagline</label>
-                    <Input value={settings.tagline} onChange={(e) => setSettings((prev) => ({ ...prev, tagline: e.target.value }))} className="border-[#E5E7EB]" placeholder="Short tagline" />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">Support email</label>
-                    <Input type="email" value={settings.supportEmail} onChange={(e) => setSettings((prev) => ({ ...prev, supportEmail: e.target.value }))} className="border-[#E5E7EB]" placeholder="support@example.com" />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">Support phone</label>
-                    <Input value={settings.supportPhone} onChange={(e) => setSettings((prev) => ({ ...prev, supportPhone: e.target.value }))} className="border-[#E5E7EB]" placeholder="Support phone" />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">Footer text</label>
-                    <Textarea value={settings.footerText} onChange={(e) => setSettings((prev) => ({ ...prev, footerText: e.target.value }))} rows={3} className="border-[#E5E7EB]" placeholder="Footer text" />
-                  </div>
-                </div>
-              </div>
-
-              {error && (
-                <div className="rounded-[26px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
-                  {error}
-                </div>
-              )}
-
-              <div className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-[#111827]">Saved preview</h2>
-                    <p className="text-sm text-[#6B7280]">What users will see across the app.</p>
-                  </div>
-                  <div className="rounded-2xl bg-[#2563EB] px-3 py-2 text-xs font-semibold text-white">Web</div>
-                </div>
-
-                <div className="mt-5 space-y-3 rounded-[24px] border border-[#E5E7EB] bg-white p-4">
-                  <p className="text-lg font-semibold text-[#111827]">{settings.websiteName}</p>
-                  <p className="text-sm text-[#4B5563]">{settings.tagline || 'No tagline added yet'}</p>
-                  <div className="grid gap-2 pt-2 text-sm text-[#6B7280]">
-                    <p>{settings.supportEmail || 'No support email added'}</p>
-                    <p>{settings.supportPhone || 'No support phone added'}</p>
-                    <p>{settings.footerText || 'No footer text added'}</p>
-                    <p>Language: {LANGUAGE_OPTIONS.find((option) => option.value === settings.language)?.label || settings.language}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <section id="sessions" className="space-y-5">
               <div className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

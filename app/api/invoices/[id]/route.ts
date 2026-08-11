@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
+import { requireAuth } from '@/lib/auth'
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { user, errorResponse } = await requireAuth()
+  if (errorResponse) return errorResponse
   try {
     const { id } = await params
     const body = await request.json()
@@ -33,10 +36,14 @@ export async function PUT(
       updatedAt: new Date(),
     }
 
-    await db.collection('invoices').updateOne(
-      { id: id },
+    const result = await db.collection('invoices').updateOne(
+      { id: id, userId: user.userId },
       { $set: updateData }
     )
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: 'Invoice not found or access denied' }, { status: 404 })
+    }
 
     return NextResponse.json({ id, ...updateData })
   } catch (error) {
@@ -49,11 +56,18 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { user, errorResponse } = await requireAuth()
+  if (errorResponse) return errorResponse
+
   try {
     const { id } = await params
     const db = await getDatabase()
 
-    await db.collection('invoices').deleteOne({ id: id })
+    const result = await db.collection('invoices').deleteOne({ id: id, userId: user.userId })
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: 'Invoice not found or access denied' }, { status: 404 })
+    }
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete invoice:', error)
