@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 export interface AuthUser {
+  sessionId: string
   userId: string
   email: string
   name: string
@@ -31,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (res.ok) {
           const data = await res.json()
           if (data.userId) {
-            setUser({ userId: data.userId, email: data.email, name: data.name })
+            setUser({ sessionId: data.sessionId, userId: data.userId, email: data.email, name: data.name })
           } else {
             setUser(null)
           }
@@ -57,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       const data = await res.json()
       if (res.ok && data.userId) {
-        setUser({ userId: data.userId, email: data.email, name: data.name })
+        setUser({ sessionId: data.sessionId, userId: data.userId, email: data.email, name: data.name })
         return { success: true }
       }
       return { success: false, error: data.error || 'Login failed' }
@@ -84,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       const data = await res.json()
       if (res.ok && data.userId) {
-        setUser({ userId: data.userId, email: data.email, name: data.name })
+        setUser({ sessionId: data.sessionId, userId: data.userId, email: data.email, name: data.name })
         return { success: true }
       }
       return { success: false, error: data.error || 'Sign up failed' }

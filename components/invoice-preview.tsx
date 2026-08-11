@@ -682,9 +682,9 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   const contactLine = [contactPerson, companyPhone].filter(Boolean).join(' • ')
 
   return (
-    <div className="w-full rounded-xl border border-slate-300 bg-white p-4 shadow-sm soft-card">
-      <div className="mb-3 text-sm font-semibold text-slate-700">PDF Preview</div>
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-2">
+    <div className="w-full rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm soft-card">
+      <div className="mb-3 text-sm font-semibold text-[#374151]">PDF Preview</div>
+      <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white p-2">
           <PDFViewer style={{ width: '100%', height: '1000px', backgroundColor: '#ffffff' }}>
             <InvoicePdfDocument
             invoice={invoice}

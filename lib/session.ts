@@ -1,4 +1,5 @@
 import 'server-only'
+import crypto from 'crypto'
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
@@ -6,6 +7,7 @@ const SESSION_COOKIE = 'bs_session'
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000 // 1 day
 
 export interface SessionPayload {
+  sessionId: string
   userId: string
   email: string
   name: string
@@ -47,6 +49,7 @@ export async function decrypt(token: string | undefined): Promise<SessionPayload
       return null
     }
     return {
+      sessionId: payload.sessionId,
       userId: payload.userId,
       email: payload.email,
       name: payload.name,
@@ -58,9 +61,10 @@ export async function decrypt(token: string | undefined): Promise<SessionPayload
   }
 }
 
-export async function createSession(userId: string, email: string, name: string): Promise<void> {
+export async function createSession(userId: string, email: string, name: string): Promise<{ sessionId: string; expiresAt: Date }> {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
-  const token = await encrypt({ userId, email, name, expiresAt })
+  const sessionId = crypto.randomUUID()
+  const token = await encrypt({ sessionId, userId, email, name, expiresAt })
   const cookieStore = await cookies()
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -70,6 +74,8 @@ export async function createSession(userId: string, email: string, name: string)
     maxAge: SESSION_DURATION_MS / 1000,
     path: '/',
   })
+
+  return { sessionId, expiresAt }
 }
 
 export async function getSession(): Promise<SessionPayload | null> {

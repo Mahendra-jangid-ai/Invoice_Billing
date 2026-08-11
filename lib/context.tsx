@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { useAuth } from '@/lib/auth-context'
 
 export interface Customer {
   id: string
@@ -104,6 +105,7 @@ interface BillingContextType {
 const BillingContext = createContext<BillingContextType | undefined>(undefined)
 
 export function BillingProvider({ children }: { children: React.ReactNode }) {
+  const { user, loading: authLoading } = useAuth()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -126,43 +128,69 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
     bankBranch: '',
   })
 
-  // Fetch initial data from MongoDB API routes
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true)
-      try {
-        const [cRes, iRes, invRes, compRes] = await Promise.allSettled([
-          fetch('/api/customers'),
-          fetch('/api/items'),
-          fetch('/api/invoices'),
-          fetch('/api/company'),
-        ])
+  const loadData = async () => {
+    setLoading(true)
+    try {
+      const [cRes, iRes, invRes, compRes] = await Promise.allSettled([
+        fetch('/api/customers', { credentials: 'include' }),
+        fetch('/api/items', { credentials: 'include' }),
+        fetch('/api/invoices', { credentials: 'include' }),
+        fetch('/api/company', { credentials: 'include' }),
+      ])
 
-        if (cRes.status === 'fulfilled' && cRes.value.ok) {
-          const data = await cRes.value.json()
-          if (Array.isArray(data)) setCustomers(data)
-        }
-        if (iRes.status === 'fulfilled' && iRes.value.ok) {
-          const data = await iRes.value.json()
-          if (Array.isArray(data)) setItems(data)
-        }
-        if (invRes.status === 'fulfilled' && invRes.value.ok) {
-          const data = await invRes.value.json()
-          if (Array.isArray(data)) setInvoices(data)
-        }
-        if (compRes.status === 'fulfilled' && compRes.value.ok) {
-          const data = await compRes.value.json()
-          if (data && !data.error) setCompany(data)
-        }
-      } catch (err) {
-        console.error('Error fetching data from MongoDB backend:', err)
-      } finally {
-        setLoading(false)
+      if (cRes.status === 'fulfilled' && cRes.value.ok) {
+        const data = await cRes.value.json()
+        if (Array.isArray(data)) setCustomers(data)
       }
+      if (iRes.status === 'fulfilled' && iRes.value.ok) {
+        const data = await iRes.value.json()
+        if (Array.isArray(data)) setItems(data)
+      }
+      if (invRes.status === 'fulfilled' && invRes.value.ok) {
+        const data = await invRes.value.json()
+        if (Array.isArray(data)) setInvoices(data)
+      }
+      if (compRes.status === 'fulfilled' && compRes.value.ok) {
+        const data = await compRes.value.json()
+        if (data && !data.error) setCompany(data)
+      }
+    } catch (err) {
+      console.error('Error fetching data from MongoDB backend:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (authLoading) return
+
+    if (user) {
+      loadData()
+      return
     }
 
-    loadData()
-  }, [])
+    setCustomers([])
+    setItems([])
+    setInvoices([])
+    setCompany({
+      name: '',
+      address: '',
+      phone: '',
+      email: '',
+      contactPerson: '',
+      gstnumber: '',
+      pan: '',
+      state: '',
+      code: '',
+      logoUrl: '',
+      bankName: '',
+      bankAccountName: '',
+      bankAccountNumber: '',
+      bankIfsc: '',
+      bankBranch: '',
+    })
+    setLoading(false)
+  }, [authLoading, user])
 
   const updateCompany = async (newCompany: Company) => {
     setCompany(newCompany)

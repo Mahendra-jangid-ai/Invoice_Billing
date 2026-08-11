@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { getDatabase } from '@/lib/mongodb'
 import { hashPassword, logSecurityEvent, getClientIp } from '@/lib/auth'
 import { createSession } from '@/lib/session'
+import { createSessionRecord } from '@/lib/session-store'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 const SignupSchema = z.object({
@@ -67,12 +68,23 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     })
 
-    await createSession(userId, email, name)
+    const { sessionId, expiresAt } = await createSession(userId, email, name)
+    await createSessionRecord(
+      sessionId,
+      userId,
+      email,
+      name,
+      {
+        userAgent: request.headers.get('user-agent') || 'Unknown device',
+        ipAddress: ip,
+      },
+      expiresAt,
+    )
 
     logSecurityEvent('SIGNUP_SUCCESS', { userId, email, ip })
 
     return NextResponse.json(
-      { userId, email, name },
+      { userId, email, name, sessionId },
       { status: 201 }
     )
   } catch (error) {

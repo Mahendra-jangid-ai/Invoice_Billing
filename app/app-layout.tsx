@@ -24,8 +24,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         ? 'Customers'
         : pathname === '/items'
           ? 'Items'
-          : pathname === '/settings'
+          : pathname === '/company-settings'
             ? 'Company Settings'
+            : pathname === '/setting'
+              ? 'Settings'
             : 'Billing Workspace'
 
   const pageSubtitle = pathname === '/dashboard'
@@ -36,17 +38,97 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         ? 'Keep customer details organized'
         : pathname === '/items'
           ? 'Maintain your catalog with ease'
-          : pathname === '/settings'
+          : pathname === '/company-settings'
             ? 'Align your branding and company profile'
+            : pathname === '/setting'
+              ? 'Manage web preferences and session security'
             : 'Manage your day-to-day billing tasks'
+
+  const pageLabel = pathname === '/dashboard'
+    ? 'Dashboard'
+    : pathname.startsWith('/invoices')
+      ? 'Invoices'
+      : pathname === '/customers'
+        ? 'Customers'
+        : pathname === '/items'
+          ? 'Items'
+          : pathname === '/company-settings'
+            ? 'Company Settings'
+            : pathname === '/setting'
+              ? 'Settings'
+            : 'Workspace'
+
+  const breadcrumbItems = (() => {
+    if (pathname === '/dashboard') {
+      return [{ label: 'Dashboard', href: '/dashboard' }]
+    }
+
+    if (pathname === '/customers') {
+      return [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Customers', href: '/customers' },
+      ]
+    }
+
+    if (pathname === '/items') {
+      return [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Items', href: '/items' },
+      ]
+    }
+
+    if (pathname === '/company-settings') {
+      return [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Company Settings', href: '/company-settings' },
+      ]
+    }
+
+    if (pathname === '/setting') {
+      return [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Settings', href: '/setting' },
+      ]
+    }
+
+    if (pathname === '/invoices') {
+      return [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Invoices', href: '/invoices' },
+      ]
+    }
+
+    if (pathname === '/invoices/new') {
+      return [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Invoices', href: '/invoices' },
+        { label: 'Create Invoice', href: '/invoices/new' },
+      ]
+    }
+
+    const invoiceMatch = pathname.match(/^\/invoices\/([^/]+)(?:\/(edit))?$/)
+    if (invoiceMatch) {
+      const invoiceId = invoiceMatch[1]
+      const isEdit = invoiceMatch[2] === 'edit'
+
+      return [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Invoices', href: '/invoices' },
+        { label: invoiceId, href: `/invoices/${invoiceId}` },
+        ...(isEdit ? [{ label: 'Edit', href: `/invoices/${invoiceId}/edit` }] : []),
+      ]
+    }
+
+    return [{ label: pageLabel, href: pathname || '/dashboard' }]
+  })()
 
   const { user, logout } = useAuth()
   const router = useRouter()
 
   return (
-    <div className="relative min-h-screen bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100">
+    <div className="relative min-h-screen bg-[#F9FAFB] text-[#111827] transition-colors duration-200">
       <div
-        className={`fixed inset-0 z-40 bg-slate-950/40 transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 z-40 bg-[#111827]/40 transition-opacity duration-300 md:hidden ${
           isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setIsSidebarOpen(false)}
@@ -57,18 +139,31 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <Sidebar open={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
         <div className="flex-1 min-w-0 md:ml-72">
-          <div className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 px-4 py-4 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95">
+          <div className="sticky top-0 z-30 border-b border-[#E5E7EB] bg-white/95 px-4 py-4 shadow-sm backdrop-blur-xl">
             <div className="mx-auto flex max-w-7xl flex-col gap-3 px-2 sm:px-6 lg:px-8 xl:flex-row xl:items-center xl:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{pageTitle}</p>
-                <h1 className="mt-2 text-xl font-semibold text-slate-900 dark:text-slate-100 md:text-2xl">{pageSubtitle}</h1>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#6B7280]">{pageLabel}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-medium text-[#111827] md:text-base">
+                  {breadcrumbItems.map((item, index) => (
+                    <div key={item.href} className="flex items-center gap-2">
+                      {index > 0 && <span className="text-[#9CA3AF]">/</span>}
+                      {index === breadcrumbItems.length - 1 ? (
+                        <span>{item.label}</span>
+                      ) : (
+                        <Link href={item.href} className="text-[#6B7280] hover:text-[#111827]">
+                          {item.label}
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="flex items-center justify-between gap-3 xl:justify-end">
                 <button
                   type="button"
                   onClick={() => setIsSidebarOpen((open) => !open)}
-                  className="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 md:hidden"
+                  className="inline-flex items-center rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-sm font-medium text-[#111827] shadow-sm transition hover:bg-[#F9FAFB] md:hidden"
                 >
                   Menu
                 </button>
@@ -76,33 +171,33 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <button
                     type="button"
                     onClick={() => setIsProfileOpen((open) => !open)}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                    className="inline-flex items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#111827] shadow-sm transition hover:bg-[#F9FAFB]"
                   >
                     <span>{user?.name || 'Profile'}</span>
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#EFF6FF] text-[#111827]">
                       {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </span>
                   </button>
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-3xl border border-slate-200 bg-white p-3 shadow-xl shadow-slate-950/10 dark:border-slate-700 dark:bg-slate-950">
-                      <div className="mb-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-200">
-                        <p className="font-semibold text-slate-900 dark:text-white">{user?.name || 'Your Account'}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email || 'No email available'}</p>
+                    <div className="absolute right-0 mt-2 w-56 rounded-3xl border border-[#E5E7EB] bg-white p-3 shadow-xl shadow-[#111827]/10">
+                      <div className="mb-3 rounded-2xl bg-[#F9FAFB] p-3 text-sm text-[#374151]">
+                        <p className="font-semibold text-[#111827]">{user?.name || 'Your Account'}</p>
+                        <p className="text-xs text-[#6B7280]">{user?.email || 'No email available'}</p>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-2 text-center">
                         <button
                           type="button"
                           onClick={async () => {
                             await logout()
-                            router.push('/auth/login')
+                            router.push('/login')
                           }}
-                          className="w-full rounded-2xl bg-slate-950 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                          className="w-full rounded-2xl bg-[#2563EB] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#1D4ED8]"
                         >
                           Logout
                         </button>
                         <Link
-                          href="/settings"
-                          className="block rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                          href="/company-settings"
+                          className="block rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-center text-sm font-medium text-[#111827] transition hover:bg-[#F9FAFB]"
                         >
                           Account settings
                         </Link>
@@ -110,9 +205,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                           type="button"
                           onClick={() => {
                             setIsProfileOpen(false)
-                            router.push('/settings')
+                            router.push('/setting#sessions')
                           }}
-                          className="block w-full rounded-2xl border border-transparent px-3 py-2 text-left text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+                          className="block w-full rounded-2xl border border-transparent px-3 py-2 text-center text-sm font-medium text-[#6B7280] hover:text-[#111827]"
                         >
                           Session info
                         </button>

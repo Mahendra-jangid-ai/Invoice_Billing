@@ -67,12 +67,12 @@ export default function ItemsPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <section className="rounded-[32px] border border-slate-200/80 bg-white/95 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+        <section className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-6 shadow-sm">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Items</p>
-              <h1 className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">Manage products and services</h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">Add and maintain the items you sell in one convenient place.</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#6B7280]">Items</p>
+              <h1 className="mt-2 text-3xl font-semibold text-[#111827]">Manage products and services</h1>
+              <p className="mt-2 max-w-2xl text-sm text-[#4B5563]">Add and maintain the items you sell in one convenient place.</p>
             </div>
             <Button onClick={() => setShowForm(true)} className="gap-2 self-start xl:self-center">
               <Plus className="h-4 w-4" />
@@ -85,14 +85,14 @@ export default function ItemsPage() {
           <section className="soft-card rounded-[32px] p-6">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                <h2 className="text-lg font-semibold text-[#111827]">
                   {editingId ? 'Edit item' : 'Add new item'}
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Add the item details used in invoices.</p>
+                <p className="text-sm text-[#6B7280]">Add the item details used in invoices.</p>
               </div>
               <button
                 onClick={handleCancel}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-slate-100"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E5E7EB] text-[#6B7280] transition hover:border-[#2563EB] hover:text-[#111827]"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -101,49 +101,49 @@ export default function ItemsPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Item name *</label>
+                  <label className="block text-sm font-medium text-[#374151]">Item name *</label>
                   <input
                     type="text"
                     value={formData.name || ''}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                    className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
                     placeholder="Item name"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Unit price *</label>
+                  <label className="block text-sm font-medium text-[#374151]">Unit price *</label>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
                     value={formData.unitprice ?? ''}
                     onChange={(e) => setFormData({ ...formData, unitprice: parseFloat(e.target.value) || 0 })}
-                    className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                    className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
                     placeholder="0.00"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">HSN/SAC code</label>
+                  <label className="block text-sm font-medium text-[#374151]">HSN/SAC code</label>
                   <input
                     type="text"
                     value={formData.hsnsac || ''}
                     onChange={(e) => setFormData({ ...formData, hsnsac: e.target.value })}
-                    className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                    className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
                     placeholder="HSN/SAC code"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
+                <label className="block text-sm font-medium text-[#374151]">Description</label>
                 <textarea
                   value={formData.description || ''}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                  className="mt-1 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
                   placeholder="Item description"
                   rows={3}
                 />
@@ -158,49 +158,49 @@ export default function ItemsPage() {
         )}
 
         {loading ? (
-          <section className="rounded-[32px] border border-slate-200/80 bg-white/95 p-12 text-center text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-950/90 dark:text-slate-400">
+          <section className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-12 text-center text-[#4B5563] shadow-sm">
             Loading items...
           </section>
         ) : items.length === 0 ? (
-          <section className="rounded-[32px] border border-dashed border-slate-300 bg-white/95 p-12 text-center dark:border-slate-700 dark:bg-slate-950/90">
-            <p className="text-lg font-semibold text-slate-900 dark:text-white">No items yet</p>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Create your first catalog item to use in invoices.</p>
+          <section className="rounded-[32px] border border-dashed border-[#D1D5DB] bg-white/95 p-12 text-center">
+            <p className="text-lg font-semibold text-[#111827]">No items yet</p>
+            <p className="mt-2 text-sm text-[#4B5563]">Create your first catalog item to use in invoices.</p>
             <Button className="mt-6 gap-2" onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4" />
               Add item
             </Button>
           </section>
         ) : (
-          <section className="rounded-[32px] border border-slate-200/80 bg-white/95 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+          <section className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-4 shadow-sm">
             <div className="overflow-x-auto">
               <table className="min-w-full text-left">
-                <thead className="border-b border-slate-200 dark:border-slate-800">
+                <thead className="border-b border-[#E5E7EB]">
                   <tr>
-                    <th className="px-5 py-3 text-sm font-semibold text-slate-900 dark:text-white">Item name</th>
-                    <th className="px-5 py-3 text-sm font-semibold text-slate-900 dark:text-white">HSN/SAC</th>
-                    <th className="px-5 py-3 text-right text-sm font-semibold text-slate-900 dark:text-white">Unit price</th>
-                    <th className="px-5 py-3 text-sm font-semibold text-slate-900 dark:text-white">Description</th>
-                    <th className="px-5 py-3 text-center text-sm font-semibold text-slate-900 dark:text-white">Actions</th>
+                    <th className="px-5 py-3 text-sm font-semibold text-[#111827]">Item name</th>
+                    <th className="px-5 py-3 text-sm font-semibold text-[#111827]">HSN/SAC</th>
+                    <th className="px-5 py-3 text-right text-sm font-semibold text-[#111827]">Unit price</th>
+                    <th className="px-5 py-3 text-sm font-semibold text-[#111827]">Description</th>
+                    <th className="px-5 py-3 text-center text-sm font-semibold text-[#111827]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                <tbody className="divide-y divide-[#E5E7EB]">
                   {items.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-900">
-                      <td className="px-5 py-4 font-medium text-slate-900 dark:text-white">{item.name}</td>
-                      <td className="px-5 py-4 text-sm text-slate-600 dark:text-slate-400">{item.hsnsac || '-'}</td>
-                      <td className="px-5 py-4 text-right text-sm font-medium text-slate-900 dark:text-white">₹{(Number(item.unitprice) || 0).toFixed(2)}</td>
-                      <td className="px-5 py-4 text-sm text-slate-600 dark:text-slate-400">{item.description || '-'}</td>
+                    <tr key={item.id} className="hover:bg-[#F9FAFB]">
+                      <td className="px-5 py-4 font-medium text-[#111827]">{item.name}</td>
+                      <td className="px-5 py-4 text-sm text-[#4B5563]">{item.hsnsac || '-'}</td>
+                      <td className="px-5 py-4 text-right text-sm font-medium text-[#111827]">₹{(Number(item.unitprice) || 0).toFixed(2)}</td>
+                      <td className="px-5 py-4 text-sm text-[#4B5563]">{item.description || '-'}</td>
                       <td className="px-5 py-4 text-center">
                         <div className="inline-flex items-center gap-2">
                           <button
                             onClick={() => handleEdit(item)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#E5E7EB] text-[#374151] transition hover:bg-[#F9FAFB] hover:text-[#111827]"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(item.id)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#E5E7EB] text-[#374151] transition hover:bg-[#F9FAFB] hover:text-[#111827]"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

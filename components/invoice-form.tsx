@@ -211,46 +211,46 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* 1. Header Metadata Section */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 shadow-sm space-y-4">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white border-b pb-2 dark:border-slate-800">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm space-y-4">
+        <h2 className="border-b border-[#E5E7EB] pb-2 text-lg font-bold text-[#111827]">
           Invoice & Service Metadata (Dynamic)
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Invoice Number *
             </label>
             <input
               type="text"
               value={invoiceNumber}
               onChange={(e) => setInvoiceNumber(e.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:border-[#2563EB] focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Date *
             </label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:border-[#2563EB] focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Reverse Charge (Y/N)
             </label>
             <select
               value={reverseCharge}
               onChange={(e) => setReverseCharge(e.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:border-[#2563EB] focus:outline-none"
             >
               <option value="No">No</option>
               <option value="Yes">Yes</option>
@@ -258,7 +258,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               WO No. (Work Order)
             </label>
             <input
@@ -266,12 +266,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               value={woNumber}
               onChange={(e) => setWoNumber(e.target.value)}
               placeholder="e.g. WO-2026-99"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:border-[#2563EB] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Description of Service
             </label>
             <input
@@ -279,12 +279,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               value={descriptionOfService}
               onChange={(e) => setDescriptionOfService(e.target.value)}
               placeholder="e.g. Carpentry / Interior Work"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:border-[#2563EB] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Period of Service
             </label>
             <input
@@ -292,12 +292,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               value={periodOfService}
               onChange={(e) => setPeriodOfService(e.target.value)}
               placeholder="e.g. July 2026"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:border-[#2563EB] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Place of Service (State)
             </label>
             <input
@@ -305,12 +305,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               value={placeOfService}
               onChange={(e) => setPlaceOfService(e.target.value)}
               placeholder="e.g. MAHARASHTRA"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:border-[#2563EB] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Place of Service Code
             </label>
             <input
@@ -318,20 +318,20 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               value={placeOfServiceCode}
               onChange={(e) => setPlaceOfServiceCode(e.target.value)}
               placeholder="e.g. 27"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:border-[#2563EB] focus:outline-none"
             />
           </div>
         </div>
       </div>
 
       {/* 2. Customer & Parties Section (Bill To & Ship To) */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 shadow-sm space-y-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b pb-3 dark:border-slate-800">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm space-y-6">
+        <div className="flex flex-col items-start justify-between gap-4 border-b border-[#E5E7EB] pb-3 md:flex-row md:items-center">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            <h2 className="text-lg font-bold text-[#111827]">
               Parties (Bill To & Ship To)
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-[#6B7280]">
               Select an existing customer or type details manually
             </p>
           </div>
@@ -340,7 +340,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
             <select
               value={customerId}
               onChange={(e) => handleCustomerSelect(e.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-900 focus:border-slate-950 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-md border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-sm font-medium text-[#111827] focus:border-[#2563EB] focus:outline-none"
             >
               <option value="">-- Select Customer (Auto-fill) --</option>
               {customers.map((customer) => (
@@ -354,64 +354,64 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Bill To Box */}
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50 space-y-3">
-            <h3 className="font-semibold text-sm text-slate-900 dark:text-white flex items-center justify-between">
+          <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-4 space-y-3">
+            <h3 className="flex items-center justify-between text-sm font-semibold text-[#111827]">
               <span>Bill to Party</span>
             </h3>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Name *</label>
+              <label className="mb-1 block text-xs font-medium text-[#4B5563]">Name *</label>
               <input
                 type="text"
                 value={billTo.name}
                 onChange={(e) => setBillTo({ ...billTo, name: e.target.value })}
                 placeholder="e.g. Salus Advisory LLP"
-                className="w-full rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded border border-[#E5E7EB] bg-white px-3 py-1.5 text-sm text-[#111827] focus:outline-none"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Address</label>
+              <label className="mb-1 block text-xs font-medium text-[#4B5563]">Address</label>
               <textarea
                 value={billTo.address}
                 onChange={(e) => setBillTo({ ...billTo, address: e.target.value })}
                 placeholder="Full billing address..."
                 rows={2}
-                className="w-full rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded border border-[#E5E7EB] bg-white px-3 py-1.5 text-sm text-[#111827] focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">GSTIN</label>
+                <label className="mb-1 block text-xs font-medium text-[#4B5563]">GSTIN</label>
                 <input
                   type="text"
                   value={billTo.gstin}
                   onChange={(e) => setBillTo({ ...billTo, gstin: e.target.value })}
                   placeholder="27AFEFS5822F1ZY"
-                  className="w-full rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded border border-[#E5E7EB] bg-white px-3 py-1.5 text-sm text-[#111827] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-1">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">State</label>
+                  <label className="mb-1 block text-xs font-medium text-[#4B5563]">State</label>
                   <input
                     type="text"
                     value={billTo.state}
                     onChange={(e) => setBillTo({ ...billTo, state: e.target.value })}
                     placeholder="MAHARASHTRA"
-                    className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Code</label>
+                  <label className="mb-1 block text-xs font-medium text-[#4B5563]">Code</label>
                   <input
                     type="text"
                     value={billTo.code}
                     onChange={(e) => setBillTo({ ...billTo, code: e.target.value })}
                     placeholder="27"
-                    className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none"
                   />
                 </div>
               </div>
@@ -419,12 +419,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
           </div>
 
           {/* Ship To Box */}
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50 space-y-3">
+          <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-sm text-slate-900 dark:text-white">
+              <h3 className="text-sm font-semibold text-[#111827]">
                 Ship to Party (Site Address)
               </h3>
-              <label className="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+              <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-[#374151]">
                 <input
                   type="checkbox"
                   checked={sameAsBillTo}
@@ -432,69 +432,69 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                     setSameAsBillTo(e.target.checked)
                     if (e.target.checked) handleCopyBillTo()
                   }}
-                  className="rounded border-slate-300 text-slate-900"
+                  className="rounded border-[#E5E7EB] text-[#2563EB]"
                 />
                 Same as Bill To
               </label>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Name</label>
+              <label className="mb-1 block text-xs font-medium text-[#4B5563]">Name</label>
               <input
                 type="text"
                 value={sameAsBillTo ? billTo.name : shipTo.name}
                 onChange={(e) => setShipTo({ ...shipTo, name: e.target.value })}
                 disabled={sameAsBillTo}
                 placeholder="e.g. Salus Advisory LLP"
-                className="w-full rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:outline-none disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-900"
+                className="w-full rounded border border-[#E5E7EB] bg-white px-3 py-1.5 text-sm text-[#111827] focus:outline-none disabled:bg-[#F3F4F6]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Address</label>
+              <label className="mb-1 block text-xs font-medium text-[#4B5563]">Address</label>
               <textarea
                 value={sameAsBillTo ? billTo.address : shipTo.address}
                 onChange={(e) => setShipTo({ ...shipTo, address: e.target.value })}
                 disabled={sameAsBillTo}
                 placeholder="Site / Delivery Address..."
                 rows={2}
-                className="w-full rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:outline-none disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-900"
+                className="w-full rounded border border-[#E5E7EB] bg-white px-3 py-1.5 text-sm text-[#111827] focus:outline-none disabled:bg-[#F3F4F6]"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">GSTIN</label>
+                <label className="mb-1 block text-xs font-medium text-[#4B5563]">GSTIN</label>
                 <input
                   type="text"
                   value={sameAsBillTo ? billTo.gstin : shipTo.gstin}
                   onChange={(e) => setShipTo({ ...shipTo, gstin: e.target.value })}
                   disabled={sameAsBillTo}
                   placeholder="27AFEFS5822F1ZY"
-                  className="w-full rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:outline-none disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-900"
+                  className="w-full rounded border border-[#E5E7EB] bg-white px-3 py-1.5 text-sm text-[#111827] focus:outline-none disabled:bg-[#F3F4F6]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-1">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">State</label>
+                  <label className="mb-1 block text-xs font-medium text-[#4B5563]">State</label>
                   <input
                     type="text"
                     value={sameAsBillTo ? billTo.state : shipTo.state}
                     onChange={(e) => setShipTo({ ...shipTo, state: e.target.value })}
                     disabled={sameAsBillTo}
                     placeholder="MAHARASHTRA"
-                    className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-900"
+                    className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none disabled:bg-[#F3F4F6]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Code</label>
+                  <label className="mb-1 block text-xs font-medium text-[#4B5563]">Code</label>
                   <input
                     type="text"
                     value={sameAsBillTo ? billTo.code : shipTo.code}
                     onChange={(e) => setShipTo({ ...shipTo, code: e.target.value })}
                     disabled={sameAsBillTo}
                     placeholder="27"
-                    className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-900"
+                    className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none disabled:bg-[#F3F4F6]"
                   />
                 </div>
               </div>
@@ -504,13 +504,13 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       </div>
 
       {/* 3. Products & Services Line Items Table */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b pb-3 dark:border-slate-800">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            <h2 className="text-lg font-bold text-[#111827]">
               Products / Services Breakdown
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-[#6B7280]">
               Add products or services with SAC/HSN codes, units, and rates
             </p>
           </div>
@@ -518,7 +518,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
             type="button"
             onClick={addLineItem}
             variant="outline"
-            className="gap-2 border-slate-300 text-slate-900 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-100"
+            className="gap-2 border-[#E5E7EB] text-[#111827] hover:bg-[#F9FAFB]"
           >
             <Plus className="h-4 w-4" />
             Add Row
@@ -526,8 +526,8 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
         </div>
 
         {lineItems.length === 0 ? (
-          <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-lg dark:border-slate-800">
-            <p className="text-slate-500 text-sm">No items added yet. Click &quot;Add Row&quot; above.</p>
+          <div className="rounded-lg border-2 border-dashed border-[#E5E7EB] py-8 text-center">
+            <p className="text-sm text-[#6B7280]">No items added yet. Click &quot;Add Row&quot; above.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -539,14 +539,14 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               return (
                 <div
                   key={index}
-                  className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/60 space-y-3"
+                  className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-4 space-y-3"
                 >
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 border-b pb-2 dark:border-slate-700">
+                  <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-2 text-xs font-semibold text-[#6B7280]">
                     <span>Item #{index + 1}</span>
                     <button
                       type="button"
                       onClick={() => removeLineItem(index)}
-                      className="text-slate-700 hover:text-slate-900 text-xs flex items-center gap-1 dark:text-slate-300 dark:hover:text-slate-100"
+                      className="flex items-center gap-1 text-xs text-[#374151] hover:text-[#111827]"
                     >
                       <Trash2 className="h-3.5 w-3.5" /> Remove Row
                     </button>
@@ -555,13 +555,13 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                     {/* Catalog Item Select */}
                     <div className="md:col-span-3">
-                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      <label className="mb-1 block text-xs font-medium text-[#4B5563]">
                         Select Catalog Item (Optional)
                       </label>
                       <select
                         value={item.itemId}
                         onChange={(e) => handleCatalogItemSelect(index, e.target.value)}
-                        className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none"
                       >
                         <option value="">Custom Item</option>
                         {items.map((itm) => (
@@ -574,7 +574,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
 
                     {/* Product Description */}
                     <div className="md:col-span-4">
-                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      <label className="mb-1 block text-xs font-medium text-[#4B5563]">
                         Product / Service Description *
                       </label>
                       <input
@@ -584,14 +584,14 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                           updateLineItem(index, { description: e.target.value })
                         }
                         placeholder="e.g. T.v Unit and Bar Unit And Book Storage"
-                        className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none"
                         required
                       />
                     </div>
 
                     {/* SAC Code */}
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      <label className="mb-1 block text-xs font-medium text-[#4B5563]">
                         SAC/HSN Code
                       </label>
                       <input
@@ -601,13 +601,13 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                           updateLineItem(index, { sacCode: e.target.value })
                         }
                         placeholder="9954"
-                        className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none"
                       />
                     </div>
 
                     {/* Unit */}
                     <div className="md:col-span-3">
-                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      <label className="mb-1 block text-xs font-medium text-[#4B5563]">
                         Unit
                       </label>
                       <input
@@ -617,13 +617,13 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                           updateLineItem(index, { unit: e.target.value })
                         }
                         placeholder="Nos / Sqft / Pcs"
-                        className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none"
                       />
                     </div>
 
                     {/* Qty */}
                     <div className="md:col-span-4">
-                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      <label className="mb-1 block text-xs font-medium text-[#4B5563]">
                         Qty
                       </label>
                       <input
@@ -636,14 +636,14 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                             quantity: parseFloat(e.target.value) || 0,
                           })
                         }
-                        className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none"
                         required
                       />
                     </div>
 
                     {/* Rate */}
                     <div className="md:col-span-4">
-                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      <label className="mb-1 block text-xs font-medium text-[#4B5563]">
                         Rate (₹)
                       </label>
                       <input
@@ -655,17 +655,17 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                             rate: parseFloat(e.target.value) || 0,
                           })
                         }
-                        className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full rounded border border-[#E5E7EB] bg-white px-2 py-1.5 text-xs text-[#111827] focus:outline-none"
                         required
                       />
                     </div>
 
                     {/* Total Line Amount */}
                     <div className="md:col-span-4 flex flex-col justify-end">
-                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      <label className="mb-1 block text-xs font-medium text-[#4B5563]">
                         Amount (₹)
                       </label>
-                      <div className="rounded border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                      <div className="rounded border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-bold text-[#111827]">
                         ₹{lineAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </div>
                     </div>
@@ -679,9 +679,9 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
 
       {/* 4. Tax & Terms Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 space-y-4">
+        <div className="rounded-xl border border-[#E5E7EB] bg-white p-5 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Total GST Rate (%)
             </label>
             <input
@@ -692,15 +692,15 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               value={taxPercentage}
               onChange={(e) => setTaxPercentage(parseFloat(e.target.value) || 0)}
               placeholder="e.g. 18 (CGST 9% + SGST 9%)"
-              className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:outline-none"
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-[#6B7280]">
               Auto-calculates CGST ({(taxPercentage / 2).toFixed(1)}%) & SGST ({(taxPercentage / 2).toFixed(1)}%)
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Cash Discount (₹)
             </label>
             <input
@@ -710,12 +710,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               value={cashDiscount}
               onChange={(e) => setCashDiscount(parseFloat(e.target.value) || 0)}
               placeholder="e.g. 500.00"
-              className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="mb-1 block text-xs font-semibold text-[#374151]">
               Notes / Payment Terms
             </label>
             <textarea
@@ -723,55 +723,55 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="Enter optional notes..."
-              className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] focus:outline-none"
             />
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900 flex flex-col justify-between space-y-4">
-          <h3 className="font-bold text-sm text-slate-900 dark:text-white border-b pb-2 dark:border-slate-800">
+        <div className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-6 flex flex-col justify-between space-y-4">
+          <h3 className="border-b border-[#E5E7EB] pb-2 text-sm font-bold text-[#111827]">
             Calculation Summary
           </h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+            <div className="flex justify-between text-[#4B5563]">
               <span>Total Amount before Tax:</span>
-              <span className="font-semibold text-slate-900 dark:text-white">
+              <span className="font-semibold text-[#111827]">
                 ₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+            <div className="flex justify-between text-[#4B5563]">
               <span>CGST ({(taxPercentage / 2).toFixed(1)}%):</span>
-              <span className="font-semibold text-slate-900 dark:text-white">
+              <span className="font-semibold text-[#111827]">
                 ₹{(totalTax / 2).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+            <div className="flex justify-between text-[#4B5563]">
               <span>SGST ({(taxPercentage / 2).toFixed(1)}%):</span>
-              <span className="font-semibold text-slate-900 dark:text-white">
+              <span className="font-semibold text-[#111827]">
                 ₹{(totalTax / 2).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+            <div className="flex justify-between text-[#4B5563]">
               <span>Total Tax Amount:</span>
-              <span className="font-semibold text-slate-900 dark:text-white">
+              <span className="font-semibold text-[#111827]">
                 ₹{totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+            <div className="flex justify-between text-[#4B5563]">
               <span>Cash Discount:</span>
-              <span className="font-semibold text-slate-900 dark:text-white">
+              <span className="font-semibold text-[#111827]">
                 -₹{discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="border-t pt-2 flex justify-between font-bold text-base text-slate-900 dark:text-white">
+            <div className="flex justify-between border-t border-[#E5E7EB] pt-2 text-base font-bold text-[#111827]">
               <span>Payable Amount:</span>
-            <span className="text-slate-950 dark:text-slate-100">
+            <span className="text-[#111827]">
                 ₹{totalAfterDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-slate-950 hover:bg-slate-800 text-white font-semibold py-3">
+          <Button type="submit" className="w-full bg-[#2563EB] py-3 font-semibold text-white hover:bg-[#1D4ED8]">
             {initialInvoice ? 'Update Invoice' : 'Generate GST Invoice'}
           </Button>
         </div>

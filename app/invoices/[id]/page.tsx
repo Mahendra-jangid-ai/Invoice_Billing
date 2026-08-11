@@ -30,7 +30,7 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
     return (
       <AppLayout>
         <div className="flex h-64 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-900" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#111827]" />
         </div>
       </AppLayout>
     )
@@ -42,8 +42,8 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
     return (
       <AppLayout>
         <div className="flex flex-col">
-          <div className="border-b border-slate-200 bg-white px-8 py-6 dark:border-slate-800 dark:bg-slate-900">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+          <div className="border-b border-[#E5E7EB] bg-white px-8 py-6">
+            <h1 className="text-3xl font-bold text-[#111827]">
               Invoice Not Found
             </h1>
           </div>
@@ -218,13 +218,13 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
     <AppLayout>
       <div className="flex flex-col">
         {/* Header - Hidden during print */}
-        <div className="no-print border-b border-slate-200 bg-white px-8 py-6 dark:border-slate-800 dark:bg-slate-900">
+        <div className="no-print border-b border-[#E5E7EB] bg-white px-8 py-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+              <h1 className="text-3xl font-bold text-[#111827]">
                 {invoice.invoiceNumber}
               </h1>
-              <p className="mt-1 text-slate-600 dark:text-slate-400">
+              <p className="mt-1 text-[#4B5563]">
                 Invoice details and management
               </p>
             </div>
@@ -260,7 +260,7 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
               )}
               <button
                 onClick={handleDelete}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F3F4F6]"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete

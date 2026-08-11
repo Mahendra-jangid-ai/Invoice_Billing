@@ -1,8 +1,15 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { Poppins } from 'next/font/google'
 import './globals.css'
 import { BillingProvider } from '@/lib/context'
 import { AuthProvider } from '@/lib/auth-context'
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins',
+})
 
 export const metadata: Metadata = {
   title: 'Billing Software',
@@ -42,7 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className={`${poppins.className} antialiased`}>
         <AuthProvider>
           <BillingProvider>{children}</BillingProvider>
         </AuthProvider>

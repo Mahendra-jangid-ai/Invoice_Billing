@@ -51,21 +51,21 @@ export default function SignupPage() {
     if (/[A-Z]/.test(password)) score++
     if (/[0-9]/.test(password)) score++
     if (/[^a-zA-Z0-9]/.test(password)) score++
-    if (score <= 1) return { label: 'Weak', color: 'bg-slate-300', width: '25%' }
-    if (score === 2) return { label: 'Fair', color: 'bg-slate-500', width: '50%' }
-    if (score === 3) return { label: 'Good', color: 'bg-slate-900', width: '75%' }
-    return { label: 'Strong', color: 'bg-slate-900', width: '100%' }
+    if (score <= 1) return { label: 'Weak', color: 'bg-[#CBD5E1]', width: '25%' }
+    if (score === 2) return { label: 'Fair', color: 'bg-[#93C5FD]', width: '50%' }
+    if (score === 3) return { label: 'Good', color: 'bg-[#2563EB]', width: '75%' }
+    return { label: 'Strong', color: 'bg-[#1D4ED8]', width: '100%' }
   }
   const strength = passwordStrength()
 
   return (
-    <div className="relative min-h-[calc(100vh-100px)] overflow-hidden bg-[#F4F8FF] px-4 py-12">
-      <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[#D9E9FF] to-transparent opacity-80" aria-hidden="true" />
-      <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[48px] border border-white/80 bg-white/95 p-8 shadow-[0_40px_80px_-54px_rgba(16,137,211,0.24)] backdrop-blur-xl">
+    <div className="relative min-h-[calc(100vh-100px)] overflow-hidden bg-[#F9FAFB] px-4 py-12">
+      <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-white to-transparent opacity-80" aria-hidden="true" />
+      <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[48px] border border-[#E5E7EB] bg-white/95 p-8 shadow-[0_40px_80px_-54px_rgba(17,24,39,0.12)] backdrop-blur-xl">
         <div className="mb-8 text-center">
           <img src="/logo.png" alt="Billing Studio logo" className="mx-auto mb-4 h-16 w-auto object-contain" />
-          <h2 className="text-3xl font-semibold text-slate-950">Create your account</h2>
-          <p className="mt-2 text-sm text-slate-500">Create your profile and begin sending invoices instantly.</p>
+          <h2 className="text-3xl font-semibold text-[#111827]">Create your account</h2>
+          <p className="mt-2 text-sm text-[#475569]">Create your profile and begin sending invoices instantly.</p>
         </div>
 
         {error && (
@@ -79,11 +79,11 @@ export default function SignupPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="space-y-3">
-            <label htmlFor="signup-name" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="signup-name" className="block text-sm font-medium text-[#374151]">
               Full name
             </label>
-            <div className="relative rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/70 focus-within:border-[#12B1D1] focus-within:ring-1 focus-within:ring-[#12B1D1]/20">
-              <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <div className="relative rounded-[22px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 shadow-sm shadow-[#111827]/5 focus-within:border-[#2563EB] focus-within:ring-1 focus-within:ring-[#2563EB]/20">
+              <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
               <input
                 id="signup-name"
                 type="text"
@@ -92,17 +92,17 @@ export default function SignupPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="John Smith"
-                className="w-full bg-transparent pl-11 text-sm text-slate-950 placeholder:text-slate-400 outline-none"
+                className="w-full bg-transparent pl-11 text-sm text-[#111827] placeholder:text-[#9CA3AF] outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-3">
-            <label htmlFor="signup-email" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="signup-email" className="block text-sm font-medium text-[#374151]">
               Email address
             </label>
-            <div className="relative rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/70 focus-within:border-[#12B1D1] focus-within:ring-1 focus-within:ring-[#12B1D1]/20">
-              <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <div className="relative rounded-[22px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 shadow-sm shadow-[#111827]/5 focus-within:border-[#2563EB] focus-within:ring-1 focus-within:ring-[#2563EB]/20">
+              <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
               <input
                 id="signup-email"
                 type="email"
@@ -111,17 +111,17 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
-                className="w-full bg-transparent pl-11 text-sm text-slate-950 placeholder:text-slate-400 outline-none"
+                className="w-full bg-transparent pl-11 text-sm text-[#111827] placeholder:text-[#9CA3AF] outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-3">
-            <label htmlFor="signup-password" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="signup-password" className="block text-sm font-medium text-[#374151]">
               Password
             </label>
-            <div className="relative rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/70 focus-within:border-[#12B1D1] focus-within:ring-1 focus-within:ring-[#12B1D1]/20">
-              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <div className="relative rounded-[22px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 shadow-sm shadow-[#111827]/5 focus-within:border-[#2563EB] focus-within:ring-1 focus-within:ring-[#2563EB]/20">
+              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
               <input
                 id="signup-password"
                 type={showPassword ? 'text' : 'password'}
@@ -130,12 +130,12 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min. 8 characters"
-                className="w-full bg-transparent pr-12 pl-11 text-sm text-slate-950 placeholder:text-slate-400 outline-none"
+                className="w-full bg-transparent pr-12 pl-11 text-sm text-[#111827] placeholder:text-[#9CA3AF] outline-none"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#111827]"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -149,17 +149,17 @@ export default function SignupPage() {
                     style={{ width: strength.width }}
                   />
                 </div>
-                <p className="mt-1 text-xs text-slate-500">{strength.label} password</p>
+                <p className="mt-1 text-xs text-[#6B7280]">{strength.label} password</p>
               </div>
             )}
           </div>
 
           <div className="space-y-3">
-            <label htmlFor="signup-confirm-password" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="signup-confirm-password" className="block text-sm font-medium text-[#374151]">
               Confirm password
             </label>
-            <div className="relative rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/70 focus-within:border-[#12B1D1] focus-within:ring-1 focus-within:ring-[#12B1D1]/20">
-              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <div className="relative rounded-[22px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 shadow-sm shadow-[#111827]/5 focus-within:border-[#2563EB] focus-within:ring-1 focus-within:ring-[#2563EB]/20">
+              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
               <input
                 id="signup-confirm-password"
                 type={showPassword ? 'text' : 'password'}
@@ -168,11 +168,11 @@ export default function SignupPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-transparent pl-11 text-sm text-slate-950 placeholder:text-slate-400 outline-none"
+                className="w-full bg-transparent pl-11 text-sm text-[#111827] placeholder:text-[#9CA3AF] outline-none"
               />
             </div>
             {confirmPassword.length > 0 && confirmPassword !== password && (
-              <p className="mt-1 text-xs text-slate-500">Passwords do not match</p>
+              <p className="mt-1 text-xs text-[#6B7280]">Passwords do not match</p>
             )}
           </div>
 
@@ -180,7 +180,7 @@ export default function SignupPage() {
             id="signup-submit"
             type="submit"
             disabled={loading}
-            className="w-full rounded-[22px] bg-gradient-to-r from-[#1089D3] to-[#12B1D1] py-4 text-sm font-semibold text-white shadow-lg shadow-[#1089D3]/20 transition duration-200 hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-[22px] bg-[#2563EB] py-4 text-sm font-semibold text-white shadow-lg shadow-[#2563EB]/20 transition duration-200 hover:bg-[#1D4ED8] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">
@@ -193,9 +193,9 @@ export default function SignupPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-sm text-[#6B7280]">
           Already have an account?{' '}
-          <Link href="/login" className="font-semibold text-[#1089D3] hover:text-[#0E74C0]">
+          <Link href="/login" className="font-semibold text-[#2563EB] hover:text-[#1D4ED8]">
             Sign in
           </Link>
         </p>

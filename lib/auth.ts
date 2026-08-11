@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import { getSession } from '@/lib/session'
 import type { SessionPayload } from '@/lib/session'
 import crypto from 'crypto'
+import { getActiveSessionRecord, touchSessionRecord } from '@/lib/session-store'
 
 const BCRYPT_ROUNDS = 12
 
@@ -34,7 +35,18 @@ export function hashToken(token: string): string {
  * Returns the session payload or null if unauthenticated.
  */
 export async function getCurrentUser(): Promise<SessionPayload | null> {
-  return getSession()
+  const session = await getSession()
+  if (!session?.sessionId || !session.userId) {
+    return null
+  }
+
+  const activeSession = await getActiveSessionRecord(session.sessionId)
+  if (!activeSession || activeSession.userId !== session.userId) {
+    return null
+  }
+
+  await touchSessionRecord(session.sessionId)
+  return session
 }
 
 /**
@@ -50,7 +62,7 @@ export async function requireAuth(): Promise<{
   user: null
   errorResponse: NextResponse
 }> {
-  const session = await getSession()
+  const session = await getCurrentUser()
   if (!session || !session.userId) {
     return {
       user: null,
@@ -85,9 +97,12 @@ export function logSecurityEvent(event: SecurityEvent, context: Record<string, s
 // ─── IP helper ───────────────────────────────────────────────────────────────
 
 export function getClientIp(request: NextRequest): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  )
+  const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  const vercelForwardedFor = request.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim()
+  const realIp = request.headers.get('x-real-ip')
+  const connectingIp = request.headers.get('cf-connecting-ip')
+  const requestIp = (request as NextRequest & { ip?: string }).ip
+  const ip = forwardedFor || vercelForwardedFor || connectingIp || realIp || requestIp || 'unknown'
+
+  return ip === '::1' ? '127.0.0.1 (localhost)' : ip
 }

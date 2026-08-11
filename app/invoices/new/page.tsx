@@ -18,18 +18,18 @@ export default function NewInvoicePage() {
     <AppLayout>
       <div className="flex flex-col">
         {/* Header */}
-        <div className="border-b border-slate-200 bg-white px-8 py-6 dark:border-slate-800 dark:bg-slate-900">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+        <div className="border-b border-[#E5E7EB] bg-white px-8 py-6">
+          <h1 className="text-3xl font-bold text-[#111827]">
             Create Invoice
           </h1>
-          <p className="mt-1 text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-[#4B5563]">
             Create a new invoice for your customer
           </p>
         </div>
 
         {/* Content */}
         <div className="flex-1 p-8">
-          <div className="mx-auto max-w-4xl rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+          <div className="mx-auto max-w-4xl rounded-lg border border-[#E5E7EB] bg-white p-6">
             <InvoiceForm onSubmit={handleSubmit} />
           </div>
         </div>

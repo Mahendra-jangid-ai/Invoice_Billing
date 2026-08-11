@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getDatabase } from '@/lib/mongodb'
 import { verifyPassword, logSecurityEvent, getClientIp } from '@/lib/auth'
 import { createSession } from '@/lib/session'
+import { createSessionRecord } from '@/lib/session-store'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 const LoginSchema = z.object({
@@ -59,7 +60,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    await createSession(userDoc.userId, userDoc.email, userDoc.name)
+    const { sessionId, expiresAt } = await createSession(userDoc.userId, userDoc.email, userDoc.name)
+    await createSessionRecord(
+      sessionId,
+      userDoc.userId,
+      userDoc.email,
+      userDoc.name,
+      {
+        userAgent: request.headers.get('user-agent') || 'Unknown device',
+        ipAddress: ip,
+      },
+      expiresAt,
+    )
 
     logSecurityEvent('LOGIN_SUCCESS', { userId: userDoc.userId, email, ip })
 
@@ -67,6 +79,7 @@ export async function POST(request: NextRequest) {
       userId: userDoc.userId,
       email: userDoc.email,
       name: userDoc.name,
+      sessionId,
     })
   } catch (error) {
     console.error('Login error:', error instanceof Error ? error.message : 'Unknown error')
