@@ -67,7 +67,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
       className={cn(
         'fixed inset-y-0 left-0 z-40 w-72 border-r border-[#E5E7EB] bg-white/95 backdrop-blur-xl transition-transform duration-300',
         open ? 'translate-x-0' : '-translate-x-full',
-        'md:translate-x-0'
+        'md:translate-x-0'    
       )}
     >
       <div className="flex h-full flex-col">
