@@ -34,18 +34,25 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password } = parsed.data
-    const db = await getDatabase()
+    const emailKey = `${ip}:${email}`
+    const emailRateLimit = checkRateLimit(`login:${emailKey}`, 8, 15 * 60 * 1000)
+    if (!emailRateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many login attempts for this account. Please try again later.' },
+        { status: 429 }
+      )
+    }
 
+    const db = await getDatabase()
     const userDoc = await db.collection('users').findOne({ email })
 
     // Always run bcrypt compare to prevent timing attacks (even if user not found)
-    const dummyHash = '$2b$12$dummyhashfordummycomparisons.thatdoesnotmatch'
+    const dummyHash = '$2b$12$C6UzMDM.H6dfI/f/IKcEe.Q8H0Io7k7CzsV1.jT3rzH0K6mX7Eo6'
     const passwordHash = userDoc?.passwordHash || dummyHash
     const isValid = await verifyPassword(password, passwordHash)
 
     if (!userDoc || !isValid) {
       logSecurityEvent('LOGIN_FAILED', { email, ip })
-      // Generic message — do not indicate whether email exists
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }

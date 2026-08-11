@@ -37,20 +37,18 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-slate-950 p-5 text-white shadow-[0_20px_70px_-25px_rgba(15,23,42,0.45)]">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-2xl">
-              <p className="mb-3 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium text-white/80">
-                Welcome back • {company.name || 'Your Company'}
-              </p>
-              <h1 className="text-3xl font-semibold sm:text-4xl">Everything you need to run billing smoothly.</h1>
-              <p className="mt-3 text-sm text-slate-200 sm:text-base">
-                Review your latest invoices, customer activity, and catalog performance from a single, polished dashboard.
+        <section className="rounded-[32px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_22px_90px_-40px_rgba(15,23,42,0.35)] dark:border-slate-800 dark:bg-slate-900/90">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Welcome back</p>
+              <h2 className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white sm:text-4xl">Dashboard overview</h2>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400 sm:text-base">
+                Track invoices, customers, and catalog stats from a clean dashboard built for your business.
               </p>
             </div>
-            <div className="rounded-2xl border border-white/20 bg-white/10 px-3 py-3 backdrop-blur">
-              <p className="text-sm text-white/80">Ready for today</p>
-              <p className="text-xl font-semibold">{invoices.filter((invoice) => invoice.status === 'draft').length} draft invoices</p>
+            <div className="rounded-[28px] border border-slate-200 bg-slate-50 px-5 py-4 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950/90 dark:text-slate-100">
+              <p className="text-sm uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Draft invoices</p>
+              <p className="mt-2 text-3xl font-semibold">{invoices.filter((invoice) => invoice.status === 'draft').length}</p>
             </div>
           </div>
         </section>
@@ -76,45 +74,48 @@ export default function DashboardPage() {
 
         <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="soft-card p-5">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Quick actions</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Jump into the most common tasks.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Go directly to the actions you use most.</p>
               </div>
+              <Link href="/invoices/new" className="text-sm font-medium text-slate-900 hover:text-slate-700 dark:text-slate-100 dark:hover:text-slate-300">
+                New invoice
+              </Link>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/invoices/new">
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create invoice
-                </Button>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Link href="/invoices/new" className="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-center text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900">
+                <Plus className="mx-auto mb-2 h-4 w-4" />
+                Create invoice
               </Link>
-              <Link href="/customers">
-                <Button variant="outline" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add customer
-                </Button>
+              <Link href="/customers" className="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-center text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900">
+                <Plus className="mx-auto mb-2 h-4 w-4" />
+                Add customer
               </Link>
-              <Link href="/items">
-                <Button variant="outline" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add item
-                </Button>
+              <Link href="/items" className="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-center text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900">
+                <Plus className="mx-auto mb-2 h-4 w-4" />
+                Add item
               </Link>
             </div>
           </div>
 
           <div className="soft-card p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Business profile</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Your details appear on invoices.</p>
-              </div>
+            <div className="mb-3">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Business profile</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Your company details on invoices.</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/70">
-              <h3 className="font-semibold text-slate-900 dark:text-white">{company.name || 'Your Company'}</h3>
-              {company.address && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{company.address}</p>}
-              {company.gstnumber && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">GST: {company.gstnumber}</p>}
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950">
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white">{company.name || 'Your Company'}</h3>
+              {company.address ? (
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{company.address}</p>
+              ) : (
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-500">No address set yet.</p>
+              )}
+              {company.gstnumber ? (
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">GST: {company.gstnumber}</p>
+              ) : (
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-500">GST number not configured.</p>
+              )}
             </div>
           </div>
         </div>

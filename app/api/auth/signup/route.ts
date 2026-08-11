@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getDatabase } from '@/lib/mongodb'
@@ -6,13 +7,15 @@ import { createSession } from '@/lib/session'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 const SignupSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').trim(),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long').transform((value) => value.replace(/\s+/g, ' ').trim()),
   email: z.string().email('Invalid email address').toLowerCase().trim(),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .min(12, 'Password must be at least 12 characters')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
 })
 
 export async function POST(request: NextRequest) {
@@ -44,7 +47,6 @@ export async function POST(request: NextRequest) {
     // Check if email already exists
     const existing = await db.collection('users').findOne({ email })
     if (existing) {
-      // Generic message to prevent user enumeration
       return NextResponse.json(
         { error: 'An account with this email already exists' },
         { status: 409 }
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     const passwordHash = await hashPassword(password)
-    const userId = `user_${Date.now()}_${Math.random().toString(36).slice(2)}`
+    const userId = crypto.randomUUID()
 
     await db.collection('users').insertOne({
       userId,

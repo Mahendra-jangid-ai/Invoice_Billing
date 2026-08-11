@@ -60,338 +60,177 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col">
-        <div className="border-b border-slate-200 bg-white px-8 py-6 dark:border-slate-800 dark:bg-slate-900">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Company Settings</h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400">
-            Manage your company details and logo that will appear on all invoices
-          </p>
-        </div>
-
-        <div className="flex-1 p-8">
-          <div className="mx-auto max-w-4xl space-y-6">
-            {savedMessage && (
-              <div className="flex items-center gap-3 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-                <CheckCircle className="h-5 w-5 text-slate-950 dark:text-slate-100" />
-                <span className="text-sm font-medium text-slate-950 dark:text-slate-100">
-                  Company details saved successfully!
-                </span>
-              </div>
-            )}
-
-            <Card className="bg-white dark:bg-slate-950">
-              <CardHeader>
-                <CardTitle>Company Information & Branding</CardTitle>
-                <CardDescription>
-                  Update your company profile and upload a logo for top-left placement on invoices
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Logo Section */}
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <label className="block text-base font-semibold text-slate-900 dark:text-white mb-2">
-                      Company Logo
-                    </label>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                      Upload your logo or provide an image URL. It will be positioned at the top-left corner of all generated invoices.
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                      {/* Logo Preview Container */}
-                      <div className="relative flex h-24 w-40 shrink-0 items-center justify-center rounded-md border-2 border-dashed border-slate-300 bg-white p-2 dark:border-slate-700 dark:bg-slate-800">
-                        {formData.logoUrl ? (
-                          <>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={formData.logoUrl}
-                              alt="Company Logo Preview"
-                              className="h-full w-full object-contain"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleRemoveLogo}
-                              className="absolute -top-2 -right-2 rounded-full bg-slate-950 p-1 text-white hover:bg-slate-800 shadow-md transition"
-                              title="Remove Logo"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-slate-400">
-                            <ImageIcon className="h-8 w-8 mb-1" />
-                            <span className="text-xs font-medium">No Logo</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Upload and URL Controls */}
-                      <div className="flex-1 space-y-3 w-full">
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Upload Logo Image (PNG, JPG, SVG)
-                          </label>
-                          <div className="flex gap-2">
-                            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-medium text-slate-700 border border-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700">
-                              <Upload className="h-4 w-4 text-slate-900 dark:text-slate-100" />
-                              <span>Choose Image File</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileUpload}
-                                className="hidden"
-                              />
-                            </label>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label htmlFor="logoUrl" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Or Image URL / Base64 Data
-                          </label>
-                          <Input
-                            id="logoUrl"
-                            name="logoUrl"
-                            value={formData.logoUrl || ''}
-                            onChange={handleChange}
-                            placeholder="https://example.com/logo.png"
-                            className="border-slate-300 dark:border-slate-700 text-xs"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label htmlFor="name" className="block text-sm font-medium text-slate-900 dark:text-white">
-                        Company Name
-                      </label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder="Enter company name"
-                        className="border-slate-300 dark:border-slate-700"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="email" className="block text-sm font-medium text-slate-900 dark:text-white">
-                        Email
-                      </label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="Enter email"
-                        className="border-slate-300 dark:border-slate-700"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="phone" className="block text-sm font-medium text-slate-900 dark:text-white">
-                        Phone
-                      </label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="Enter phone number"
-                        className="border-slate-300 dark:border-slate-700"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="gstnumber" className="block text-sm font-medium text-slate-900 dark:text-white">
-                        GST Number
-                      </label>
-                      <Input
-                        id="gstnumber"
-                        name="gstnumber"
-                        value={formData.gstnumber}
-                        onChange={handleChange}
-                        placeholder="Enter GST number"
-                        className="border-slate-300 dark:border-slate-700"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="pan" className="block text-sm font-medium text-slate-900 dark:text-white">
-                        PAN
-                      </label>
-                      <Input
-                        id="pan"
-                        name="pan"
-                        value={formData.pan}
-                        onChange={handleChange}
-                        placeholder="Enter PAN"
-                        className="border-slate-300 dark:border-slate-700"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="contactPerson" className="block text-sm font-medium text-slate-900 dark:text-white">
-                        Contact Person Name
-                      </label>
-                      <Input
-                        id="contactPerson"
-                        name="contactPerson"
-                        value={formData.contactPerson || ''}
-                        onChange={handleChange}
-                        placeholder="e.g. Shrvan Kumar"
-                        className="border-slate-300 dark:border-slate-700"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="state" className="block text-sm font-medium text-slate-900 dark:text-white">
-                        State
-                      </label>
-                      <Input
-                        id="state"
-                        name="state"
-                        value={formData.state || ''}
-                        onChange={handleChange}
-                        placeholder="e.g. MAHARASHTRA"
-                        className="border-slate-300 dark:border-slate-700"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="code" className="block text-sm font-medium text-slate-900 dark:text-white">
-                        State Code
-                      </label>
-                      <Input
-                        id="code"
-                        name="code"
-                        value={formData.code || ''}
-                        onChange={handleChange}
-                        placeholder="e.g. 27"
-                        className="border-slate-300 dark:border-slate-700"
-                      />
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <label htmlFor="address" className="block text-sm font-medium text-slate-900 dark:text-white">
-                        Company Address
-                      </label>
-                      <Textarea
-                        id="address"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleChange}
-                        placeholder="Enter company address"
-                        rows={3}
-                        className="border-slate-300 dark:border-slate-700"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Bank Details Section */}
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900 space-y-4">
-                    <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-                      Bank Account Details (Printed on Invoices)
-                    </h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <label htmlFor="bankName" className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          Bank Name
-                        </label>
-                        <Input
-                          id="bankName"
-                          name="bankName"
-                          value={formData.bankName || ''}
-                          onChange={handleChange}
-                          placeholder="e.g. Axis Bank"
-                          className="border-slate-300 dark:border-slate-700 text-sm"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="bankAccountName" className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          Bank A/c Name
-                        </label>
-                        <Input
-                          id="bankAccountName"
-                          name="bankAccountName"
-                          value={formData.bankAccountName || ''}
-                          onChange={handleChange}
-                          placeholder="e.g. SK Interiors Bank A/c"
-                          className="border-slate-300 dark:border-slate-700 text-sm"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="bankAccountNumber" className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          Account Number
-                        </label>
-                        <Input
-                          id="bankAccountNumber"
-                          name="bankAccountNumber"
-                          value={formData.bankAccountNumber || ''}
-                          onChange={handleChange}
-                          placeholder="e.g. 923020047215171"
-                          className="border-slate-300 dark:border-slate-700 text-sm"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="bankIfsc" className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          IFSC Code
-                        </label>
-                        <Input
-                          id="bankIfsc"
-                          name="bankIfsc"
-                          value={formData.bankIfsc || ''}
-                          onChange={handleChange}
-                          placeholder="e.g. UTIB0001584"
-                          className="border-slate-300 dark:border-slate-700 text-sm"
-                        />
-                      </div>
-
-                      <div className="space-y-2 md:col-span-2">
-                        <label htmlFor="bankBranch" className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          Branch
-                        </label>
-                        <Input
-                          id="bankBranch"
-                          name="bankBranch"
-                          value={formData.bankBranch || ''}
-                          onChange={handleChange}
-                          placeholder="e.g. OLD NAGARDAS ROAD"
-                          className="border-slate-300 dark:border-slate-700 text-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <div className="flex gap-3">
-                      <AlertCircle className="h-5 w-5 flex-shrink-0 text-slate-900 dark:text-slate-100" />
-                      <p className="text-sm text-slate-700 dark:text-slate-300">
-                        These details will appear on all your invoices. Make sure the information is accurate.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      type="submit"
-                      className="bg-slate-950 hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
-                    >
-                      Save Company Details
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+      <div className="space-y-6">
+        <section className="rounded-[32px] border border-slate-200/80 bg-white/95 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Company settings</p>
+              <h1 className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">Company profile and branding</h1>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">Update your company details, logo, and contact information for invoices and reports.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {savedMessage && (
+                <div className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-950/70 dark:text-emerald-200">
+                  <CheckCircle className="h-4 w-4" />
+                  Saved
+                </div>
+              )}
+              <Button type="button" onClick={handleSubmit} className="gap-2">
+                Save changes
+              </Button>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section className="soft-card rounded-[32px] p-6">
+          <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="space-y-6">
+              <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Company information</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">The details shown on invoices and customer communications.</p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white dark:bg-slate-700">Live data</div>
+                </div>
+
+                <div className="mt-5 grid gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Company name</p>
+                    <p className="mt-2 text-sm text-slate-900 dark:text-white">{formData.name || 'Not configured yet'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Email</p>
+                    <p className="mt-2 text-sm text-slate-900 dark:text-white">{formData.email || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Phone</p>
+                    <p className="mt-2 text-sm text-slate-900 dark:text-white">{formData.phone || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">PAN</p>
+                    <p className="mt-2 text-sm text-slate-900 dark:text-white">{formData.pan || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">GST number</p>
+                    <p className="mt-2 text-sm text-slate-900 dark:text-white">{formData.gstnumber || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Contact person</p>
+                    <p className="mt-2 text-sm text-slate-900 dark:text-white">{formData.contactPerson || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">State</p>
+                    <p className="mt-2 text-sm text-slate-900 dark:text-white">{formData.state || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">State code</p>
+                    <p className="mt-2 text-sm text-slate-900 dark:text-white">{formData.code || '-'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Address</p>
+                    <p className="mt-2 text-sm text-slate-900 dark:text-white">{formData.address || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Logo preview</p>
+                <div className="mt-4 flex h-24 w-full items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
+                  {formData.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={formData.logoUrl} alt="Company logo" className="h-full object-contain" />
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">No logo uploaded yet</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
+                <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">Upload logo</label>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900">
+                    <Upload className="h-4 w-4" />
+                    Choose image
+                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                  </label>
+                  <Button type="button" variant="outline" onClick={handleRemoveLogo} className="gap-2">
+                    <Trash2 className="h-4 w-4" />
+                    Remove
+                  </Button>
+                </div>
+                <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Accepted PNG, JPG, SVG files under 5MB.</p>
+              </div>
+
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">Company name</label>
+                  <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Company name" className="border-slate-300 dark:border-slate-700" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">Email</label>
+                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email" className="border-slate-300 dark:border-slate-700" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">Phone</label>
+                  <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone number" className="border-slate-300 dark:border-slate-700" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">GST number</label>
+                  <Input id="gstnumber" name="gstnumber" value={formData.gstnumber} onChange={handleChange} placeholder="GST number" className="border-slate-300 dark:border-slate-700" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">PAN</label>
+                  <Input id="pan" name="pan" value={formData.pan || ''} onChange={handleChange} placeholder="PAN" className="border-slate-300 dark:border-slate-700" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">Contact person</label>
+                  <Input id="contactPerson" name="contactPerson" value={formData.contactPerson || ''} onChange={handleChange} placeholder="Contact person" className="border-slate-300 dark:border-slate-700" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">State</label>
+                  <Input id="state" name="state" value={formData.state || ''} onChange={handleChange} placeholder="State" className="border-slate-300 dark:border-slate-700" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">State code</label>
+                  <Input id="code" name="code" value={formData.code || ''} onChange={handleChange} placeholder="State code" className="border-slate-300 dark:border-slate-700" />
+                </div>
+                <div className="grid gap-2 md:col-span-2">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">Address</label>
+                  <Textarea id="address" name="address" value={formData.address || ''} onChange={handleChange} placeholder="Company address" rows={3} className="border-slate-300 dark:border-slate-700" />
+                </div>
+              </div>
+
+              <section className="rounded-[26px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Bank details</h3>
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium text-slate-900 dark:text-white">Bank name</label>
+                    <Input id="bankName" name="bankName" value={formData.bankName || ''} onChange={handleChange} placeholder="Bank name" className="border-slate-300 dark:border-slate-700" />
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium text-slate-900 dark:text-white">Account name</label>
+                    <Input id="bankAccountName" name="bankAccountName" value={formData.bankAccountName || ''} onChange={handleChange} placeholder="Account name" className="border-slate-300 dark:border-slate-700" />
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium text-slate-900 dark:text-white">Account number</label>
+                    <Input id="bankAccountNumber" name="bankAccountNumber" value={formData.bankAccountNumber || ''} onChange={handleChange} placeholder="Account number" className="border-slate-300 dark:border-slate-700" />
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium text-slate-900 dark:text-white">IFSC code</label>
+                    <Input id="bankIfsc" name="bankIfsc" value={formData.bankIfsc || ''} onChange={handleChange} placeholder="IFSC code" className="border-slate-300 dark:border-slate-700" />
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium text-slate-900 dark:text-white">Branch</label>
+                    <Input id="bankBranch" name="bankBranch" value={formData.bankBranch || ''} onChange={handleChange} placeholder="Branch" className="border-slate-300 dark:border-slate-700" />
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
       </div>
     </AppLayout>
   )

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Users, Package, Settings, Sparkles } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, Package, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
@@ -79,15 +79,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
         </div>
 
         <div className="border-b border-slate-200/80 px-6 py-4 dark:border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-base font-semibold text-white shadow-sm shadow-slate-950/20">
-              BS
-            </div>
-            <div>
-              <h1 className="text-base font-semibold text-slate-900 dark:text-white">Billing Studio</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Professional invoicing</p>
-            </div>
-          </div>
+          <h1 className="text-base font-semibold text-slate-900 dark:text-white">Billing Studio</h1>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-4">
@@ -123,14 +115,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
         </div>
 
         <div className="border-t border-slate-200/80 px-6 py-4 dark:border-slate-800">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-            <div className="mb-2 flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
-              <Sparkles className="h-4 w-4" />
-              Streamlined billing
-            </div>
-            <p>All the tools you need to generate invoices, manage customers and keep your business moving.</p>
-          </div>
-          <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">© 2025 Billing Studio</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">© 2025 Billing Studio</p>
         </div>
       </div>
     </aside>

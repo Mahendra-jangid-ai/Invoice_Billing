@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
 const SESSION_COOKIE = 'bs_session'
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+const SESSION_DURATION_MS = 24 * 60 * 60 * 1000 // 1 day
 
 export interface SessionPayload {
   userId: string
@@ -24,7 +24,9 @@ export async function encrypt(payload: SessionPayload): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('7d')
+    .setIssuer('billing-studio')
+    .setAudience('billing-app')
+    .setExpirationTime('1d')
     .sign(getSecretKey())
 }
 
@@ -33,8 +35,23 @@ export async function decrypt(token: string | undefined): Promise<SessionPayload
   try {
     const { payload } = await jwtVerify(token, getSecretKey(), {
       algorithms: ['HS256'],
+      issuer: 'billing-studio',
+      audience: 'billing-app',
     })
-    return payload as unknown as SessionPayload
+    if (
+      typeof payload.userId !== 'string' ||
+      typeof payload.email !== 'string' ||
+      typeof payload.name !== 'string' ||
+      typeof payload.expiresAt !== 'string'
+    ) {
+      return null
+    }
+    return {
+      userId: payload.userId,
+      email: payload.email,
+      name: payload.name,
+      expiresAt: new Date(payload.expiresAt),
+    }
   } catch {
     // Token is invalid or expired — not an error condition, just unauthenticated
     return null
@@ -48,8 +65,9 @@ export async function createSession(userId: string, email: string, name: string)
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     expires: expiresAt,
+    maxAge: SESSION_DURATION_MS / 1000,
     path: '/',
   })
 }

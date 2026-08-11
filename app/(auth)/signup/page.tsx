@@ -59,153 +59,147 @@ export default function SignupPage() {
   const strength = passwordStrength()
 
   return (
-    <div className="rounded-[28px] border border-slate-200/80 bg-white/90 p-8 shadow-[0_20px_70px_-30px_rgba(15,23,42,0.3)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Create your account</h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Start managing your invoices in minutes
+    <div className="relative min-h-[calc(100vh-100px)] overflow-hidden bg-[#F4F8FF] px-4 py-12">
+      <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[#D9E9FF] to-transparent opacity-80" aria-hidden="true" />
+      <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[48px] border border-white/80 bg-white/95 p-8 shadow-[0_40px_80px_-54px_rgba(16,137,211,0.24)] backdrop-blur-xl">
+        <div className="mb-8 text-center">
+          <img src="/logo.png" alt="Billing Studio logo" className="mx-auto mb-4 h-16 w-auto object-contain" />
+          <h2 className="text-3xl font-semibold text-slate-950">Create your account</h2>
+          <p className="mt-2 text-sm text-slate-500">Create your profile and begin sending invoices instantly.</p>
+        </div>
+
+        {error && (
+          <div
+            role="alert"
+            className="mb-5 rounded-[20px] border border-[#FEE2E2] bg-[#FEF3F2] px-4 py-3 text-sm text-[#991B1B]"
+          >
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <div className="space-y-3">
+            <label htmlFor="signup-name" className="block text-sm font-medium text-slate-700">
+              Full name
+            </label>
+            <div className="relative rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/70 focus-within:border-[#12B1D1] focus-within:ring-1 focus-within:ring-[#12B1D1]/20">
+              <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="signup-name"
+                type="text"
+                autoComplete="name"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Smith"
+                className="w-full bg-transparent pl-11 text-sm text-slate-950 placeholder:text-slate-400 outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label htmlFor="signup-email" className="block text-sm font-medium text-slate-700">
+              Email address
+            </label>
+            <div className="relative rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/70 focus-within:border-[#12B1D1] focus-within:ring-1 focus-within:ring-[#12B1D1]/20">
+              <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="signup-email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="w-full bg-transparent pl-11 text-sm text-slate-950 placeholder:text-slate-400 outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label htmlFor="signup-password" className="block text-sm font-medium text-slate-700">
+              Password
+            </label>
+            <div className="relative rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/70 focus-within:border-[#12B1D1] focus-within:ring-1 focus-within:ring-[#12B1D1]/20">
+              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="signup-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min. 8 characters"
+                className="w-full bg-transparent pr-12 pl-11 text-sm text-slate-950 placeholder:text-slate-400 outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {password.length > 0 && (
+              <div className="mt-2">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#E5E7EB]">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
+                    style={{ width: strength.width }}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-slate-500">{strength.label} password</p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <label htmlFor="signup-confirm-password" className="block text-sm font-medium text-slate-700">
+              Confirm password
+            </label>
+            <div className="relative rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/70 focus-within:border-[#12B1D1] focus-within:ring-1 focus-within:ring-[#12B1D1]/20">
+              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="signup-confirm-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-transparent pl-11 text-sm text-slate-950 placeholder:text-slate-400 outline-none"
+              />
+            </div>
+            {confirmPassword.length > 0 && confirmPassword !== password && (
+              <p className="mt-1 text-xs text-slate-500">Passwords do not match</p>
+            )}
+          </div>
+
+          <button
+            id="signup-submit"
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-[22px] bg-gradient-to-r from-[#1089D3] to-[#12B1D1] py-4 text-sm font-semibold text-white shadow-lg shadow-[#1089D3]/20 transition duration-200 hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Creating account…
+              </span>
+            ) : (
+              'Create account'
+            )}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-slate-500">
+          Already have an account?{' '}
+          <Link href="/login" className="font-semibold text-[#1089D3] hover:text-[#0E74C0]">
+            Sign in
+          </Link>
         </p>
       </div>
-
-      {error && (
-        <div
-          role="alert"
-          className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
-        >
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        {/* Name */}
-        <div>
-          <label htmlFor="signup-name" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Full name
-          </label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              id="signup-name"
-              type="text"
-              autoComplete="name"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="John Smith"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
-            />
-          </div>
-        </div>
-
-        {/* Email */}
-        <div>
-          <label htmlFor="signup-email" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Email address
-          </label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              id="signup-email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
-            />
-          </div>
-        </div>
-
-        {/* Password */}
-        <div>
-          <label htmlFor="signup-password" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              id="signup-password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="new-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min. 8 characters"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          {/* Strength indicator */}
-          {password.length > 0 && (
-            <div className="mt-2">
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
-                  style={{ width: strength.width }}
-                />
-              </div>
-              <p className="mt-1 text-xs text-slate-500">{strength.label} password</p>
-            </div>
-          )}
-        </div>
-
-        {/* Confirm Password */}
-        <div>
-          <label htmlFor="signup-confirm-password" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Confirm password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              id="signup-confirm-password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="new-password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
-            />
-          </div>
-          {confirmPassword.length > 0 && confirmPassword !== password && (
-            <p className="mt-1 text-xs text-slate-700 dark:text-slate-300">Passwords do not match</p>
-          )}
-        </div>
-
-        <button
-          id="signup-submit"
-          type="submit"
-          disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 py-2.5 text-sm font-semibold text-white shadow-sm shadow-slate-950/10 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Creating account…
-            </>
-          ) : (
-            'Create account'
-          )}
-        </button>
-      </form>
-
-      <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
-        Already have an account?{' '}
-        <Link
-          href="/login"
-          className="font-medium text-slate-900 hover:text-slate-700 dark:text-slate-100 dark:hover:text-slate-300"
-        >
-          Sign in
-        </Link>
-      </p>
     </div>
   )
 }
