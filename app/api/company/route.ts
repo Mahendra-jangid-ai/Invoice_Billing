@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
+import { requireAuth } from '@/lib/auth'
 
 export async function GET() {
+  const { user, errorResponse } = await requireAuth()
+  if (errorResponse) return errorResponse
+
   try {
     const db = await getDatabase()
-    const company = await db.collection('company').findOne({})
+    const company = await db.collection('company').findOne({ userId: user.userId })
     if (!company) {
       return NextResponse.json({
         name: '',
@@ -49,6 +53,9 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  const { user, errorResponse } = await requireAuth()
+  if (errorResponse) return errorResponse
+
   try {
     const body = await request.json()
     const db = await getDatabase()
@@ -73,8 +80,8 @@ export async function PUT(request: Request) {
     }
 
     await db.collection('company').updateOne(
-      {},
-      { $set: companyData },
+      { userId: user.userId },
+      { $set: { ...companyData, userId: user.userId } },
       { upsert: true }
     )
 

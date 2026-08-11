@@ -133,6 +133,15 @@ export async function revokeSessionRecord(sessionId: string): Promise<void> {
   )
 }
 
+export async function revokeUserSessionRecord(sessionId: string, userId: string): Promise<boolean> {
+  const collection = await getSessionCollection()
+  const result = await collection.updateOne(
+    { sessionId, userId },
+    { $set: { revokedAt: new Date() } }
+  )
+  return result.modifiedCount > 0
+}
+
 export async function listUserSessions(userId: string): Promise<SessionRecord[]> {
   const collection = await getSessionCollection()
   const records = await collection.find({ userId }).sort({ createdAt: -1 }).toArray()

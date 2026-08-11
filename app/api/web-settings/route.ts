@@ -17,11 +17,11 @@ const DEFAULT_SETTINGS = {
 
 export async function GET() {
   try {
-    const { errorResponse } = await requireAuth()
+    const { user, errorResponse } = await requireAuth()
     if (errorResponse) return errorResponse
 
     const db = await getDatabase()
-    const settings = await db.collection(COLLECTION_NAME).findOne({ _id: SETTINGS_ID })
+    const settings = await db.collection(COLLECTION_NAME).findOne({ userId: user.userId })
 
     return NextResponse.json(settings || DEFAULT_SETTINGS)
   } catch (error) {
@@ -52,8 +52,8 @@ export async function PUT(request: NextRequest) {
     }
 
     await db.collection(COLLECTION_NAME).updateOne(
-      { _id: SETTINGS_ID },
-      { $set: nextSettings },
+      { userId: user.userId },
+      { $set: { ...nextSettings, userId: user.userId } },
       { upsert: true }
     )
 

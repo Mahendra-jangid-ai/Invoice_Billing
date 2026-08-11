@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { deleteSession, getSession } from '@/lib/session'
 import { getCurrentUser } from '@/lib/auth'
-import { revokeSessionRecord } from '@/lib/session-store'
+import { revokeUserSessionRecord } from '@/lib/session-store'
 
 interface RouteParams {
   params: Promise<{
@@ -21,7 +21,10 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Session id is required' }, { status: 400 })
     }
 
-    await revokeSessionRecord(sessionId)
+    const revoked = await revokeUserSessionRecord(sessionId, session.userId)
+    if (!revoked) {
+      return NextResponse.json({ error: 'Session not found or access denied' }, { status: 404 })
+    }
 
     if (session.sessionId === sessionId) {
       await deleteSession()
