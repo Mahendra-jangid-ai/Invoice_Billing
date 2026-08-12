@@ -104,5 +104,8 @@ export function handleApiError(res: Response, error: unknown, fallbackMessage = 
   }
 
   console.error('API error:', error instanceof Error ? error.message : error)
+  if (error instanceof Error && error.stack) {
+    console.error(error.stack)
+  }
   sendError(res, 500, fallbackMessage, 'INTERNAL_ERROR')
 }

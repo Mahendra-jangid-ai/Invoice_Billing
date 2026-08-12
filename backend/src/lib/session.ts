@@ -93,7 +93,12 @@ export async function getSession(req: Request): Promise<SessionPayload | null> {
 }
 
 export async function deleteSession(res: Response): Promise<void> {
-  res.clearCookie(SESSION_COOKIE, { path: '/' })
+  res.clearCookie(SESSION_COOKIE, {
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  })
 }
 
 export { SESSION_COOKIE }

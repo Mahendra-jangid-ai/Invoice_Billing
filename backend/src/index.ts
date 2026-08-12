@@ -10,6 +10,7 @@ import { registerCompanyRoutes } from './routes/company.js'
 import { registerWebSettingsRoutes } from './routes/web-settings.js'
 import { handleApiError } from './lib/api-errors.js'
 import { ensureIndexes } from './lib/mongodb.js'
+import { corsOrigin } from './lib/cors.js'
 
 dotenv.config()
 
@@ -26,34 +27,6 @@ if (process.env.NODE_ENV === 'production' && process.env.SESSION_SECRET === DEFA
 const app = express()
 app.set('trust proxy', 1)
 const port = Number(process.env.PORT) || 4000
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-
-function corsOrigin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-  if (!origin) {
-    if (process.env.NODE_ENV === 'production') {
-      callback(new Error('CORS: origin header required'))
-      return
-    }
-    callback(null, true)
-    return
-  }
-  const allowed = new Set([
-    frontendUrl,
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001',
-  ])
-  if (allowed.has(origin)) {
-    callback(null, true)
-    return
-  }
-  if (process.env.NODE_ENV !== 'production' && /^https?:\/\/localhost:\d+$/.test(origin)) {
-    callback(null, true)
-    return
-  }
-  callback(new Error(`CORS blocked for origin: ${origin}`))
-}
 
 app.use(
   cors({
