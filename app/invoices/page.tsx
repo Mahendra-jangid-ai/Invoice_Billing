@@ -6,6 +6,7 @@ import { useBilling } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Plus, Eye, Edit, Trash2, FileText } from 'lucide-react'
 import { SkeletonInvoicesPage } from '@/components/ui/skeleton'
+import { PageHero } from '@/components/page-hero'
 
 // ── Lazy-load layout ──────────────────────────────────────────────────────────
 const AppLayout = dynamic(
@@ -38,41 +39,37 @@ export default function InvoicesPage() {
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
 
-        {/* ── Hero ── */}
-        <div className="hero-card px-8 py-7">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="section-label">Billing</p>
-              <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl tracking-tight">
-                Invoice Management
-              </h1>
-              <p className="mt-1.5 text-sm text-slate-500">
-                Create, track, and manage all your invoices in one place.
-              </p>
-            </div>
-            <Link href="/invoices/new">
-              <Button className="gap-2 shadow-md shadow-indigo-200/50">
+        <PageHero
+          label="Billing"
+          title="Invoice Management"
+          description="Create invoices, track payment status, and re-open drafts when you need to fix something."
+          actions={
+            <Link href="/invoices/new" className="w-full sm:w-auto">
+              <Button className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 New Invoice
               </Button>
             </Link>
-          </div>
-
-          {/* Summary chips */}
-          <div className="mt-5 flex flex-wrap gap-3">
-            {[
-              { label: 'Total', value: invoices.length, cls: 'bg-slate-100 text-slate-700' },
-              { label: 'Draft', value: invoices.filter(i => i.status === 'draft').length,     cls: 'bg-slate-100 text-slate-500' },
-              { label: 'Finalized', value: invoices.filter(i => i.status === 'finalized').length, cls: 'bg-indigo-100 text-indigo-700' },
-              { label: 'Paid', value: invoices.filter(i => i.status === 'paid').length,       cls: 'bg-emerald-100 text-emerald-700' },
-            ].map(chip => (
-              <div key={chip.label} className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold ${chip.cls}`}>
-                <span>{chip.label}</span>
-                <span className="font-bold">{chip.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+          }
+          footer={
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: 'Total', value: invoices.length, cls: 'bg-slate-100 text-slate-700' },
+                { label: 'Draft', value: invoices.filter((i) => i.status === 'draft').length, cls: 'bg-slate-100 text-slate-600' },
+                { label: 'Finalized', value: invoices.filter((i) => i.status === 'finalized').length, cls: 'bg-blue-50 text-blue-700' },
+                { label: 'Paid', value: invoices.filter((i) => i.status === 'paid').length, cls: 'bg-emerald-50 text-emerald-700' },
+              ].map((chip) => (
+                <div
+                  key={chip.label}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ${chip.cls}`}
+                >
+                  <span>{chip.label}</span>
+                  <span className="font-semibold">{chip.value}</span>
+                </div>
+              ))}
+            </div>
+          }
+        />
 
         {/* ── Table ── */}
         {sortedInvoices.length === 0 ? (
@@ -101,7 +98,7 @@ export default function InvoicesPage() {
                 {sortedInvoices.length} records
               </span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="table-scroll">
               <table className="min-w-full">
                 <thead className="bg-slate-50">
                   <tr>
@@ -146,7 +143,7 @@ export default function InvoicesPage() {
                           <div className="flex items-center justify-center gap-1">
                             <Link
                               href={`/invoices/${invoice.id}`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-blue-50 hover:text-[#2563EB] transition"
                               title="View"
                             >
                               <Eye className="h-4 w-4" />

@@ -10,6 +10,8 @@ import { CheckCircle, Upload, Trash2 } from 'lucide-react'
 import { ApiErrorBanner } from '@/components/api-error-banner'
 import { getErrorMessage } from '@/lib/api-client'
 import { COMPANY_PLACEHOLDERS } from '@/lib/form-placeholders'
+import { PageHero } from '@/components/page-hero'
+import { FormActions } from '@/components/form-actions'
 
 export default function CompanySettingsPage() {
   const { company, updateCompany } = useBilling()
@@ -59,179 +61,143 @@ export default function CompanySettingsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6 animate-fade-in">
         <ApiErrorBanner message={saveError} onDismiss={() => setSaveError(null)} />
-        <section className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-6 shadow-sm">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#6B7280]">Company settings</p>
-              <h1 className="mt-2 text-3xl font-semibold text-[#111827]">Company profile and branding</h1>
-              <p className="mt-2 max-w-2xl text-sm text-[#4B5563]">Update your company details, logo, and contact information for invoices and reports.</p>
-            </div>
-            <div className="flex items-center gap-3">
-              {savedMessage && (
-                <div className="inline-flex items-center gap-2 rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-2 text-sm text-[#15803D]">
-                  <CheckCircle className="h-4 w-4" />
-                  Saved
-                </div>
-              )}
-              <Button type="button" onClick={handleSubmit} className="gap-2">
-                Save changes
-              </Button>
-            </div>
-          </div>
-        </section>
 
-        <section className="soft-card rounded-[32px] p-6">
-          <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="space-y-6">
-              <div className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-[#111827]">Company information</h2>
-                    <p className="text-sm text-[#6B7280]">The details shown on invoices and customer communications.</p>
-                  </div>
-                  <div className="rounded-2xl bg-[#2563EB] px-3 py-2 text-xs font-semibold text-white">Live data</div>
-                </div>
+        <PageHero
+          label="Manage"
+          title="Company profile"
+          description="This info appears on your invoices — logo, GST, bank details, and contact."
+          footer={
+            savedMessage ? (
+              <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700">
+                <CheckCircle className="h-4 w-4" />
+                Changes saved
+              </div>
+            ) : null
+          }
+        />
 
-                <div className="mt-5 grid gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">Company name</p>
-                    <p className="mt-2 text-sm text-[#111827]">{formData.name || 'Not configured yet'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">Email</p>
-                    <p className="mt-2 text-sm text-[#111827]">{formData.email || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">Phone</p>
-                    <p className="mt-2 text-sm text-[#111827]">{formData.phone || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">PAN</p>
-                    <p className="mt-2 text-sm text-[#111827]">{formData.pan || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">GST number</p>
-                    <p className="mt-2 text-sm text-[#111827]">{formData.gstnumber || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">Contact person</p>
-                    <p className="mt-2 text-sm text-[#111827]">{formData.contactPerson || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">State</p>
-                    <p className="mt-2 text-sm text-[#111827]">{formData.state || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">State code</p>
-                    <p className="mt-2 text-sm text-[#111827]">{formData.code || '-'}</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">Address</p>
-                    <p className="mt-2 text-sm text-[#111827]">{formData.address || '-'}</p>
-                  </div>
+        <div className="premium-card p-5 sm:p-6">
+          <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+            <div className="space-y-5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                <h2 className="card-heading">Live preview</h2>
+                <p className="card-subtext">How clients see you on invoices.</p>
+
+                <div className="mt-4 space-y-3 text-sm text-slate-700">
+                  <p><span className="text-slate-500">Name</span><br />{formData.name || '—'}</p>
+                  <p><span className="text-slate-500">Email</span><br />{formData.email || '—'}</p>
+                  <p><span className="text-slate-500">Phone</span><br />{formData.phone || '—'}</p>
+                  <p><span className="text-slate-500">GST</span><br />{formData.gstnumber || '—'}</p>
+                  <p><span className="text-slate-500">Address</span><br />{formData.address || '—'}</p>
                 </div>
               </div>
 
-              <div className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280]">Logo preview</p>
-                <div className="mt-4 flex h-24 w-full items-center justify-center rounded-3xl border border-dashed border-[#D1D5DB] bg-white">
+              <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4">
+                <p className="text-xs font-medium text-slate-500 mb-3">Logo</p>
+                <div className="flex h-20 items-center justify-center rounded-lg bg-slate-50">
                   {formData.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={formData.logoUrl} alt="Company logo" className="h-full object-contain" />
+                    <img src={formData.logoUrl} alt="Company logo" className="max-h-full object-contain" />
                   ) : (
-                    <p className="text-sm text-[#6B7280]">No logo uploaded yet</p>
+                    <p className="text-sm text-slate-400">No logo yet</p>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-                <label className="mb-2 block text-sm font-medium text-[#111827]">Upload logo</label>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#111827] transition hover:bg-[#F9FAFB]">
+            <div className="space-y-5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                <label className="mb-2 block text-sm font-medium text-slate-800">Upload logo</label>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
                     <Upload className="h-4 w-4" />
                     Choose image
                     <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                   </label>
-                  <Button type="button" variant="outline" onClick={handleRemoveLogo} className="gap-2">
+                  <Button type="button" variant="outline" onClick={handleRemoveLogo} className="gap-2 w-full sm:w-auto">
                     <Trash2 className="h-4 w-4" />
                     Remove
                   </Button>
                 </div>
-                <p className="mt-3 text-sm text-[#6B7280]">Accepted PNG, JPG, SVG files under 5MB.</p>
+                <p className="mt-2 text-xs text-slate-500">PNG, JPG or SVG — max 5MB.</p>
               </div>
 
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">Company name</label>
-                  <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.name} className="border-[#E5E7EB]" />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Company name</label>
+                  <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.name} className="field-input border-slate-300" />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">Email</label>
-                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.email} className="border-[#E5E7EB]" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Email</label>
+                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.email} className="field-input border-slate-300" />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">Phone</label>
-                  <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.phone} className="border-[#E5E7EB]" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Phone</label>
+                  <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.phone} className="field-input border-slate-300" />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">GST number</label>
-                  <Input id="gstnumber" name="gstnumber" value={formData.gstnumber} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.gstnumber} className="border-[#E5E7EB]" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">GST number</label>
+                  <Input id="gstnumber" name="gstnumber" value={formData.gstnumber} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.gstnumber} className="field-input border-slate-300" />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">PAN</label>
-                  <Input id="pan" name="pan" value={formData.pan || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.pan} className="border-[#E5E7EB]" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">PAN</label>
+                  <Input id="pan" name="pan" value={formData.pan || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.pan} className="field-input border-slate-300" />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">Contact person</label>
-                  <Input id="contactPerson" name="contactPerson" value={formData.contactPerson || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.contactPerson} className="border-[#E5E7EB]" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Contact person</label>
+                  <Input id="contactPerson" name="contactPerson" value={formData.contactPerson || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.contactPerson} className="field-input border-slate-300" />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">State</label>
-                  <Input id="state" name="state" value={formData.state || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.state} className="border-[#E5E7EB]" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">State</label>
+                  <Input id="state" name="state" value={formData.state || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.state} className="field-input border-slate-300" />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">State code</label>
-                  <Input id="code" name="code" value={formData.code || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.code} className="border-[#E5E7EB]" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">State code</label>
+                  <Input id="code" name="code" value={formData.code || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.code} className="field-input border-slate-300" />
                 </div>
-                <div className="grid gap-2 md:col-span-2">
-                  <label className="text-sm font-medium text-[#111827]">Address</label>
-                  <Textarea id="address" name="address" value={formData.address || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.address} rows={3} className="border-[#E5E7EB]" />
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Address</label>
+                  <Textarea id="address" name="address" value={formData.address || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.address} rows={3} className="field-input border-slate-300 min-h-[88px]" />
                 </div>
               </div>
 
-              <section className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-                <h3 className="mb-4 text-sm font-semibold text-[#111827]">Bank details</h3>
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">Bank name</label>
-                    <Input id="bankName" name="bankName" value={formData.bankName || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankName} className="border-[#E5E7EB]" />
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                <h3 className="card-heading mb-4">Bank details</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Bank name</label>
+                    <Input id="bankName" name="bankName" value={formData.bankName || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankName} className="field-input border-slate-300" />
                   </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">Account name</label>
-                    <Input id="bankAccountName" name="bankAccountName" value={formData.bankAccountName || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankAccountName} className="border-[#E5E7EB]" />
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Account name</label>
+                    <Input id="bankAccountName" name="bankAccountName" value={formData.bankAccountName || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankAccountName} className="field-input border-slate-300" />
                   </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">Account number</label>
-                    <Input id="bankAccountNumber" name="bankAccountNumber" value={formData.bankAccountNumber || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankAccountNumber} className="border-[#E5E7EB]" />
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Account number</label>
+                    <Input id="bankAccountNumber" name="bankAccountNumber" value={formData.bankAccountNumber || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankAccountNumber} className="field-input border-slate-300" />
                   </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">IFSC code</label>
-                    <Input id="bankIfsc" name="bankIfsc" value={formData.bankIfsc || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankIfsc} className="border-[#E5E7EB]" />
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">IFSC</label>
+                    <Input id="bankIfsc" name="bankIfsc" value={formData.bankIfsc || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankIfsc} className="field-input border-slate-300" />
                   </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium text-[#111827]">Branch</label>
-                    <Input id="bankBranch" name="bankBranch" value={formData.bankBranch || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankBranch} className="border-[#E5E7EB]" />
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Branch</label>
+                    <Input id="bankBranch" name="bankBranch" value={formData.bankBranch || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankBranch} className="field-input border-slate-300" />
                   </div>
                 </div>
-              </section>
+              </div>
             </div>
           </div>
-        </section>
-      </div>
+
+          <FormActions className="is-sticky mt-6">
+            <Button type="submit" className="gap-2">
+              Save changes
+            </Button>
+          </FormActions>
+        </div>
+      </form>
     </AppLayout>
   )
 }

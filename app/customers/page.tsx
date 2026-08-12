@@ -6,6 +6,8 @@ import { useBilling, Customer } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Plus, Edit, Trash2, X, Users } from 'lucide-react'
 import { SkeletonListPage } from '@/components/ui/skeleton'
+import { PageHero } from '@/components/page-hero'
+import { FormActions } from '@/components/form-actions'
 
 // ── Lazy-load layout ──────────────────────────────────────────────────────────
 const AppLayout = dynamic(
@@ -93,37 +95,32 @@ export default function CustomersPage() {
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
 
-        {/* ── Hero ── */}
-        <div className="hero-card px-8 py-7">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="section-label">People</p>
-              <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl tracking-tight">
-                Customer Management
-              </h1>
-              <p className="mt-1.5 text-sm text-slate-500">
-                Add and manage all your billing clients in one place.
-              </p>
-              <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/80 border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
-                <Users className="h-3.5 w-3.5 text-indigo-500" />
-                {customers.length} customer{customers.length !== 1 ? 's' : ''} registered
-              </div>
-            </div>
-            <Button onClick={() => setShowForm(true)} className="gap-2 shadow-md shadow-indigo-200/50 self-start xl:self-center">
+        <PageHero
+          label="People"
+          title="Customer Management"
+          description="Keep client details handy for faster invoicing — add anyone you bill regularly."
+          actions={
+            <Button onClick={() => setShowForm(true)} className="gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" /> Add Customer
             </Button>
-          </div>
-        </div>
+          }
+          footer={
+            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
+              <Users className="h-3.5 w-3.5 text-[#2563EB]" />
+              {customers.length} customer{customers.length !== 1 ? 's' : ''} on file
+            </div>
+          }
+        />
 
         {/* ── Add/Edit form ── */}
         {showForm && (
           <div className="premium-card p-6 animate-scale-in">
-            <div className="mb-5 flex items-center justify-between gap-4">
+            <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-slate-900">
-                  {editingId ? 'Edit Customer' : 'New Customer'}
+                <h2 className="card-heading">
+                  {editingId ? 'Edit customer' : 'New customer'}
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5">Fill in the customer details below.</p>
+                <p className="card-subtext">Fields marked * are required.</p>
               </div>
               <button
                 onClick={handleCancel}
@@ -152,12 +149,14 @@ export default function CustomersPage() {
                   rows={3}
                 />
               </div>
-              <div className="flex flex-wrap gap-3 pt-1">
+              <FormActions className="is-sticky">
                 <Button type="submit" className="gap-2">
-                  {editingId ? 'Update Customer' : 'Save Customer'}
+                  {editingId ? 'Update customer' : 'Save customer'}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleCancel}>Cancel</Button>
-              </div>
+                <Button type="button" variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
+              </FormActions>
             </form>
           </div>
         )}
@@ -184,7 +183,7 @@ export default function CustomersPage() {
                 {customers.length} total
               </span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="table-scroll">
               <table className="min-w-full">
                 <thead className="bg-slate-50">
                   <tr>
@@ -202,7 +201,7 @@ export default function CustomersPage() {
                     <tr key={customer.id}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-xs font-bold text-indigo-700">
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs font-bold text-[#2563EB]">
                             {customer.name?.[0]?.toUpperCase() || '?'}
                           </div>
                           <span className="font-semibold text-slate-900">{customer.name}</span>

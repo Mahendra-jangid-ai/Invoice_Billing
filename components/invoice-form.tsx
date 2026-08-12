@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useBilling, Invoice, InvoiceLineItem, InvoiceParty } from '@/lib/context'
 import { Button } from '@/components/ui/button'
+import { FormActions } from '@/components/form-actions'
 import { Plus, Trash2 } from 'lucide-react'
 import { INVOICE_PLACEHOLDERS } from '@/lib/form-placeholders'
 
@@ -415,7 +416,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                     setSameAsBillTo(e.target.checked)
                     if (e.target.checked) handleCopyBillTo()
                   }}
-                  className="rounded border-slate-300 text-indigo-600"
+                  className="rounded border-slate-300 text-[#2563EB]"
                 />
                 Same as Bill To
               </label>
@@ -718,11 +719,11 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 pt-1">
+      <FormActions className="is-sticky">
         <Button type="submit" className="gap-2">
-          {initialInvoice ? 'Update Invoice' : 'Save Invoice'}
+          {initialInvoice ? 'Update invoice' : 'Save invoice'}
         </Button>
-      </div>
+      </FormActions>
     </form>
   )
 }

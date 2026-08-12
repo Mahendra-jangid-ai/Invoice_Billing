@@ -6,6 +6,8 @@ import { useBilling, Item } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Plus, Edit, Trash2, X, Package } from 'lucide-react'
 import { SkeletonListPage } from '@/components/ui/skeleton'
+import { PageHero } from '@/components/page-hero'
+import { FormActions } from '@/components/form-actions'
 
 // ── Lazy-load layout ──────────────────────────────────────────────────────────
 const AppLayout = dynamic(
@@ -71,37 +73,30 @@ export default function ItemsPage() {
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
 
-        {/* ── Hero ── */}
-        <div className="hero-card px-8 py-7">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="section-label">Catalog</p>
-              <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl tracking-tight">
-                Products & Services
-              </h1>
-              <p className="mt-1.5 text-sm text-slate-500">
-                Manage your billing catalog — items used across all invoices.
-              </p>
-              <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/80 border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
-                <Package className="h-3.5 w-3.5 text-amber-500" />
-                {items.length} item{items.length !== 1 ? 's' : ''} in catalog
-              </div>
-            </div>
-            <Button onClick={() => setShowForm(true)} className="gap-2 shadow-md shadow-indigo-200/50 self-start xl:self-center">
+        <PageHero
+          label="Catalog"
+          title="Products & Services"
+          description="Your item list — pick these when building invoices so rates stay consistent."
+          actions={
+            <Button onClick={() => setShowForm(true)} className="gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" /> Add Item
             </Button>
-          </div>
-        </div>
+          }
+          footer={
+            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
+              <Package className="h-3.5 w-3.5 text-amber-600" />
+              {items.length} item{items.length !== 1 ? 's' : ''} in catalog
+            </div>
+          }
+        />
 
         {/* ── Add/Edit form ── */}
         {showForm && (
           <div className="premium-card p-6 animate-scale-in">
-            <div className="mb-5 flex items-center justify-between gap-4">
+            <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-slate-900">
-                  {editingId ? 'Edit Item' : 'New Item'}
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">Fill in the item details to add it to your catalog.</p>
+                <h2 className="card-heading">{editingId ? 'Edit item' : 'New item'}</h2>
+                <p className="card-subtext">Name and unit price are required.</p>
               </div>
               <button
                 onClick={handleCancel}
@@ -162,12 +157,14 @@ export default function ItemsPage() {
                   rows={3}
                 />
               </div>
-              <div className="flex flex-wrap gap-3 pt-1">
+              <FormActions className="is-sticky">
                 <Button type="submit" className="gap-2">
-                  {editingId ? 'Update Item' : 'Save Item'}
+                  {editingId ? 'Update item' : 'Save item'}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleCancel}>Cancel</Button>
-              </div>
+                <Button type="button" variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
+              </FormActions>
             </form>
           </div>
         )}
@@ -194,7 +191,7 @@ export default function ItemsPage() {
                 {items.length} total
               </span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="table-scroll">
               <table className="min-w-full">
                 <thead className="bg-slate-50">
                   <tr>

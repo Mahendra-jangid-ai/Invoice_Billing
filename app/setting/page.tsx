@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/lib/auth-context'
 import { apiFetch, getErrorMessage } from '@/lib/api-client'
+import { PageHero } from '@/components/page-hero'
+import { FormActions } from '@/components/form-actions'
 
 interface WebSettings {
   websiteName: string
@@ -152,69 +154,77 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <section className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-6 shadow-sm">
-          <div className="grid gap-6 xl:grid-cols-[1.3fr_0.95fr]">
-            <div className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#6B7280]">Website settings</p>
-                <h1 className="mt-2 text-3xl font-semibold text-[#111827]">Public-facing preferences</h1>
-                <p className="mt-2 max-w-2xl text-sm text-[#4B5563]">Update the name, contact details, and footer text shown across your billing portal.</p>
-                {settings.updatedAt && (
-                  <p className="mt-3 text-sm text-[#6B7280]">Last updated {new Date(settings.updatedAt).toLocaleString()}</p>
-                )}
-                {error && (
-                  <div className="mt-4 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-[#B91C1C]">
-                    {error}
-                  </div>
-                )}
-              </div>
+      <div className="space-y-5 sm:space-y-6 animate-fade-in">
+        <PageHero
+          label="Manage"
+          title="Settings"
+          description="Portal name, support contacts, language — and which devices are logged in."
+          footer={
+            settings.updatedAt ? (
+              <p className="text-xs text-slate-500">
+                Last saved {new Date(settings.updatedAt).toLocaleString()}
+              </p>
+            ) : null
+          }
+        />
 
-              <div className="mt-6 grid gap-4">
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">Website name</label>
+        <div className="premium-card p-5 sm:p-6">
+          <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+              <h2 className="card-heading">Website preferences</h2>
+              <p className="card-subtext">Shown on login and public-facing pages.</p>
+
+              {error && (
+                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
+              <div className="mt-5 grid gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Website name</label>
                   <Input
                     value={settings.websiteName}
                     onChange={(e) => setSettings((prev) => ({ ...prev, websiteName: e.target.value }))}
                     placeholder={WEB_SETTINGS_PLACEHOLDERS.websiteName}
-                    className="border-[#E5E7EB]"
+                    className="field-input border-slate-300"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">Tagline</label>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tagline</label>
                   <Input
                     value={settings.tagline}
                     onChange={(e) => setSettings((prev) => ({ ...prev, tagline: e.target.value }))}
                     placeholder={WEB_SETTINGS_PLACEHOLDERS.tagline}
-                    className="border-[#E5E7EB]"
+                    className="field-input border-slate-300"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">Support email</label>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Support email</label>
                   <Input
                     type="email"
                     value={settings.supportEmail}
                     onChange={(e) => setSettings((prev) => ({ ...prev, supportEmail: e.target.value }))}
                     placeholder={WEB_SETTINGS_PLACEHOLDERS.supportEmail}
-                    className="border-[#E5E7EB]"
+                    className="field-input border-slate-300"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">Support phone</label>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Support phone</label>
                   <Input
                     value={settings.supportPhone}
                     onChange={(e) => setSettings((prev) => ({ ...prev, supportPhone: e.target.value }))}
                     placeholder={WEB_SETTINGS_PLACEHOLDERS.supportPhone}
-                    className="border-[#E5E7EB]"
+                    className="field-input border-slate-300"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium text-[#111827]">Footer text</label>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Footer text</label>
                   <Textarea
                     value={settings.footerText}
                     onChange={(e) => setSettings((prev) => ({ ...prev, footerText: e.target.value }))}
                     rows={3}
-                    className="border-[#E5E7EB]"
+                    className="field-input border-slate-300 min-h-[88px]"
                     placeholder={WEB_SETTINGS_PLACEHOLDERS.footerText}
                   />
                 </div>
@@ -222,24 +232,24 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#DBEAFE] text-sm font-semibold text-[#1D4ED8]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-sm font-semibold text-[#2563EB]">
                     {profileInitial}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#111827]">{user?.name || 'Your profile'}</p>
-                    <p className="truncate text-xs text-[#6B7280]">{user?.email || 'No email available'}</p>
+                    <p className="truncate text-sm font-semibold text-slate-900">{user?.name || 'Your profile'}</p>
+                    <p className="truncate text-xs text-slate-500">{user?.email || 'No email'}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-4">
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-[#6B7280]">Language</label>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <label className="mb-2 block text-xs font-semibold text-slate-600">Language</label>
                 <select
                   value={settings.language}
                   onChange={(e) => setSettings((prev) => ({ ...prev, language: e.target.value }))}
-                  className="h-11 w-full rounded-2xl border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none transition focus:border-[#93C5FD] focus:ring-2 focus:ring-[#BFDBFE]"
+                  className="field-input border-slate-300"
                 >
                   {LANGUAGE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -249,42 +259,39 @@ export default function SettingsPage() {
                 </select>
               </div>
 
-              <div className="rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-4">
-                <p className="text-sm font-semibold text-[#111827]">Save changes</p>
-                <p className="mt-1 text-sm text-[#6B7280]">Save the current website settings and language preference for your account.</p>
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  {savedMessage && (
-                    <div className="inline-flex items-center gap-2 rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-2 text-sm text-[#15803D]">
-                      <CheckCircle className="h-4 w-4" />
-                      Saved
-                    </div>
-                  )}
-                  <Button type="button" onClick={handleSubmit} disabled={saving} className="gap-2">
-                    {saving ? 'Saving...' : 'Save changes'}
-                  </Button>
+              {savedMessage && (
+                <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  <CheckCircle className="h-4 w-4" />
+                  Saved
                 </div>
-              </div>
+              )}
             </div>
           </div>
-        </section>
 
-        <section className="soft-card rounded-[32px] p-6">
+          <FormActions className="is-sticky mt-6">
+            <Button type="button" onClick={handleSubmit} disabled={saving} className="gap-2">
+              {saving ? 'Saving…' : 'Save changes'}
+            </Button>
+          </FormActions>
+        </div>
+
+        <div className="premium-card p-5 sm:p-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-            <section id="sessions" className="space-y-5">
-              <div className="rounded-[26px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <section id="sessions" className="space-y-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#6B7280]">Session info</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-[#111827]">Logged-in devices</h2>
+                    <h2 className="card-heading">Logged-in devices</h2>
+                    <p className="card-subtext">Sessions tied to your account.</p>
                   </div>
-                  <Button type="button" variant="outline" onClick={loadSessions} className="gap-2">
+                  <Button type="button" variant="outline" onClick={loadSessions} className="gap-2 w-full sm:w-auto">
                     <RefreshCw className="h-4 w-4" />
                     Refresh
                   </Button>
                 </div>
 
-                <div className="mt-4 rounded-[22px] border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">
-                  IP address is shown from the server session. MAC address is not available in the browser.
+                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-500">
+                  IP comes from the server. MAC address isn’t available in the browser.
                 </div>
 
                 {sessionsError && (
@@ -340,7 +347,7 @@ export default function SettingsPage() {
               </div>
             </section>
           </div>
-        </section>
+        </div>
       </div>
     </AppLayout>
   )

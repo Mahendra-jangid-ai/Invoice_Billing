@@ -157,7 +157,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 onClick={() => setProfileOpen((o) => !o)}
                 className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:bg-slate-50 transition"
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
                   {initials}
                 </div>
                 <span className="hidden sm:block text-sm font-medium text-slate-700 max-w-[120px] truncate">
@@ -171,7 +171,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   {/* User info */}
                   <div className="mb-2 rounded-xl bg-slate-50 px-3 py-2.5">
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white flex-shrink-0">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2563EB] text-sm font-bold text-white flex-shrink-0">
                         {initials}
                       </div>
                       <div className="min-w-0">

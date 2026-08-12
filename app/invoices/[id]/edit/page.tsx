@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { AppLayout } from '@/app/app-layout'
 import { useEffect, useState } from 'react'
 import { FileText, Loader2 } from 'lucide-react'
+import { PageHero } from '@/components/page-hero'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -28,7 +29,7 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
     return (
       <AppLayout>
         <div className="flex h-64 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
         </div>
       </AppLayout>
     )
@@ -39,18 +40,16 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
   if (!invoice) {
     return (
       <AppLayout>
-        <div className="space-y-6 animate-fade-in">
-          <div className="hero-card px-8 py-7">
-            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl tracking-tight">
-              Invoice Not Found
-            </h1>
-            <p className="mt-1.5 text-sm text-slate-500">
-              This invoice may have been deleted or you don&apos;t have access.
-            </p>
-          </div>
-          <Link href="/invoices">
-            <Button>Back to Invoices</Button>
-          </Link>
+        <div className="space-y-5 animate-fade-in">
+          <PageHero
+            title="Invoice not found"
+            description="It may have been deleted or you may not have access."
+            actions={
+              <Link href="/invoices" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto">Back to invoices</Button>
+              </Link>
+            }
+          />
         </div>
       </AppLayout>
     )
@@ -59,18 +58,16 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
   if (invoice.status !== 'draft') {
     return (
       <AppLayout>
-        <div className="space-y-6 animate-fade-in">
-          <div className="hero-card px-8 py-7">
-            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl tracking-tight">
-              Cannot Edit Invoice
-            </h1>
-            <p className="mt-1.5 text-sm text-slate-500">
-              Only draft invoices can be edited.
-            </p>
-          </div>
-          <Link href={`/invoices/${invoice.id}`}>
-            <Button>Back to Invoice</Button>
-          </Link>
+        <div className="space-y-5 animate-fade-in">
+          <PageHero
+            title="Can't edit this invoice"
+            description="Only draft invoices can be changed. Finalized or paid invoices are locked."
+            actions={
+              <Link href={`/invoices/${invoice.id}`} className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto">View invoice</Button>
+              </Link>
+            }
+          />
         </div>
       </AppLayout>
     )
@@ -87,27 +84,25 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
 
   return (
     <AppLayout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="hero-card px-8 py-7">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="section-label">Billing</p>
-              <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl tracking-tight">
-                Edit Invoice
-              </h1>
-              <p className="mt-1.5 text-sm text-slate-500">
-                Update invoice {invoice.invoiceNumber} — changes apply to draft only.
-              </p>
-              <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/80 border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
-                <FileText className="h-3.5 w-3.5 text-indigo-500" />
-                {invoice.invoiceNumber}
-              </div>
-            </div>
-            <Link href={`/invoices/${invoice.id}`}>
-              <Button variant="outline">Cancel</Button>
+      <div className="space-y-5 sm:space-y-6 animate-fade-in">
+        <PageHero
+          label="Billing"
+          title="Edit invoice"
+          description={`Updating ${invoice.invoiceNumber} — changes apply while status is draft.`}
+          actions={
+            <Link href={`/invoices/${invoice.id}`} className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto">
+                Cancel
+              </Button>
             </Link>
-          </div>
-        </div>
+          }
+          footer={
+            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
+              <FileText className="h-3.5 w-3.5 text-[#2563EB]" />
+              {invoice.invoiceNumber}
+            </div>
+          }
+        />
 
         <InvoiceForm onSubmit={handleSubmit} initialInvoice={invoice} />
       </div>

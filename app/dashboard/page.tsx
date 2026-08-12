@@ -12,6 +12,7 @@ import {
   IndianRupee,
 } from 'lucide-react'
 import { SkeletonDashboard } from '@/components/ui/skeleton'
+import { PageHero } from '@/components/page-hero'
 
 const AppLayout = dynamic(
   () => import('@/app/app-layout').then((m) => ({ default: m.AppLayout })),
@@ -95,30 +96,23 @@ export default function DashboardPage() {
     <AppLayout>
       <div className="space-y-5 animate-fade-in">
 
-        {/* ── Welcome / Hero ── */}
-        <div className="hero-card px-6 py-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="section-label">Welcome back</p>
-              <h1 className="mt-1.5 text-2xl font-bold text-gray-900 tracking-tight">
-                Dashboard Overview
-              </h1>
-              <p className="mt-1 text-sm text-gray-500 max-w-lg">
-                Track invoices, customers, and catalog stats from a clean dashboard built for your business.
-              </p>
-            </div>
-            <div className="flex gap-3 flex-shrink-0">
-              <div className="rounded-xl border border-gray-100 bg-gray-50 px-5 py-3.5 text-center">
-                <p className="section-label">Draft</p>
-                <p className="mt-1 text-2xl font-bold text-gray-800">{draftCount}</p>
+        <PageHero
+          label="Welcome back"
+          title="Here's your overview"
+          description="A quick snapshot of revenue, invoices, and what needs attention today."
+          footer={
+            <div className="flex flex-wrap gap-3">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-center min-w-[88px]">
+                <p className="text-xs font-medium text-slate-500">Draft</p>
+                <p className="mt-0.5 text-xl font-bold text-slate-800 tabular-nums">{draftCount}</p>
               </div>
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-5 py-3.5 text-center">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Paid</p>
-                <p className="mt-1 text-2xl font-bold text-emerald-700">{paidCount}</p>
+              <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-2.5 text-center min-w-[88px]">
+                <p className="text-xs font-medium text-emerald-600">Paid</p>
+                <p className="mt-0.5 text-xl font-bold text-emerald-700 tabular-nums">{paidCount}</p>
               </div>
             </div>
-          </div>
-        </div>
+          }
+        />
 
         {/* ── Stat cards ── */}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 stagger">
@@ -259,7 +253,7 @@ export default function DashboardPage() {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="table-scroll">
               <table className="min-w-full">
                 <thead>
                   <tr>
