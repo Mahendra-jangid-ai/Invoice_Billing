@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useBilling } from '@/lib/context'
 import { apiFetch } from '@/lib/api-client'
@@ -39,6 +39,20 @@ function formatCurrency(amount: number): string {
 }
 
 export default function InvoicesPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppLayout>
+          <SkeletonInvoicesPage />
+        </AppLayout>
+      }
+    >
+      <InvoicesPageContent />
+    </Suspense>
+  )
+}
+
+function InvoicesPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { customers, deleteInvoice, loading: billingLoading } = useBilling()

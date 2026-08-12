@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
@@ -8,6 +8,20 @@ import { getSafeRedirectPath } from '@/lib/utils'
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react'
 
 export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[calc(100vh-100px)] items-center justify-center bg-[#F9FAFB]">
+          <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
+  )
+}
+
+function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login } = useAuth()

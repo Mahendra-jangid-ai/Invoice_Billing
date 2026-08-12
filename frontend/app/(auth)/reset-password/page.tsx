@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Lock, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
@@ -8,6 +8,20 @@ import { apiFetch, getErrorMessage } from '@/lib/api-client'
 import { validateStrongPassword } from '@/lib/utils'
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center rounded-[28px] border border-[#E5E7EB] bg-white p-8 shadow-[0_20px_70px_-30px_rgba(17,24,39,0.12)]">
+          <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
+        </div>
+      }
+    >
+      <ResetPasswordPageContent />
+    </Suspense>
+  )
+}
+
+function ResetPasswordPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get('token') || ''
