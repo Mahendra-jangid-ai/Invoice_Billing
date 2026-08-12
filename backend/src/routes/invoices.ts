@@ -1,36 +1,10 @@
 import type { Express, Request, Response } from 'express'
 import crypto from 'crypto'
-import type { Db } from 'mongodb'
 import { getDatabase } from '../lib/mongodb.js'
+import { allocateNextInvoiceNumber } from '../lib/invoice-number.js'
 import { authMiddleware, logSecurityEvent } from '../lib/auth.js'
 import { handleApiError, parseBody, sendError } from '../lib/api-errors.js'
 import { InvoiceSchema, ResourceIdSchema } from '../lib/schemas/api-schemas.js'
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-async function generateNextInvoiceNumber(db: Db, userId: string): Promise<string> {
-  const company = await db.collection('company').findOne({ userId })
-  const prefix = String(company?.invoicePrefix || 'INV').trim() || 'INV'
-  const pattern = new RegExp(`^${escapeRegExp(prefix)}-(\\d+)$`)
-
-  const invoices = await db
-    .collection('invoices')
-    .find({ userId })
-    .project({ invoiceNumber: 1 })
-    .toArray()
-
-  let maxNum = 0
-  for (const inv of invoices) {
-    const match = String(inv.invoiceNumber || '').match(pattern)
-    if (match) {
-      maxNum = Math.max(maxNum, parseInt(match[1], 10))
-    }
-  }
-
-  return `${prefix}-${String(maxNum + 1).padStart(4, '0')}`
-}
 
 function formatInvoice(inv: Record<string, unknown>) {
   return {
@@ -77,7 +51,7 @@ export function registerInvoiceRoutes(app: Express): void {
       if (!parsed) return
 
       const db = await getDatabase()
-      const invoiceNumber = await generateNextInvoiceNumber(db, req.user!.userId)
+      const invoiceNumber = await allocateNextInvoiceNumber(db, req.user!.userId)
       const newInvoice = {
         id: parsed.id || crypto.randomUUID(),
         userId: req.user!.userId,

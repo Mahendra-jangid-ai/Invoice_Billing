@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { apiFetch, getErrorMessage } from '@/lib/api-client'
+import { getNextInvoiceNumberFromList } from '@/lib/invoice-number'
 import { useAuth } from '@/lib/auth-context'
 
 export interface Customer {
@@ -357,16 +358,7 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
 
   const getNextInvoiceNumber = (): string => {
     const prefix = (company.invoicePrefix || 'INV').trim() || 'INV'
-    const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const pattern = new RegExp(`^${escapedPrefix}-(\\d+)$`)
-    const maxNum = invoices
-      .map((inv) => {
-        const match = inv.invoiceNumber?.match(pattern)
-        return match ? parseInt(match[1], 10) : 0
-      })
-      .reduce((max, num) => Math.max(max, num), 0)
-
-    return `${prefix}-${String(maxNum + 1).padStart(4, '0')}`
+    return getNextInvoiceNumberFromList(invoices, prefix)
   }
 
   return (
