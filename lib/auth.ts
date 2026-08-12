@@ -1,5 +1,6 @@
 import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
+import { errorResponse } from '@/lib/api-errors'
 import bcrypt from 'bcryptjs'
 import { getSession } from '@/lib/session'
 import type { SessionPayload } from '@/lib/session'
@@ -66,10 +67,7 @@ export async function requireAuth(): Promise<{
   if (!session || !session.userId) {
     return {
       user: null,
-      errorResponse: NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      ),
+      errorResponse: errorResponse(401, 'Authentication required', 'AUTHENTICATION_REQUIRED'),
     }
   }
   return { user: session, errorResponse: null }

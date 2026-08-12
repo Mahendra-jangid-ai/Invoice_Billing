@@ -1,25 +1,23 @@
 import { NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import { getActiveSessionRecord } from '@/lib/session-store'
+import { handleApiError } from '@/lib/api-errors'
 
 export async function GET() {
+  const { user, errorResponse } = await requireAuth()
+  if (errorResponse) return errorResponse
+
   try {
-    const session = await getCurrentUser()
-    if (!session || !session.userId || !session.sessionId) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
-    }
-
-    const activeSession = await getActiveSessionRecord(session.sessionId)
+    const activeSession = await getActiveSessionRecord(user.sessionId)
     if (!activeSession) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
 
-    // Only return safe fields — never password, hash, or tokens
     return NextResponse.json({
-      userId: session.userId,
-      email: session.email,
-      name: session.name,
-      sessionId: session.sessionId,
+      userId: user.userId,
+      email: user.email,
+      name: user.name,
+      sessionId: user.sessionId,
       deviceName: activeSession.deviceName,
       browser: activeSession.browser,
       os: activeSession.os,
@@ -29,7 +27,6 @@ export async function GET() {
       expiresAt: activeSession.expiresAt,
     })
   } catch (error) {
-    console.error('Auth/me error:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to get user info' }, { status: 500 })
+    return handleApiError(error, 'Failed to get user info')
   }
 }

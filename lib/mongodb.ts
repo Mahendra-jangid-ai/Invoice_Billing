@@ -1,6 +1,7 @@
 import { MongoClient, MongoClientOptions, Db } from 'mongodb'
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017'
+// Use 127.0.0.1 instead of localhost to avoid IPv6 (::1) connection issues on Windows
+const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017'
 const dbName = process.env.MONGODB_DB || 'billing'
 
 const options: MongoClientOptions = {
@@ -12,17 +13,30 @@ declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined
 }
 
+function createClientPromise(): Promise<MongoClient> {
+  const client = new MongoClient(uri, options)
+  return client.connect().catch((error) => {
+    // Clear cached promise so the next request can retry after MongoDB starts
+    if (process.env.NODE_ENV === 'development') {
+      global._mongoClientPromise = undefined
+    }
+    console.error(
+      'MongoDB connection failed. Ensure MongoDB is running and MONGODB_URI is correct:',
+      error instanceof Error ? error.message : error
+    )
+    throw error
+  })
+}
+
 let clientPromise: Promise<MongoClient>
 
 if (process.env.NODE_ENV === 'development') {
   if (!global._mongoClientPromise) {
-    const client = new MongoClient(uri, options)
-    global._mongoClientPromise = client.connect()
+    global._mongoClientPromise = createClientPromise()
   }
   clientPromise = global._mongoClientPromise
 } else {
-  const client = new MongoClient(uri, options)
-  clientPromise = client.connect()
+  clientPromise = createClientPromise()
 }
 
 export async function getMongoClient(): Promise<MongoClient> {

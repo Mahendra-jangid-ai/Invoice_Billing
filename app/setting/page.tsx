@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/lib/auth-context'
+import { apiFetch, getErrorMessage } from '@/lib/api-client'
 
 interface WebSettings {
   websiteName: string
@@ -30,6 +31,8 @@ interface SessionSummary {
   revokedAt: string | null
   isCurrent: boolean
 }
+
+import { WEB_SETTINGS_PLACEHOLDERS } from '@/lib/form-placeholders'
 
 const DEFAULT_SETTINGS: WebSettings = {
   websiteName: 'Billing Studio',
@@ -72,23 +75,20 @@ export default function SettingsPage() {
 
   const loadSettings = async () => {
     try {
-      const res = await fetch('/api/web-settings', { credentials: 'include' })
-      const data = await res.json()
-      if (res.ok) {
-        const nextSettings = {
-          websiteName: data.websiteName || DEFAULT_SETTINGS.websiteName,
-          tagline: data.tagline || '',
-          supportEmail: data.supportEmail || '',
-          supportPhone: data.supportPhone || '',
-          footerText: data.footerText || '',
-          language: data.language || DEFAULT_SETTINGS.language,
-          updatedAt: data.updatedAt,
-        }
-        setSettings(nextSettings)
-        document.documentElement.lang = nextSettings.language
+      const data = await apiFetch<WebSettings>('/api/web-settings')
+      const nextSettings = {
+        websiteName: data.websiteName || DEFAULT_SETTINGS.websiteName,
+        tagline: data.tagline || '',
+        supportEmail: data.supportEmail || '',
+        supportPhone: data.supportPhone || '',
+        footerText: data.footerText || '',
+        language: data.language || DEFAULT_SETTINGS.language,
+        updatedAt: data.updatedAt,
       }
-    } catch {
-      setError('Failed to load web settings')
+      setSettings(nextSettings)
+      document.documentElement.lang = nextSettings.language
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to load web settings'))
     }
   }
 
@@ -97,19 +97,12 @@ export default function SettingsPage() {
 
     setSessionsLoading(true)
     try {
-      const res = await fetch('/api/auth/sessions', { credentials: 'include' })
-      const data = await res.json()
-
-      if (!res.ok) {
-        setSessions([])
-        setSessionsError(data.error || 'Failed to load sessions')
-        return
-      }
-
+      const data = await apiFetch<{ sessions: SessionSummary[] }>('/api/auth/sessions')
       setSessions(data.sessions || [])
       setSessionsError(null)
-    } catch {
-      setSessionsError('Failed to load sessions')
+    } catch (err) {
+      setSessions([])
+      setSessionsError(getErrorMessage(err, 'Failed to load sessions'))
     } finally {
       setSessionsLoading(false)
     }
@@ -129,27 +122,17 @@ export default function SettingsPage() {
     setError(null)
 
     try {
-      const res = await fetch('/api/web-settings', {
+      const data = await apiFetch<WebSettings>('/api/web-settings', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(settings),
       })
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null)
-        setError(data?.error || 'Failed to save web settings')
-        return
-      }
-
-      const data = await res.json()
       const nextLanguage = data.language || settings.language
       setSettings((prev) => ({ ...prev, updatedAt: data.updatedAt, language: nextLanguage }))
       document.documentElement.lang = nextLanguage
       setSavedMessage(true)
       setTimeout(() => setSavedMessage(false), 3000)
-    } catch {
-      setError('Failed to save web settings')
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to save web settings'))
     } finally {
       setSaving(false)
     }
@@ -158,18 +141,10 @@ export default function SettingsPage() {
   const revokeSession = async (sessionId: string) => {
     setRevokingSessionId(sessionId)
     try {
-      const res = await fetch(`/api/auth/sessions/${sessionId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null)
-        setSessionsError(data?.error || 'Failed to revoke session')
-        return
-      }
-
+      await apiFetch(`/api/auth/sessions/${sessionId}`, { method: 'DELETE' })
       await loadSessions()
+    } catch (err) {
+      setSessionsError(getErrorMessage(err, 'Failed to revoke session'))
     } finally {
       setRevokingSessionId(null)
     }
@@ -201,7 +176,7 @@ export default function SettingsPage() {
                   <Input
                     value={settings.websiteName}
                     onChange={(e) => setSettings((prev) => ({ ...prev, websiteName: e.target.value }))}
-                    placeholder="Website name"
+                    placeholder={WEB_SETTINGS_PLACEHOLDERS.websiteName}
                     className="border-[#E5E7EB]"
                   />
                 </div>
@@ -210,7 +185,7 @@ export default function SettingsPage() {
                   <Input
                     value={settings.tagline}
                     onChange={(e) => setSettings((prev) => ({ ...prev, tagline: e.target.value }))}
-                    placeholder="Short tagline"
+                    placeholder={WEB_SETTINGS_PLACEHOLDERS.tagline}
                     className="border-[#E5E7EB]"
                   />
                 </div>
@@ -220,7 +195,7 @@ export default function SettingsPage() {
                     type="email"
                     value={settings.supportEmail}
                     onChange={(e) => setSettings((prev) => ({ ...prev, supportEmail: e.target.value }))}
-                    placeholder="support@example.com"
+                    placeholder={WEB_SETTINGS_PLACEHOLDERS.supportEmail}
                     className="border-[#E5E7EB]"
                   />
                 </div>
@@ -229,7 +204,7 @@ export default function SettingsPage() {
                   <Input
                     value={settings.supportPhone}
                     onChange={(e) => setSettings((prev) => ({ ...prev, supportPhone: e.target.value }))}
-                    placeholder="Support phone"
+                    placeholder={WEB_SETTINGS_PLACEHOLDERS.supportPhone}
                     className="border-[#E5E7EB]"
                   />
                 </div>
@@ -240,7 +215,7 @@ export default function SettingsPage() {
                     onChange={(e) => setSettings((prev) => ({ ...prev, footerText: e.target.value }))}
                     rows={3}
                     className="border-[#E5E7EB]"
-                    placeholder="Footer text"
+                    placeholder={WEB_SETTINGS_PLACEHOLDERS.footerText}
                   />
                 </div>
               </div>

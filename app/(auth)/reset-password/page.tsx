@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Lock, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
+import { apiFetch, getErrorMessage } from '@/lib/api-client'
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
@@ -46,21 +47,14 @@ export default function ResetPasswordPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/reset-password', {
+      await apiFetch('/api/auth/reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password }),
       })
-      const data = await res.json()
-
-      if (res.ok) {
-        setSuccess(true)
-        setTimeout(() => router.push('/login'), 2500)
-      } else {
-        setError(data.error || 'Failed to reset password')
-      }
-    } catch {
-      setError('Network error. Please try again.')
+      setSuccess(true)
+      setTimeout(() => router.push('/login'), 2500)
+    } catch (error) {
+      setError(getErrorMessage(error, 'Failed to reset password'))
     } finally {
       setLoading(false)
     }

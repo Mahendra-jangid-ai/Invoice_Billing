@@ -1,30 +1,38 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { requireAuth, logSecurityEvent } from '@/lib/auth'
+import { errorResponse, handleApiError, parseBody } from '@/lib/api-errors'
+import { ItemSchema, ResourceIdSchema } from '@/lib/schemas/api-schemas'
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { user, errorResponse } = await requireAuth()
-  if (errorResponse) return errorResponse
+  const { user, errorResponse: authError } = await requireAuth()
+  if (authError) return authError
 
   try {
-    const { id } = await params
-    const body = await request.json()
-    const db = await getDatabase()
+    const { id: rawId } = await params
+    const idParsed = ResourceIdSchema.safeParse(rawId)
+    if (!idParsed.success) {
+      return errorResponse(400, 'Item ID is required', 'VALIDATION_ERROR')
+    }
+    const id = idParsed.data
 
+    const parsed = await parseBody(request, ItemSchema)
+    if (parsed instanceof NextResponse) return parsed
+
+    const db = await getDatabase()
     const updateData = {
-      name: body.name,
-      description: body.description,
-      hsnsac: body.hsnsac,
-      unitprice: Number(body.unitprice),
+      name: parsed.name,
+      description: parsed.description,
+      hsnsac: parsed.hsnsac,
+      unitprice: parsed.unitprice,
       updatedAt: new Date(),
     }
 
-    // IDOR protection: filter by both id AND userId
     const result = await db.collection('items').updateOne(
-      { id: id, userId: user.userId },
+      { id, userId: user.userId },
       { $set: updateData }
     )
 
@@ -35,29 +43,32 @@ export async function PUT(
         resourceId: id,
         action: 'update',
       })
-      return NextResponse.json({ error: 'Item not found' }, { status: 404 })
+      return errorResponse(404, 'Item not found', 'NOT_FOUND')
     }
 
     return NextResponse.json({ id, ...updateData })
   } catch (error) {
-    console.error('Failed to update item:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to update item' }, { status: 500 })
+    return handleApiError(error, 'Failed to update item')
   }
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { user, errorResponse } = await requireAuth()
-  if (errorResponse) return errorResponse
+  const { user, errorResponse: authError } = await requireAuth()
+  if (authError) return authError
 
   try {
-    const { id } = await params
-    const db = await getDatabase()
+    const { id: rawId } = await params
+    const idParsed = ResourceIdSchema.safeParse(rawId)
+    if (!idParsed.success) {
+      return errorResponse(400, 'Item ID is required', 'VALIDATION_ERROR')
+    }
+    const id = idParsed.data
 
-    // IDOR protection: filter by both id AND userId
-    const result = await db.collection('items').deleteOne({ id: id, userId: user.userId })
+    const db = await getDatabase()
+    const result = await db.collection('items').deleteOne({ id, userId: user.userId })
 
     if (result.deletedCount === 0) {
       logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', {
@@ -66,12 +77,11 @@ export async function DELETE(
         resourceId: id,
         action: 'delete',
       })
-      return NextResponse.json({ error: 'Item not found' }, { status: 404 })
+      return errorResponse(404, 'Item not found', 'NOT_FOUND')
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Failed to delete item:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to delete item' }, { status: 500 })
+    return handleApiError(error, 'Failed to delete item')
   }
 }

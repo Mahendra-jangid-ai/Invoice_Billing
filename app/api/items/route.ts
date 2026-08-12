@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
+import { handleApiError, parseBody } from '@/lib/api-errors'
+import { ItemSchema } from '@/lib/schemas/api-schemas'
 
 export async function GET() {
   const { user, errorResponse } = await requireAuth()
@@ -18,8 +20,7 @@ export async function GET() {
     }))
     return NextResponse.json(formatted)
   } catch (error) {
-    console.error('Failed to fetch items:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to fetch items' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch items')
   }
 }
 
@@ -28,23 +29,23 @@ export async function POST(request: Request) {
   if (errorResponse) return errorResponse
 
   try {
-    const body = await request.json()
-    const db = await getDatabase()
+    const parsed = await parseBody(request, ItemSchema)
+    if (parsed instanceof NextResponse) return parsed
 
+    const db = await getDatabase()
     const newItem = {
-      id: body.id || Date.now().toString(),
-      userId: user.userId, // Ownership field — always from server session
-      name: body.name,
-      description: body.description,
-      hsnsac: body.hsnsac,
-      unitprice: Number(body.unitprice),
+      id: parsed.id || Date.now().toString(),
+      userId: user.userId,
+      name: parsed.name,
+      description: parsed.description,
+      hsnsac: parsed.hsnsac,
+      unitprice: parsed.unitprice,
       createdAt: new Date(),
     }
 
     await db.collection('items').insertOne(newItem)
     return NextResponse.json(newItem, { status: 201 })
   } catch (error) {
-    console.error('Failed to create item:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to create item' }, { status: 500 })
+    return handleApiError(error, 'Failed to create item')
   }
 }

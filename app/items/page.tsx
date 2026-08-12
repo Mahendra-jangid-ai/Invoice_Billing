@@ -13,6 +13,8 @@ const AppLayout = dynamic(
   { ssr: false, loading: () => null }
 )
 
+import { ITEM_PLACEHOLDERS } from '@/lib/form-placeholders'
+
 const EMPTY_FORM: Partial<Item> = { name: '', description: '', hsnsac: '', unitprice: 0 }
 
 export default function ItemsPage() {
@@ -27,14 +29,18 @@ export default function ItemsPage() {
       alert('Please fill in Name and a valid Unit Price')
       return
     }
-    if (editingId) {
-      await updateItem(editingId, formData as Item)
-      setEditingId(null)
-    } else {
-      await addItem(formData as Item)
+    try {
+      if (editingId) {
+        await updateItem(editingId, formData as Item)
+        setEditingId(null)
+      } else {
+        await addItem(formData as Item)
+      }
+      setFormData(EMPTY_FORM)
+      setShowForm(false)
+    } catch {
+      // Error shown via billing context banner
     }
-    setFormData(EMPTY_FORM)
-    setShowForm(false)
   }
 
   const handleEdit = (item: Item) => {
@@ -116,7 +122,7 @@ export default function ItemsPage() {
                     value={formData.name || ''}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="field-input"
-                    placeholder="e.g. Web Development"
+                    placeholder={ITEM_PLACEHOLDERS.name}
                     required
                   />
                 </div>
@@ -131,7 +137,7 @@ export default function ItemsPage() {
                     value={formData.unitprice ?? ''}
                     onChange={(e) => setFormData({ ...formData, unitprice: parseFloat(e.target.value) || 0 })}
                     className="field-input"
-                    placeholder="0.00"
+                    placeholder={ITEM_PLACEHOLDERS.unitprice}
                     required
                   />
                 </div>
@@ -142,7 +148,7 @@ export default function ItemsPage() {
                     value={formData.hsnsac || ''}
                     onChange={(e) => setFormData({ ...formData, hsnsac: e.target.value })}
                     className="field-input"
-                    placeholder="e.g. 998314"
+                    placeholder={ITEM_PLACEHOLDERS.hsnsac}
                   />
                 </div>
               </div>
@@ -152,7 +158,7 @@ export default function ItemsPage() {
                   value={formData.description || ''}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="field-input resize-none"
-                  placeholder="Brief item description"
+                  placeholder={ITEM_PLACEHOLDERS.description}
                   rows={3}
                 />
               </div>

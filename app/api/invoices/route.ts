@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
+import { handleApiError, parseBody } from '@/lib/api-errors'
+import { InvoiceSchema } from '@/lib/schemas/api-schemas'
 
 export async function GET() {
   const { user, errorResponse } = await requireAuth()
@@ -33,8 +35,7 @@ export async function GET() {
     }))
     return NextResponse.json(formatted)
   } catch (error) {
-    console.error('Failed to fetch invoices:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to fetch invoices' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch invoices')
   }
 }
 
@@ -43,38 +44,38 @@ export async function POST(request: Request) {
   if (errorResponse) return errorResponse
 
   try {
-    const body = await request.json()
-    const db = await getDatabase()
+    const parsed = await parseBody(request, InvoiceSchema)
+    if (parsed instanceof NextResponse) return parsed
 
+    const db = await getDatabase()
     const newInvoice = {
-      id: body.id || Date.now().toString(),
-      userId: user.userId, // Ownership field — always from server session
-      invoiceNumber: body.invoiceNumber,
-      date: body.date,
-      reverseCharge: body.reverseCharge || 'No',
-      companyState: body.companyState || '',
-      companyStateCode: body.companyStateCode || '',
-      woNumber: body.woNumber || '',
-      descriptionOfService: body.descriptionOfService || '',
-      periodOfService: body.periodOfService || '',
-      placeOfService: body.placeOfService || '',
-      placeOfServiceCode: body.placeOfServiceCode || '',
-      customerId: body.customerId || '',
-      billTo: body.billTo || null,
-      shipTo: body.shipTo || null,
-      sameAsBillTo: body.sameAsBillTo ?? true,
-      items: body.items || [],
-      taxPercentage: Number(body.taxPercentage) || 0,
-      notes: body.notes || '',
-      cashDiscount: body.cashDiscount || null,
-      status: body.status || 'draft',
+      id: parsed.id || Date.now().toString(),
+      userId: user.userId,
+      invoiceNumber: parsed.invoiceNumber,
+      date: parsed.date,
+      reverseCharge: parsed.reverseCharge,
+      companyState: parsed.companyState,
+      companyStateCode: parsed.companyStateCode,
+      woNumber: parsed.woNumber,
+      descriptionOfService: parsed.descriptionOfService,
+      periodOfService: parsed.periodOfService,
+      placeOfService: parsed.placeOfService,
+      placeOfServiceCode: parsed.placeOfServiceCode,
+      customerId: parsed.customerId,
+      billTo: parsed.billTo || null,
+      shipTo: parsed.shipTo || null,
+      sameAsBillTo: parsed.sameAsBillTo,
+      items: parsed.items,
+      taxPercentage: parsed.taxPercentage,
+      notes: parsed.notes,
+      cashDiscount: parsed.cashDiscount || null,
+      status: parsed.status,
       createdAt: new Date(),
     }
 
     await db.collection('invoices').insertOne(newInvoice)
     return NextResponse.json(newInvoice, { status: 201 })
   } catch (error) {
-    console.error('Failed to create invoice:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to create invoice' }, { status: 500 })
+    return handleApiError(error, 'Failed to create invoice')
   }
 }

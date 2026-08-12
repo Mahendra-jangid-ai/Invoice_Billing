@@ -1,29 +1,27 @@
 import { NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import { getActiveSessionRecord, listUserSessions } from '@/lib/session-store'
+import { handleApiError } from '@/lib/api-errors'
 
 export async function GET() {
-  try {
-    const session = await getCurrentUser()
-    if (!session?.userId || !session.sessionId) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
-    }
+  const { user, errorResponse } = await requireAuth()
+  if (errorResponse) return errorResponse
 
+  try {
     const [currentSession, sessions] = await Promise.all([
-      getActiveSessionRecord(session.sessionId),
-      listUserSessions(session.userId),
+      getActiveSessionRecord(user.sessionId),
+      listUserSessions(user.userId),
     ])
 
     return NextResponse.json({
-      currentSessionId: session.sessionId,
+      currentSessionId: user.sessionId,
       currentSession,
       sessions: sessions.map((item) => ({
         ...item,
-        isCurrent: item.sessionId === session.sessionId,
+        isCurrent: item.sessionId === user.sessionId,
       })),
     })
   } catch (error) {
-    console.error('Sessions list error:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to load sessions' }, { status: 500 })
+    return handleApiError(error, 'Failed to load sessions')
   }
 }

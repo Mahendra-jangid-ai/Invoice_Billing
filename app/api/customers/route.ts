@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
+import { handleApiError, parseBody } from '@/lib/api-errors'
+import { CustomerSchema } from '@/lib/schemas/api-schemas'
 
 export async function GET() {
   const { user, errorResponse } = await requireAuth()
@@ -21,8 +23,7 @@ export async function GET() {
     }))
     return NextResponse.json(formatted)
   } catch (error) {
-    console.error('Failed to fetch customers:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch customers')
   }
 }
 
@@ -31,26 +32,26 @@ export async function POST(request: Request) {
   if (errorResponse) return errorResponse
 
   try {
-    const body = await request.json()
-    const db = await getDatabase()
+    const parsed = await parseBody(request, CustomerSchema)
+    if (parsed instanceof NextResponse) return parsed
 
+    const db = await getDatabase()
     const newCustomer = {
-      id: body.id || Date.now().toString(),
-      userId: user.userId, // Ownership field — always from server session
-      name: body.name,
-      email: body.email,
-      phone: body.phone,
-      address: body.address,
-      gstnumber: body.gstnumber,
-      state: body.state || '',
-      code: body.code || '',
+      id: parsed.id || Date.now().toString(),
+      userId: user.userId,
+      name: parsed.name,
+      email: parsed.email,
+      phone: parsed.phone,
+      address: parsed.address,
+      gstnumber: parsed.gstnumber,
+      state: parsed.state,
+      code: parsed.code,
       createdAt: new Date(),
     }
 
     await db.collection('customers').insertOne(newCustomer)
     return NextResponse.json(newCustomer, { status: 201 })
   } catch (error) {
-    console.error('Failed to create customer:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 })
+    return handleApiError(error, 'Failed to create customer')
   }
 }

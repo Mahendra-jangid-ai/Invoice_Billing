@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { deleteSession, getSession } from '@/lib/session'
 import { logSecurityEvent } from '@/lib/auth'
 import { revokeSessionRecord } from '@/lib/session-store'
+import { handleApiError } from '@/lib/api-errors'
 
 export async function POST() {
   try {
@@ -15,7 +16,12 @@ export async function POST() {
     await deleteSession()
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Logout error:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Logout failed' }, { status: 500 })
+    // Still clear session cookie even if DB revoke fails
+    try {
+      await deleteSession()
+    } catch {
+      // ignore secondary failure
+    }
+    return handleApiError(error, 'Logout failed')
   }
 }

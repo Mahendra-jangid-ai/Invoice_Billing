@@ -1,6 +1,26 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { requireAuth } from '@/lib/auth'
+import { handleApiError, parseBody } from '@/lib/api-errors'
+import { CompanySchema } from '@/lib/schemas/api-schemas'
+
+const EMPTY_COMPANY = {
+  name: '',
+  address: '',
+  phone: '',
+  email: '',
+  gstnumber: '',
+  pan: '',
+  state: '',
+  code: '',
+  logoUrl: '',
+  contactPerson: '',
+  bankName: '',
+  bankAccountName: '',
+  bankAccountNumber: '',
+  bankIfsc: '',
+  bankBranch: '',
+}
 
 export async function GET() {
   const { user, errorResponse } = await requireAuth()
@@ -10,23 +30,7 @@ export async function GET() {
     const db = await getDatabase()
     const company = await db.collection('company').findOne({ userId: user.userId })
     if (!company) {
-      return NextResponse.json({
-        name: '',
-        address: '',
-        phone: '',
-        email: '',
-        gstnumber: '',
-        pan: '',
-        state: '',
-        code: '',
-        logoUrl: '',
-        contactPerson: '',
-        bankName: '',
-        bankAccountName: '',
-        bankAccountNumber: '',
-        bankIfsc: '',
-        bankBranch: '',
-      })
+      return NextResponse.json(EMPTY_COMPANY)
     }
 
     return NextResponse.json({
@@ -47,8 +51,7 @@ export async function GET() {
       bankBranch: company.bankBranch || '',
     })
   } catch (error) {
-    console.error('Failed to fetch company profile:', error)
-    return NextResponse.json({ error: 'Failed to fetch company profile' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch company profile')
   }
 }
 
@@ -57,25 +60,12 @@ export async function PUT(request: Request) {
   if (errorResponse) return errorResponse
 
   try {
-    const body = await request.json()
-    const db = await getDatabase()
+    const parsed = await parseBody(request, CompanySchema)
+    if (parsed instanceof NextResponse) return parsed
 
+    const db = await getDatabase()
     const companyData = {
-      name: body.name || '',
-      address: body.address || '',
-      phone: body.phone || '',
-      email: body.email || '',
-      contactPerson: body.contactPerson || '',
-      gstnumber: body.gstnumber || '',
-      pan: body.pan || '',
-      state: body.state || '',
-      code: body.code || '',
-      logoUrl: body.logoUrl || '',
-      bankName: body.bankName || '',
-      bankAccountName: body.bankAccountName || '',
-      bankAccountNumber: body.bankAccountNumber || '',
-      bankIfsc: body.bankIfsc || '',
-      bankBranch: body.bankBranch || '',
+      ...parsed,
       updatedAt: new Date(),
     }
 
@@ -87,7 +77,6 @@ export async function PUT(request: Request) {
 
     return NextResponse.json(companyData)
   } catch (error) {
-    console.error('Failed to update company profile:', error)
-    return NextResponse.json({ error: 'Failed to update company profile' }, { status: 500 })
+    return handleApiError(error, 'Failed to update company profile')
   }
 }

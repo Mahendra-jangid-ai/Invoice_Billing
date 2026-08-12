@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deleteSession, getSession } from '@/lib/session'
-import { getCurrentUser } from '@/lib/auth'
+import { deleteSession } from '@/lib/session'
+import { requireAuth } from '@/lib/auth'
 import { revokeUserSessionRecord } from '@/lib/session-store'
+import { errorResponse, handleApiError } from '@/lib/api-errors'
+import { ResourceIdSchema } from '@/lib/schemas/api-schemas'
 
 interface RouteParams {
   params: Promise<{
@@ -10,29 +12,28 @@ interface RouteParams {
 }
 
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+  const { user, errorResponse: authError } = await requireAuth()
+  if (authError) return authError
+
   try {
-    const session = await getCurrentUser()
-    if (!session?.userId || !session.sessionId) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    const { sessionId: rawSessionId } = await params
+    const sessionIdParsed = ResourceIdSchema.safeParse(rawSessionId)
+    if (!sessionIdParsed.success) {
+      return errorResponse(400, 'Session id is required', 'VALIDATION_ERROR')
     }
+    const sessionId = sessionIdParsed.data
 
-    const { sessionId } = await params
-    if (!sessionId) {
-      return NextResponse.json({ error: 'Session id is required' }, { status: 400 })
-    }
-
-    const revoked = await revokeUserSessionRecord(sessionId, session.userId)
+    const revoked = await revokeUserSessionRecord(sessionId, user.userId)
     if (!revoked) {
-      return NextResponse.json({ error: 'Session not found or access denied' }, { status: 404 })
+      return errorResponse(404, 'Session not found or access denied', 'NOT_FOUND')
     }
 
-    if (session.sessionId === sessionId) {
+    if (user.sessionId === sessionId) {
       await deleteSession()
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Session revoke error:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to revoke session' }, { status: 500 })
+    return handleApiError(error, 'Failed to revoke session')
   }
 }

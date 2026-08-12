@@ -1,33 +1,41 @@
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { requireAuth, logSecurityEvent } from '@/lib/auth'
+import { errorResponse, handleApiError, parseBody } from '@/lib/api-errors'
+import { CustomerSchema, ResourceIdSchema } from '@/lib/schemas/api-schemas'
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { user, errorResponse } = await requireAuth()
-  if (errorResponse) return errorResponse
+  const { user, errorResponse: authError } = await requireAuth()
+  if (authError) return authError
 
   try {
-    const { id } = await params
-    const body = await request.json()
-    const db = await getDatabase()
+    const { id: rawId } = await params
+    const idParsed = ResourceIdSchema.safeParse(rawId)
+    if (!idParsed.success) {
+      return errorResponse(400, 'Customer ID is required', 'VALIDATION_ERROR')
+    }
+    const id = idParsed.data
 
+    const parsed = await parseBody(request, CustomerSchema)
+    if (parsed instanceof NextResponse) return parsed
+
+    const db = await getDatabase()
     const updateData = {
-      name: body.name,
-      email: body.email,
-      phone: body.phone,
-      address: body.address,
-      gstnumber: body.gstnumber,
-      state: body.state || '',
-      code: body.code || '',
+      name: parsed.name,
+      email: parsed.email,
+      phone: parsed.phone,
+      address: parsed.address,
+      gstnumber: parsed.gstnumber,
+      state: parsed.state,
+      code: parsed.code,
       updatedAt: new Date(),
     }
 
-    // IDOR protection: filter by both id AND userId so User A cannot modify User B's customer
     const result = await db.collection('customers').updateOne(
-      { id: id, userId: user.userId },
+      { id, userId: user.userId },
       { $set: updateData }
     )
 
@@ -38,29 +46,32 @@ export async function PUT(
         resourceId: id,
         action: 'update',
       })
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
+      return errorResponse(404, 'Customer not found', 'NOT_FOUND')
     }
 
     return NextResponse.json({ id, ...updateData })
   } catch (error) {
-    console.error('Failed to update customer:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to update customer' }, { status: 500 })
+    return handleApiError(error, 'Failed to update customer')
   }
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { user, errorResponse } = await requireAuth()
-  if (errorResponse) return errorResponse
+  const { user, errorResponse: authError } = await requireAuth()
+  if (authError) return authError
 
   try {
-    const { id } = await params
-    const db = await getDatabase()
+    const { id: rawId } = await params
+    const idParsed = ResourceIdSchema.safeParse(rawId)
+    if (!idParsed.success) {
+      return errorResponse(400, 'Customer ID is required', 'VALIDATION_ERROR')
+    }
+    const id = idParsed.data
 
-    // IDOR protection: filter by both id AND userId
-    const result = await db.collection('customers').deleteOne({ id: id, userId: user.userId })
+    const db = await getDatabase()
+    const result = await db.collection('customers').deleteOne({ id, userId: user.userId })
 
     if (result.deletedCount === 0) {
       logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', {
@@ -69,12 +80,11 @@ export async function DELETE(
         resourceId: id,
         action: 'delete',
       })
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
+      return errorResponse(404, 'Customer not found', 'NOT_FOUND')
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Failed to delete customer:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json({ error: 'Failed to delete customer' }, { status: 500 })
+    return handleApiError(error, 'Failed to delete customer')
   }
 }

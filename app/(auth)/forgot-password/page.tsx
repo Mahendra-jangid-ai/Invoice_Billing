@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Mail, Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { apiFetch, getErrorMessage } from '@/lib/api-client'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -16,25 +17,13 @@ export default function ForgotPasswordPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/forgot-password', {
+      await apiFetch('/api/auth/forgot-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
-
-      if (res.ok) {
-        setSubmitted(true)
-      } else {
-        const data = await res.json()
-        if (res.status === 429) {
-          setError(data.error || 'Too many requests. Please try again later.')
-        } else {
-          // Show success anyway to prevent user enumeration
-          setSubmitted(true)
-        }
-      }
-    } catch {
-      setError('Network error. Please try again.')
+      setSubmitted(true)
+    } catch (error) {
+      setError(getErrorMessage(error, 'Network error. Please try again.'))
     } finally {
       setLoading(false)
     }

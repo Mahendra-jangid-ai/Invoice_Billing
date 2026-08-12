@@ -13,6 +13,8 @@ const AppLayout = dynamic(
   { ssr: false, loading: () => null }
 )
 
+import { CUSTOMER_PLACEHOLDERS } from '@/lib/form-placeholders'
+
 const EMPTY_FORM: Partial<Customer> = {
   name: '', email: '', phone: '', address: '', gstnumber: '', state: '', code: '',
 }
@@ -29,14 +31,18 @@ export default function CustomersPage() {
       alert('Please fill in required fields (Name and Email)')
       return
     }
-    if (editingId) {
-      await updateCustomer(editingId, formData as Customer)
-      setEditingId(null)
-    } else {
-      await addCustomer(formData as Customer)
+    try {
+      if (editingId) {
+        await updateCustomer(editingId, formData as Customer)
+        setEditingId(null)
+      } else {
+        await addCustomer(formData as Customer)
+      }
+      setFormData(EMPTY_FORM)
+      setShowForm(false)
+    } catch {
+      // Error shown via billing context banner
     }
-    setFormData(EMPTY_FORM)
-    setShowForm(false)
   }
 
   const handleEdit = (c: Customer) => {
@@ -77,7 +83,7 @@ export default function CustomersPage() {
         value={(formData[key] as string) || ''}
         onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
         className="field-input"
-        placeholder={opts?.placeholder || label}
+        placeholder={opts?.placeholder}
         required={opts?.required}
       />
     </div>
@@ -129,12 +135,12 @@ export default function CustomersPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {field('Name',        'name',      { required: true,  placeholder: 'Customer name' })}
-                {field('Email',       'email',     { type: 'email', required: true, placeholder: 'email@example.com' })}
-                {field('Phone',       'phone',     { type: 'tel',  placeholder: '+91 XXXXXXXXXX' })}
-                {field('GST Number',  'gstnumber', { placeholder: 'GSTIN' })}
-                {field('State',       'state',     { placeholder: 'e.g. Maharashtra' })}
-                {field('State Code',  'code',      { placeholder: 'e.g. 27' })}
+                {field('Name',        'name',      { required: true,  placeholder: CUSTOMER_PLACEHOLDERS.name })}
+                {field('Email',       'email',     { type: 'email', required: true, placeholder: CUSTOMER_PLACEHOLDERS.email })}
+                {field('Phone',       'phone',     { type: 'tel',  placeholder: CUSTOMER_PLACEHOLDERS.phone })}
+                {field('GST Number',  'gstnumber', { placeholder: CUSTOMER_PLACEHOLDERS.gstnumber })}
+                {field('State',       'state',     { placeholder: CUSTOMER_PLACEHOLDERS.state })}
+                {field('State Code',  'code',      { placeholder: CUSTOMER_PLACEHOLDERS.code })}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Address</label>
@@ -142,7 +148,7 @@ export default function CustomersPage() {
                   value={formData.address || ''}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="field-input resize-none"
-                  placeholder="Full billing address"
+                  placeholder={CUSTOMER_PLACEHOLDERS.address}
                   rows={3}
                 />
               </div>

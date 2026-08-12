@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { apiFetch, getErrorMessage } from '@/lib/api-client'
 import { useAuth } from '@/lib/auth-context'
 
 export interface Customer {
@@ -89,6 +90,8 @@ interface BillingContextType {
   invoices: Invoice[]
   company: Company
   loading: boolean
+  error: string | null
+  clearError: () => void
   addCustomer: (customer: Customer) => Promise<void>
   updateCustomer: (id: string, customer: Customer) => Promise<void>
   deleteCustomer: (id: string) => Promise<void>
@@ -104,61 +107,76 @@ interface BillingContextType {
 
 const BillingContext = createContext<BillingContextType | undefined>(undefined)
 
+const EMPTY_COMPANY: Company = {
+  name: '',
+  address: '',
+  phone: '',
+  email: '',
+  contactPerson: '',
+  gstnumber: '',
+  pan: '',
+  state: '',
+  code: '',
+  logoUrl: '',
+  bankName: '',
+  bankAccountName: '',
+  bankAccountNumber: '',
+  bankIfsc: '',
+  bankBranch: '',
+}
+
 export function BillingProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [company, setCompany] = useState<Company>({
-    name: '',
-    address: '',
-    phone: '',
-    email: '',
-    contactPerson: '',
-    gstnumber: '',
-    pan: '',
-    state: '',
-    code: '',
-    logoUrl: '',
-    bankName: '',
-    bankAccountName: '',
-    bankAccountNumber: '',
-    bankIfsc: '',
-    bankBranch: '',
-  })
+  const [error, setError] = useState<string | null>(null)
+  const [company, setCompany] = useState<Company>(EMPTY_COMPANY)
+
+  const clearError = () => setError(null)
 
   const loadData = async () => {
     setLoading(true)
-    try {
-      const [cRes, iRes, invRes, compRes] = await Promise.allSettled([
-        fetch('/api/customers', { credentials: 'include' }),
-        fetch('/api/items', { credentials: 'include' }),
-        fetch('/api/invoices', { credentials: 'include' }),
-        fetch('/api/company', { credentials: 'include' }),
-      ])
+    setError(null)
+    const loadErrors: string[] = []
 
-      if (cRes.status === 'fulfilled' && cRes.value.ok) {
-        const data = await cRes.value.json()
-        if (Array.isArray(data)) setCustomers(data)
-      }
-      if (iRes.status === 'fulfilled' && iRes.value.ok) {
-        const data = await iRes.value.json()
-        if (Array.isArray(data)) setItems(data)
-      }
-      if (invRes.status === 'fulfilled' && invRes.value.ok) {
-        const data = await invRes.value.json()
-        if (Array.isArray(data)) setInvoices(data)
-      }
-      if (compRes.status === 'fulfilled' && compRes.value.ok) {
-        const data = await compRes.value.json()
-        if (data && !data.error) setCompany(data)
-      }
-    } catch (err) {
-      console.error('Error fetching data from MongoDB backend:', err)
-    } finally {
-      setLoading(false)
+    const [customersResult, itemsResult, invoicesResult, companyResult] = await Promise.allSettled([
+      apiFetch<Customer[]>('/api/customers'),
+      apiFetch<Item[]>('/api/items'),
+      apiFetch<Invoice[]>('/api/invoices'),
+      apiFetch<Company>('/api/company'),
+    ])
+
+    if (customersResult.status === 'fulfilled') {
+      setCustomers(customersResult.value)
+    } else {
+      loadErrors.push(getErrorMessage(customersResult.reason, 'Failed to load customers'))
     }
+
+    if (itemsResult.status === 'fulfilled') {
+      setItems(itemsResult.value)
+    } else {
+      loadErrors.push(getErrorMessage(itemsResult.reason, 'Failed to load items'))
+    }
+
+    if (invoicesResult.status === 'fulfilled') {
+      setInvoices(invoicesResult.value)
+    } else {
+      loadErrors.push(getErrorMessage(invoicesResult.reason, 'Failed to load invoices'))
+    }
+
+    if (companyResult.status === 'fulfilled') {
+      setCompany(companyResult.value)
+    } else {
+      loadErrors.push(getErrorMessage(companyResult.reason, 'Failed to load company profile'))
+    }
+
+    if (loadErrors.length > 0) {
+      setError(loadErrors.join('. '))
+    }
+
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -172,149 +190,162 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
     setCustomers([])
     setItems([])
     setInvoices([])
-    setCompany({
-      name: '',
-      address: '',
-      phone: '',
-      email: '',
-      contactPerson: '',
-      gstnumber: '',
-      pan: '',
-      state: '',
-      code: '',
-      logoUrl: '',
-      bankName: '',
-      bankAccountName: '',
-      bankAccountNumber: '',
-      bankIfsc: '',
-      bankBranch: '',
-    })
+    setCompany(EMPTY_COMPANY)
+    setError(null)
     setLoading(false)
   }, [authLoading, user])
 
   const updateCompany = async (newCompany: Company) => {
+    const previous = company
     setCompany(newCompany)
+    clearError()
     try {
-      await fetch('/api/company', {
+      const saved = await apiFetch<Company>('/api/company', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCompany),
       })
+      setCompany(saved)
     } catch (err) {
-      console.error('Failed to update company profile on server:', err)
+      setCompany(previous)
+      setError(getErrorMessage(err, 'Failed to update company profile'))
+      throw err
     }
   }
 
   const addCustomer = async (customer: Customer) => {
     const newCustomer = { ...customer, id: customer.id || Date.now().toString() }
+    const previous = customers
     setCustomers((prev) => [...prev, newCustomer])
+    clearError()
     try {
-      await fetch('/api/customers', {
+      await apiFetch('/api/customers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCustomer),
       })
     } catch (err) {
-      console.error('Failed to save customer to MongoDB:', err)
+      setCustomers(previous)
+      setError(getErrorMessage(err, 'Failed to save customer'))
+      throw err
     }
   }
 
   const updateCustomer = async (id: string, customer: Customer) => {
+    const previous = customers
     setCustomers((prev) => prev.map((c) => (c.id === id ? customer : c)))
+    clearError()
     try {
-      await fetch(`/api/customers/${id}`, {
+      await apiFetch(`/api/customers/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(customer),
       })
     } catch (err) {
-      console.error('Failed to update customer in MongoDB:', err)
+      setCustomers(previous)
+      setError(getErrorMessage(err, 'Failed to update customer'))
+      throw err
     }
   }
 
   const deleteCustomer = async (id: string) => {
+    const previous = customers
     setCustomers((prev) => prev.filter((c) => c.id !== id))
+    clearError()
     try {
-      await fetch(`/api/customers/${id}`, {
-        method: 'DELETE',
-      })
+      await apiFetch(`/api/customers/${id}`, { method: 'DELETE' })
     } catch (err) {
-      console.error('Failed to delete customer from MongoDB:', err)
+      setCustomers(previous)
+      setError(getErrorMessage(err, 'Failed to delete customer'))
+      throw err
     }
   }
 
   const addItem = async (item: Item) => {
     const newItem = { ...item, id: item.id || Date.now().toString() }
+    const previous = items
     setItems((prev) => [...prev, newItem])
+    clearError()
     try {
-      await fetch('/api/items', {
+      await apiFetch('/api/items', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newItem),
       })
     } catch (err) {
-      console.error('Failed to save item to MongoDB:', err)
+      setItems(previous)
+      setError(getErrorMessage(err, 'Failed to save item'))
+      throw err
     }
   }
 
   const updateItem = async (id: string, item: Item) => {
+    const previous = items
     setItems((prev) => prev.map((i) => (i.id === id ? item : i)))
+    clearError()
     try {
-      await fetch(`/api/items/${id}`, {
+      await apiFetch(`/api/items/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(item),
       })
     } catch (err) {
-      console.error('Failed to update item in MongoDB:', err)
+      setItems(previous)
+      setError(getErrorMessage(err, 'Failed to update item'))
+      throw err
     }
   }
 
   const deleteItem = async (id: string) => {
+    const previous = items
     setItems((prev) => prev.filter((i) => i.id !== id))
+    clearError()
     try {
-      await fetch(`/api/items/${id}`, {
-        method: 'DELETE',
-      })
+      await apiFetch(`/api/items/${id}`, { method: 'DELETE' })
     } catch (err) {
-      console.error('Failed to delete item from MongoDB:', err)
+      setItems(previous)
+      setError(getErrorMessage(err, 'Failed to delete item'))
+      throw err
     }
   }
 
   const addInvoice = async (invoice: Invoice) => {
+    const previous = invoices
     setInvoices((prev) => [...prev, invoice])
+    clearError()
     try {
-      await fetch('/api/invoices', {
+      await apiFetch('/api/invoices', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(invoice),
       })
     } catch (err) {
-      console.error('Failed to save invoice to MongoDB:', err)
+      setInvoices(previous)
+      setError(getErrorMessage(err, 'Failed to save invoice'))
+      throw err
     }
   }
 
   const updateInvoice = async (id: string, invoice: Invoice) => {
+    const previous = invoices
     setInvoices((prev) => prev.map((inv) => (inv.id === id ? invoice : inv)))
+    clearError()
     try {
-      await fetch(`/api/invoices/${id}`, {
+      await apiFetch(`/api/invoices/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(invoice),
       })
     } catch (err) {
-      console.error('Failed to update invoice in MongoDB:', err)
+      setInvoices(previous)
+      setError(getErrorMessage(err, 'Failed to update invoice'))
+      throw err
     }
   }
 
   const deleteInvoice = async (id: string) => {
+    const previous = invoices
     setInvoices((prev) => prev.filter((inv) => inv.id !== id))
+    clearError()
     try {
-      await fetch(`/api/invoices/${id}`, {
-        method: 'DELETE',
-      })
+      await apiFetch(`/api/invoices/${id}`, { method: 'DELETE' })
     } catch (err) {
-      console.error('Failed to delete invoice from MongoDB:', err)
+      setInvoices(previous)
+      setError(getErrorMessage(err, 'Failed to delete invoice'))
+      throw err
     }
   }
 
@@ -335,6 +366,8 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
         invoices,
         company,
         loading,
+        error,
+        clearError,
         addCustomer,
         updateCustomer,
         deleteCustomer,

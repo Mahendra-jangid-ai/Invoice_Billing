@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { apiFetch, getErrorMessage } from '@/lib/api-client'
 
 export interface AuthUser {
   sessionId: string
@@ -24,21 +25,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Fetch current session on mount
   useEffect(() => {
     async function fetchCurrentUser() {
       try {
-        const res = await fetch('/api/auth/me', { credentials: 'include' })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.userId) {
-            setUser({ sessionId: data.sessionId, userId: data.userId, email: data.email, name: data.name })
-          } else {
-            setUser(null)
-          }
-        } else {
-          setUser(null)
-        }
+        const data = await apiFetch<{
+          userId: string
+          email: string
+          name: string
+          sessionId: string
+        }>('/api/auth/me')
+        setUser({
+          sessionId: data.sessionId,
+          userId: data.userId,
+          email: data.email,
+          name: data.name,
+        })
       } catch {
         setUser(null)
       } finally {
@@ -50,26 +51,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const res = await fetch('/api/auth/login', {
+      const data = await apiFetch<{
+        userId: string
+        email: string
+        name: string
+        sessionId: string
+      }>('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email, password }),
       })
-      const data = await res.json()
-      if (res.ok && data.userId) {
-        setUser({ sessionId: data.sessionId, userId: data.userId, email: data.email, name: data.name })
-        return { success: true }
-      }
-      return { success: false, error: data.error || 'Login failed' }
-    } catch {
-      return { success: false, error: 'Network error. Please try again.' }
+      setUser({
+        sessionId: data.sessionId,
+        userId: data.userId,
+        email: data.email,
+        name: data.name,
+      })
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: getErrorMessage(error, 'Login failed') }
     }
   }, [])
 
   const logout = useCallback(async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      await apiFetch('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // Clear local session even if server logout fails
     } finally {
       setUser(null)
     }
@@ -77,20 +84,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = useCallback(async (name: string, email: string, password: string) => {
     try {
-      const res = await fetch('/api/auth/signup', {
+      const data = await apiFetch<{
+        userId: string
+        email: string
+        name: string
+        sessionId: string
+      }>('/api/auth/signup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ name, email, password }),
       })
-      const data = await res.json()
-      if (res.ok && data.userId) {
-        setUser({ sessionId: data.sessionId, userId: data.userId, email: data.email, name: data.name })
-        return { success: true }
-      }
-      return { success: false, error: data.error || 'Sign up failed' }
-    } catch {
-      return { success: false, error: 'Network error. Please try again.' }
+      setUser({
+        sessionId: data.sessionId,
+        userId: data.userId,
+        email: data.email,
+        name: data.name,
+      })
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: getErrorMessage(error, 'Sign up failed') }
     }
   }, [])
 

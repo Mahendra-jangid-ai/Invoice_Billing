@@ -1,57 +1,31 @@
 import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { getDatabase } from '@/lib/mongodb'
 import { hashPassword, logSecurityEvent, getClientIp } from '@/lib/auth'
 import { createSession } from '@/lib/session'
 import { createSessionRecord } from '@/lib/session-store'
 import { checkRateLimit } from '@/lib/rate-limit'
-
-const SignupSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long').transform((value) => value.replace(/\s+/g, ' ').trim()),
-  email: z.string().email('Invalid email address').toLowerCase().trim(),
-  password: z
-    .string()
-    .min(12, 'Password must be at least 12 characters')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
-})
+import { errorResponse, handleApiError, isMongoDuplicateKey, parseBody } from '@/lib/api-errors'
+import { SignupSchema } from '@/lib/schemas/api-schemas'
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request)
 
-  // Rate limit: 5 signup attempts per 15 minutes per IP
   const rateLimit = checkRateLimit(`signup:${ip}`, 5, 15 * 60 * 1000)
   if (!rateLimit.allowed) {
-    return NextResponse.json(
-      { error: 'Too many requests. Please try again later.' },
-      { status: 429 }
-    )
+    return errorResponse(429, 'Too many requests. Please try again later.', 'RATE_LIMITED')
   }
 
   try {
-    const body = await request.json()
-    const parsed = SignupSchema.safeParse(body)
+    const parsed = await parseBody(request, SignupSchema)
+    if (parsed instanceof NextResponse) return parsed
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.errors[0]?.message || 'Invalid input' },
-        { status: 400 }
-      )
-    }
-
-    const { name, email, password } = parsed.data
+    const { name, email, password } = parsed
     const db = await getDatabase()
 
-    // Check if email already exists
     const existing = await db.collection('users').findOne({ email })
     if (existing) {
-      return NextResponse.json(
-        { error: 'An account with this email already exists' },
-        { status: 409 }
-      )
+      return errorResponse(409, 'An account with this email already exists', 'CONFLICT')
     }
 
     const passwordHash = await hashPassword(password)
@@ -88,10 +62,9 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Signup error:', error instanceof Error ? error.message : 'Unknown error')
-    return NextResponse.json(
-      { error: 'Failed to create account. Please try again.' },
-      { status: 500 }
-    )
+    if (isMongoDuplicateKey(error)) {
+      return errorResponse(409, 'An account with this email already exists', 'CONFLICT')
+    }
+    return handleApiError(error, 'Failed to create account. Please try again.')
   }
 }

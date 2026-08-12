@@ -7,11 +7,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { CheckCircle, Upload, Trash2 } from 'lucide-react'
+import { ApiErrorBanner } from '@/components/api-error-banner'
+import { getErrorMessage } from '@/lib/api-client'
+import { COMPANY_PLACEHOLDERS } from '@/lib/form-placeholders'
 
 export default function CompanySettingsPage() {
   const { company, updateCompany } = useBilling()
   const [formData, setFormData] = useState(company)
   const [savedMessage, setSavedMessage] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     setFormData(company)
@@ -41,16 +45,22 @@ export default function CompanySettingsPage() {
     setFormData((prev) => ({ ...prev, logoUrl: '' }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    updateCompany(formData)
-    setSavedMessage(true)
-    setTimeout(() => setSavedMessage(false), 3000)
+    setSaveError(null)
+    try {
+      await updateCompany(formData)
+      setSavedMessage(true)
+      setTimeout(() => setSavedMessage(false), 3000)
+    } catch (err) {
+      setSaveError(getErrorMessage(err, 'Failed to save company profile'))
+    }
   }
 
   return (
     <AppLayout>
       <div className="space-y-6">
+        <ApiErrorBanner message={saveError} onDismiss={() => setSaveError(null)} />
         <section className="rounded-[32px] border border-[#E5E7EB] bg-white/95 p-6 shadow-sm">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
@@ -157,39 +167,39 @@ export default function CompanySettingsPage() {
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#111827]">Company name</label>
-                  <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Company name" className="border-[#E5E7EB]" />
+                  <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.name} className="border-[#E5E7EB]" />
                 </div>
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#111827]">Email</label>
-                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email" className="border-[#E5E7EB]" />
+                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.email} className="border-[#E5E7EB]" />
                 </div>
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#111827]">Phone</label>
-                  <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone number" className="border-[#E5E7EB]" />
+                  <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.phone} className="border-[#E5E7EB]" />
                 </div>
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#111827]">GST number</label>
-                  <Input id="gstnumber" name="gstnumber" value={formData.gstnumber} onChange={handleChange} placeholder="GST number" className="border-[#E5E7EB]" />
+                  <Input id="gstnumber" name="gstnumber" value={formData.gstnumber} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.gstnumber} className="border-[#E5E7EB]" />
                 </div>
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#111827]">PAN</label>
-                  <Input id="pan" name="pan" value={formData.pan || ''} onChange={handleChange} placeholder="PAN" className="border-[#E5E7EB]" />
+                  <Input id="pan" name="pan" value={formData.pan || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.pan} className="border-[#E5E7EB]" />
                 </div>
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#111827]">Contact person</label>
-                  <Input id="contactPerson" name="contactPerson" value={formData.contactPerson || ''} onChange={handleChange} placeholder="Contact person" className="border-[#E5E7EB]" />
+                  <Input id="contactPerson" name="contactPerson" value={formData.contactPerson || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.contactPerson} className="border-[#E5E7EB]" />
                 </div>
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#111827]">State</label>
-                  <Input id="state" name="state" value={formData.state || ''} onChange={handleChange} placeholder="State" className="border-[#E5E7EB]" />
+                  <Input id="state" name="state" value={formData.state || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.state} className="border-[#E5E7EB]" />
                 </div>
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-[#111827]">State code</label>
-                  <Input id="code" name="code" value={formData.code || ''} onChange={handleChange} placeholder="State code" className="border-[#E5E7EB]" />
+                  <Input id="code" name="code" value={formData.code || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.code} className="border-[#E5E7EB]" />
                 </div>
                 <div className="grid gap-2 md:col-span-2">
                   <label className="text-sm font-medium text-[#111827]">Address</label>
-                  <Textarea id="address" name="address" value={formData.address || ''} onChange={handleChange} placeholder="Company address" rows={3} className="border-[#E5E7EB]" />
+                  <Textarea id="address" name="address" value={formData.address || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.address} rows={3} className="border-[#E5E7EB]" />
                 </div>
               </div>
 
@@ -198,23 +208,23 @@ export default function CompanySettingsPage() {
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <label className="text-sm font-medium text-[#111827]">Bank name</label>
-                    <Input id="bankName" name="bankName" value={formData.bankName || ''} onChange={handleChange} placeholder="Bank name" className="border-[#E5E7EB]" />
+                    <Input id="bankName" name="bankName" value={formData.bankName || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankName} className="border-[#E5E7EB]" />
                   </div>
                   <div className="grid gap-2">
                     <label className="text-sm font-medium text-[#111827]">Account name</label>
-                    <Input id="bankAccountName" name="bankAccountName" value={formData.bankAccountName || ''} onChange={handleChange} placeholder="Account name" className="border-[#E5E7EB]" />
+                    <Input id="bankAccountName" name="bankAccountName" value={formData.bankAccountName || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankAccountName} className="border-[#E5E7EB]" />
                   </div>
                   <div className="grid gap-2">
                     <label className="text-sm font-medium text-[#111827]">Account number</label>
-                    <Input id="bankAccountNumber" name="bankAccountNumber" value={formData.bankAccountNumber || ''} onChange={handleChange} placeholder="Account number" className="border-[#E5E7EB]" />
+                    <Input id="bankAccountNumber" name="bankAccountNumber" value={formData.bankAccountNumber || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankAccountNumber} className="border-[#E5E7EB]" />
                   </div>
                   <div className="grid gap-2">
                     <label className="text-sm font-medium text-[#111827]">IFSC code</label>
-                    <Input id="bankIfsc" name="bankIfsc" value={formData.bankIfsc || ''} onChange={handleChange} placeholder="IFSC code" className="border-[#E5E7EB]" />
+                    <Input id="bankIfsc" name="bankIfsc" value={formData.bankIfsc || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankIfsc} className="border-[#E5E7EB]" />
                   </div>
                   <div className="grid gap-2">
                     <label className="text-sm font-medium text-[#111827]">Branch</label>
-                    <Input id="bankBranch" name="bankBranch" value={formData.bankBranch || ''} onChange={handleChange} placeholder="Branch" className="border-[#E5E7EB]" />
+                    <Input id="bankBranch" name="bankBranch" value={formData.bankBranch || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankBranch} className="border-[#E5E7EB]" />
                   </div>
                 </div>
               </section>
