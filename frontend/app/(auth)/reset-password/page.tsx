@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Lock, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
 import { apiFetch, getErrorMessage } from '@/lib/api-client'
+import { validateStrongPassword } from '@/lib/utils'
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
@@ -41,6 +42,12 @@ export default function ResetPasswordPage() {
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
+      return
+    }
+
+    const passwordError = validateStrongPassword(password)
+    if (passwordError) {
+      setError(passwordError)
       return
     }
 
@@ -108,7 +115,7 @@ export default function ResetPasswordPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min. 8 characters"
+              placeholder="Min. 12 characters with upper, lower, number & symbol"
               className="w-full rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-10 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/10"
             />
             <button

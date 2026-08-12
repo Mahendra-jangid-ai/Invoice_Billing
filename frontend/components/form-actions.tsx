@@ -5,7 +5,7 @@ interface FormActionsProps {
   className?: string
 }
 
-/** Consistent submit/cancel row — stacks full-width on mobile, inline on desktop. */
+/** Consistent submit/cancel row — stacks full-width on mobile, right-aligned on desktop. */
 export function FormActions({ children, className = '' }: FormActionsProps) {
   return (
     <div className={`form-actions-bar ${className}`}>

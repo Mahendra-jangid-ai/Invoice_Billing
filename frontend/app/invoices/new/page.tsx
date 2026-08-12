@@ -15,8 +15,8 @@ export default function NewInvoicePage() {
 
   const handleSubmit = async (invoice: Invoice) => {
     try {
-      await addInvoice(invoice)
-      router.push(`/invoices/${invoice.id}`)
+      const saved = await addInvoice(invoice)
+      router.push(`/invoices/${saved.id}`)
     } catch {
       // Error shown via billing context banner
     }

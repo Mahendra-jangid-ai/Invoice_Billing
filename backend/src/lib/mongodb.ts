@@ -47,3 +47,19 @@ export async function getDatabase(): Promise<Db> {
   const client = await getMongoClient()
   return client.db(dbName)
 }
+
+let indexesEnsured = false
+
+export async function ensureIndexes(): Promise<void> {
+  if (indexesEnsured) return
+  const db = await getDatabase()
+  await Promise.all([
+    db.collection('users').createIndex({ email: 1 }, { unique: true }),
+    db.collection('users').createIndex({ userId: 1 }, { unique: true }),
+    db.collection('auth_sessions').createIndex({ sessionId: 1 }, { unique: true }),
+    db.collection('auth_sessions').createIndex({ userId: 1 }),
+    db.collection('auth_sessions').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+    db.collection('web_settings').createIndex({ userId: 1 }, { unique: true }),
+  ])
+  indexesEnsured = true
+}

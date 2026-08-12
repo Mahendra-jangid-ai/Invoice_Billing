@@ -81,8 +81,6 @@ export function logSecurityEvent(event: SecurityEvent, context: Record<string, s
 }
 
 export function getClientIp(req: Request): string {
-  const forwardedFor = req.headers['x-forwarded-for']
-  const forwarded = typeof forwardedFor === 'string' ? forwardedFor.split(',')[0]?.trim() : ''
-  const ip = forwarded || req.socket.remoteAddress || 'unknown'
+  const ip = req.ip || req.socket.remoteAddress || 'unknown'
   return ip === '::1' ? '127.0.0.1' : ip
 }

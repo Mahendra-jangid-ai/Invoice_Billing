@@ -18,6 +18,7 @@ import {
   listUserSessions,
   revokeSessionRecord,
   revokeUserSessionRecord,
+  revokeAllUserSessions,
 } from '../lib/session-store.js'
 import { checkRateLimit } from '../lib/rate-limit.js'
 import { handleApiError, isMongoDuplicateKey, parseBody, sendError } from '../lib/api-errors.js'
@@ -208,6 +209,8 @@ export function registerAuthRoutes(app: Express): void {
         { $set: { passwordHash: newHash, updatedAt: new Date() } },
       )
 
+      await revokeAllUserSessions(user.userId, user.sessionId)
+
       logSecurityEvent('PASSWORD_CHANGED', { userId: user.userId, success: true, ip })
       res.json({ message: 'Password changed successfully' })
     } catch (error) {
@@ -301,6 +304,8 @@ export function registerAuthRoutes(app: Express): void {
           $unset: { passwordResetToken: '', passwordResetExpiresAt: '' },
         },
       )
+
+      await revokeAllUserSessions(user.userId)
 
       logSecurityEvent('PASSWORD_RESET_SUCCESS', { userId: user.userId, ip })
       res.json({ message: 'Password reset successfully. You can now log in.' })

@@ -82,6 +82,8 @@ export interface Company {
   bankAccountNumber?: string
   bankIfsc?: string
   bankBranch?: string
+  invoicePrefix?: string
+  defaultPaymentTermsDays?: number
 }
 
 interface BillingContextType {
@@ -98,7 +100,7 @@ interface BillingContextType {
   addItem: (item: Item) => Promise<void>
   updateItem: (id: string, item: Item) => Promise<void>
   deleteItem: (id: string) => Promise<void>
-  addInvoice: (invoice: Invoice) => Promise<void>
+  addInvoice: (invoice: Invoice) => Promise<Invoice>
   updateInvoice: (id: string, invoice: Invoice) => Promise<void>
   deleteInvoice: (id: string) => Promise<void>
   updateCompany: (company: Company) => Promise<void>
@@ -123,6 +125,8 @@ const EMPTY_COMPANY: Company = {
   bankAccountNumber: '',
   bankIfsc: '',
   bankBranch: '',
+  invoicePrefix: 'INV',
+  defaultPaymentTermsDays: 30,
 }
 
 export function BillingProvider({ children }: { children: React.ReactNode }) {
@@ -304,15 +308,17 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const addInvoice = async (invoice: Invoice) => {
+  const addInvoice = async (invoice: Invoice): Promise<Invoice> => {
     const previous = invoices
     setInvoices((prev) => [...prev, invoice])
     clearError()
     try {
-      await apiFetch('/api/invoices', {
+      const saved = await apiFetch<Invoice>('/api/invoices', {
         method: 'POST',
         body: JSON.stringify(invoice),
       })
+      setInvoices((prev) => [...prev.filter((inv) => inv.id !== invoice.id), saved])
+      return saved
     } catch (err) {
       setInvoices(previous)
       setError(getErrorMessage(err, 'Failed to save invoice'))
@@ -350,12 +356,17 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
   }
 
   const getNextInvoiceNumber = (): string => {
+    const prefix = (company.invoicePrefix || 'INV').trim() || 'INV'
+    const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const pattern = new RegExp(`^${escapedPrefix}-(\\d+)$`)
     const maxNum = invoices
-      .map((inv) => parseInt(inv.invoiceNumber.replace('INV-', ''), 10))
-      .filter((n) => !isNaN(n))
+      .map((inv) => {
+        const match = inv.invoiceNumber?.match(pattern)
+        return match ? parseInt(match[1], 10) : 0
+      })
       .reduce((max, num) => Math.max(max, num), 0)
 
-    return `INV-${String(maxNum + 1).padStart(4, '0')}`
+    return `${prefix}-${String(maxNum + 1).padStart(4, '0')}`
   }
 
   return (

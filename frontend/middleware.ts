@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { decrypt, SESSION_COOKIE, updateSession } from '@/lib/session'
+import { decrypt, SESSION_COOKIE } from '@/lib/session'
 
 // Routes that require authentication
 const PROTECTED_ROUTES = [
@@ -47,20 +47,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  // Refresh session expiry on each request (sliding window)
-  const response = NextResponse.next()
-  if (isAuthenticated && sessionToken) {
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    response.cookies.set(SESSION_COOKIE, sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      expires: expiresAt,
-      path: '/',
-    })
-  }
-
-  return response
+  return NextResponse.next()
 }
 
 export const config = {

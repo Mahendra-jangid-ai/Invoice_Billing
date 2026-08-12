@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { validateStrongPassword } from '@/lib/utils'
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react'
 
 export default function SignupPage() {
@@ -27,8 +28,9 @@ export default function SignupPage() {
       return
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
+    const passwordError = validateStrongPassword(password)
+    if (passwordError) {
+      setError(passwordError)
       return
     }
 
@@ -47,7 +49,7 @@ export default function SignupPage() {
   const passwordStrength = (): { label: string; color: string; width: string } => {
     if (password.length === 0) return { label: '', color: '', width: '0%' }
     let score = 0
-    if (password.length >= 8) score++
+    if (password.length >= 12) score++
     if (/[A-Z]/.test(password)) score++
     if (/[0-9]/.test(password)) score++
     if (/[^a-zA-Z0-9]/.test(password)) score++
@@ -129,7 +131,7 @@ export default function SignupPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min. 8 characters"
+                placeholder="Min. 12 characters with upper, lower, number & symbol"
                 className="w-full bg-transparent pr-12 pl-11 text-sm text-[#111827] placeholder:text-[#9CA3AF] outline-none"
               />
               <button

@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from 'express'
+import crypto from 'crypto'
 import { getDatabase } from '../lib/mongodb.js'
 import { authMiddleware, logSecurityEvent } from '../lib/auth.js'
 import { handleApiError, parseBody, sendError } from '../lib/api-errors.js'
@@ -33,7 +34,7 @@ export function registerCustomerRoutes(app: Express): void {
 
       const db = await getDatabase()
       const newCustomer = {
-        id: parsed.id || Date.now().toString(),
+        id: parsed.id || crypto.randomUUID(),
         userId: req.user!.userId,
         name: parsed.name,
         email: parsed.email,

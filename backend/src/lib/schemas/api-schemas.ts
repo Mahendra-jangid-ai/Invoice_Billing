@@ -2,6 +2,14 @@ import { z } from 'zod'
 
 export const ResourceIdSchema = z.string().min(1, 'ID is required').trim()
 
+const StrongPasswordSchema = z
+  .string()
+  .min(12, 'Password must be at least 12 characters')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number')
+  .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character')
+
 export const CustomerSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Name is required').max(200).trim(),
@@ -89,7 +97,15 @@ export const CompanySchema = z.object({
   pan: z.string().max(20).optional().default(''),
   state: z.string().max(100).optional().default(''),
   code: z.string().max(20).optional().default(''),
-  logoUrl: z.string().max(2000).optional().default(''),
+  logoUrl: z
+    .string()
+    .max(700_000, 'Logo is too large')
+    .optional()
+    .default('')
+    .refine(
+      (value) => !value || value.startsWith('data:image/') || value.startsWith('http'),
+      'Logo must be a valid image URL or data URI',
+    ),
   bankName: z.string().max(200).optional().default(''),
   bankAccountName: z.string().max(200).optional().default(''),
   bankAccountNumber: z.string().max(50).optional().default(''),
@@ -120,22 +136,12 @@ export const SignupSchema = z.object({
     .max(100, 'Name is too long')
     .transform((value) => value.replace(/\s+/g, ' ').trim()),
   email: z.string().email('Invalid email address').toLowerCase().trim(),
-  password: z
-    .string()
-    .min(12, 'Password must be at least 12 characters')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
+  password: StrongPasswordSchema,
 })
 
 export const ChangePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z
-    .string()
-    .min(8, 'New password must be at least 8 characters')
-    .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+  newPassword: StrongPasswordSchema,
 })
 
 export const ForgotPasswordSchema = z.object({
@@ -144,9 +150,5 @@ export const ForgotPasswordSchema = z.object({
 
 export const ResetPasswordSchema = z.object({
   token: z.string().min(1, 'Token is required'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+  password: StrongPasswordSchema,
 })

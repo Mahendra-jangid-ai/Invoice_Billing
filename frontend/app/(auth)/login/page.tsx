@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { getSafeRedirectPath } from '@/lib/utils'
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react'
 
 export default function LoginPage() {
@@ -17,7 +18,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const from = searchParams.get('from') || '/dashboard'
+  const from = getSafeRedirectPath(searchParams.get('from'))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

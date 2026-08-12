@@ -134,14 +134,27 @@ export async function revokeSessionRecord(sessionId: string): Promise<void> {
 export async function revokeUserSessionRecord(sessionId: string, userId: string): Promise<boolean> {
   const collection = await getSessionCollection()
   const result = await collection.updateOne(
-    { sessionId, userId },
+    { sessionId, userId, revokedAt: null },
     { $set: { revokedAt: new Date() } }
   )
   return result.modifiedCount > 0
 }
 
+export async function revokeAllUserSessions(userId: string, exceptSessionId?: string): Promise<number> {
+  const collection = await getSessionCollection()
+  const filter: Record<string, unknown> = { userId, revokedAt: null }
+  if (exceptSessionId) {
+    filter.sessionId = { $ne: exceptSessionId }
+  }
+  const result = await collection.updateMany(filter, { $set: { revokedAt: new Date() } })
+  return result.modifiedCount
+}
+
 export async function listUserSessions(userId: string): Promise<SessionRecord[]> {
   const collection = await getSessionCollection()
-  const records = await collection.find({ userId }).sort({ createdAt: -1 }).toArray()
+  const records = await collection
+    .find({ userId, revokedAt: null, expiresAt: { $gt: new Date() } })
+    .sort({ createdAt: -1 })
+    .toArray()
   return records.map((record) => mapSessionRecord(record))
 }

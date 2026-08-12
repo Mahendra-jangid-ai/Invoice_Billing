@@ -229,10 +229,13 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
             <input
               type="text"
               value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              className="field-input"
+              readOnly
+              tabIndex={-1}
+              className="field-input cursor-not-allowed bg-slate-50 text-slate-600"
               required
+              aria-readonly="true"
             />
+            <p className="mt-1 text-xs text-slate-400">Auto-generated — cannot be edited</p>
           </div>
 
           <div>
