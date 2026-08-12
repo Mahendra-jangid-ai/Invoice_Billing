@@ -5,6 +5,12 @@ import { allocateNextInvoiceNumber } from '../lib/invoice-number.js'
 import { authMiddleware, logSecurityEvent } from '../lib/auth.js'
 import { handleApiError, parseBody, sendError } from '../lib/api-errors.js'
 import { InvoiceSchema, ResourceIdSchema } from '../lib/schemas/api-schemas.js'
+import {
+  buildInvoiceSearchPipeline,
+  hasInvoiceSearchParams,
+  InvoiceListQuerySchema,
+  parseInvoiceSearchResult,
+} from '../lib/invoices/search.js'
 
 function formatInvoice(inv: Record<string, unknown>) {
   return {
@@ -38,7 +44,22 @@ export function registerInvoiceRoutes(app: Express): void {
   app.get('/api/invoices', authMiddleware, async (req: Request, res: Response) => {
     try {
       const db = await getDatabase()
-      const invoices = await db.collection('invoices').find({ userId: req.user!.userId }).toArray()
+      const userId = req.user!.userId
+
+      if (hasInvoiceSearchParams(req.query as Record<string, unknown>)) {
+        const parsed = InvoiceListQuerySchema.safeParse(req.query)
+        if (!parsed.success) {
+          sendError(res, 400, 'Invalid filter parameters', 'VALIDATION_ERROR', parsed.error.flatten())
+          return
+        }
+
+        const pipeline = buildInvoiceSearchPipeline(userId, parsed.data)
+        const raw = await db.collection('invoices').aggregate(pipeline).toArray()
+        res.json(parseInvoiceSearchResult(parsed.data, raw as Record<string, unknown>[]))
+        return
+      }
+
+      const invoices = await db.collection('invoices').find({ userId }).toArray()
       res.json(invoices.map((inv) => formatInvoice(inv as Record<string, unknown>)))
     } catch (error) {
       handleApiError(res, error, 'Failed to fetch invoices')

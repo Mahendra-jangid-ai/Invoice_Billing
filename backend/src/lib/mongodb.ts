@@ -62,6 +62,9 @@ export async function ensureIndexes(): Promise<void> {
     db.collection('web_settings').createIndex({ userId: 1 }, { unique: true }),
     db.collection('invoice_counters').createIndex({ userId: 1, prefix: 1 }, { unique: true }),
     db.collection('invoices').createIndex({ userId: 1, invoiceNumber: 1 }, { unique: true }),
+    db.collection('invoices').createIndex({ userId: 1, date: -1 }),
+    db.collection('invoices').createIndex({ userId: 1, status: 1 }),
+    db.collection('invoices').createIndex({ userId: 1, customerId: 1 }),
   ])
   indexesEnsured = true
 }
