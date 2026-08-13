@@ -13,7 +13,7 @@ import {
   usePDF,
   type DocumentProps,
 } from '@react-pdf/renderer'
-import { ExternalLink, FileText, Loader2 } from 'lucide-react'
+import { Download, ExternalLink, FileText, Loader2 } from 'lucide-react'
 import { useBilling, Invoice } from '@/lib/context'
 
 function useMobilePdfFallback() {
@@ -604,47 +604,128 @@ function InvoicePdfDocument({
   )
 }
 
-function MobilePdfPreview({
-  document,
+function PdfActionButtons({
+  pdfDocument,
   invoiceNumber,
+  className = '',
+  openMode = 'inline',
 }: {
-  document: ReactElement<DocumentProps>
+  pdfDocument: ReactElement<DocumentProps>
   invoiceNumber?: string
+  className?: string
+  openMode?: 'inline' | 'tab'
 }) {
   const [instance, updateInstance] = usePDF()
+  const [showViewer, setShowViewer] = useState(false)
 
   useEffect(() => {
-    updateInstance(document)
-  }, [document, updateInstance])
+    updateInstance(pdfDocument)
+  }, [pdfDocument, updateInstance])
 
+  const fileName = `${invoiceNumber || 'invoice'}.pdf`
+
+  const handleOpen = () => {
+    if (!instance.url) return
+    if (openMode === 'inline') {
+      setShowViewer(true)
+      return
+    }
+    window.open(instance.url, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleDownload = () => {
+    if (!instance.blob) return
+    const url = URL.createObjectURL(instance.blob)
+    const anchor = window.document.createElement('a')
+    anchor.href = url
+    anchor.download = fileName
+    window.document.body.appendChild(anchor)
+    anchor.click()
+    window.document.body.removeChild(anchor)
+    URL.revokeObjectURL(url)
+  }
+
+  if (instance.loading) {
+    return (
+      <div className={`inline-flex items-center gap-2 text-sm text-[#6B7280] ${className}`}>
+        <Loader2 className="h-4 w-4 animate-spin text-[#2563EB]" />
+        Preparing PDF…
+      </div>
+    )
+  }
+
+  if (instance.error) {
+    return <p className={`text-sm text-red-600 ${className}`}>{instance.error}</p>
+  }
+
+  if (!instance.url) return null
+
+  return (
+    <div className={`w-full ${className}`}>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {!showViewer && (
+          <button
+            type="button"
+            onClick={handleOpen}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white hover:bg-[#1D4ED8]"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleDownload}
+          className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F9FAFB]"
+        >
+          <Download className="h-4 w-4" />
+          Download
+        </button>
+      </div>
+
+      {showViewer && (
+        <div className="mt-4 w-full overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
+          <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2">
+            <span className="text-xs font-medium text-[#374151]">{fileName}</span>
+            <button
+              type="button"
+              onClick={() => setShowViewer(false)}
+              className="text-xs font-medium text-[#2563EB]"
+            >
+              Close
+            </button>
+          </div>
+          <iframe
+            src={instance.url}
+            title={fileName}
+            className="h-[70vh] w-full bg-white"
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MobilePdfPreview({
+  pdfDocument,
+  invoiceNumber,
+}: {
+  pdfDocument: ReactElement<DocumentProps>
+  invoiceNumber?: string
+}) {
   return (
     <div className="w-full rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm soft-card">
       <div className="mb-3 text-sm font-semibold text-[#374151]">PDF Preview</div>
       <div className="flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-6 text-center">
-        {instance.loading ? (
-          <>
-            <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
-            <p className="text-sm text-[#6B7280]">Preparing invoice PDF…</p>
-          </>
-        ) : instance.error ? (
-          <p className="text-sm text-red-600">{instance.error}</p>
-        ) : instance.url ? (
-          <>
-            <FileText className="h-12 w-12 text-[#9CA3AF]" />
-            <p className="max-w-xs text-sm text-[#6B7280]">
-              Tap below to open {invoiceNumber || 'this invoice'} in your browser&apos;s PDF viewer.
-            </p>
-            <a
-              href={instance.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1D4ED8]"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Open Invoice
-            </a>
-          </>
-        ) : null}
+        <FileText className="h-12 w-12 text-[#9CA3AF]" />
+        <p className="max-w-xs text-sm text-[#6B7280]">
+          Open to view the invoice here, or download only when you need a saved copy.
+        </p>
+        <PdfActionButtons
+          pdfDocument={pdfDocument}
+          invoiceNumber={invoiceNumber}
+          openMode="inline"
+        />
       </div>
     </div>
   )
@@ -806,12 +887,20 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   const isMobile = useMobilePdfFallback()
 
   if (isMobile) {
-    return <MobilePdfPreview document={pdfDocument} invoiceNumber={invoice.invoiceNumber} />
+    return <MobilePdfPreview pdfDocument={pdfDocument} invoiceNumber={invoice.invoiceNumber} />
   }
 
   return (
     <div className="w-full rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm soft-card">
-      <div className="mb-3 text-sm font-semibold text-[#374151]">PDF Preview</div>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="text-sm font-semibold text-[#374151]">PDF Preview</div>
+        <PdfActionButtons
+          pdfDocument={pdfDocument}
+          invoiceNumber={invoice.invoiceNumber}
+          className="justify-end"
+          openMode="tab"
+        />
+      </div>
       <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white p-2">
         <PDFViewer style={{ width: '100%', height: '1000px', backgroundColor: '#ffffff' }}>
           {pdfDocument}
