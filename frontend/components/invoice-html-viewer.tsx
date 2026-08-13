@@ -10,6 +10,7 @@ import {
   formatInvoiceCurrencyPlain,
   type InvoiceDisplayData,
 } from '@/lib/invoice-display-data'
+import { displayValue } from '@/lib/onboarding'
 
 const COL = {
   sr: '5.2%',
@@ -211,11 +212,11 @@ function InvoiceHtmlContent({ data }: { data: InvoiceDisplayData }) {
       <div className="flex gap-2">
         <div className="flex-1 rounded-[10px] border border-slate-300 bg-slate-50 p-2">
           <p className="mb-1.5 text-[8.5px] font-bold text-slate-900">Bank Details</p>
-          <p className="text-[9px] text-slate-600">Bank Name: {company.bankName || 'Axis Bank'}</p>
-          <p className="text-[9px] text-slate-600">A/C Name: {company.bankAccountName || `${companyName} Bank A/c No.`}</p>
-          <p className="text-[9px] text-slate-600">A/C No: {company.bankAccountNumber || '923020047215171'}</p>
-          <p className="text-[9px] text-slate-600">IFSC: {company.bankIfsc || 'UTIB0001584'}</p>
-          <p className="text-[9px] text-slate-600">Branch: {company.bankBranch || 'OLD NAGARDAS ROAD'}</p>
+          <p className="text-[9px] text-slate-600">Bank Name: {displayValue(company.bankName)}</p>
+          <p className="text-[9px] text-slate-600">A/C Name: {displayValue(company.bankAccountName)}</p>
+          <p className="text-[9px] text-slate-600">A/C No: {displayValue(company.bankAccountNumber)}</p>
+          <p className="text-[9px] text-slate-600">IFSC: {displayValue(company.bankIfsc)}</p>
+          <p className="text-[9px] text-slate-600">Branch: {displayValue(company.bankBranch)}</p>
         </div>
         <div className="flex-1 rounded-[10px] border border-slate-300 bg-slate-50 p-2">
           <p className="mb-1.5 text-[8.5px] font-bold text-slate-900">Terms & Signature</p>

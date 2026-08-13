@@ -44,7 +44,7 @@ export default function SignupPage() {
     const result = await signup(name, email, password)
 
     if (result.success) {
-      router.push('/dashboard')
+      router.push('/onboarding')
       router.refresh()
     } else {
       showError({

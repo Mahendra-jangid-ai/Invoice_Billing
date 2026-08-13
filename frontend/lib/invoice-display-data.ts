@@ -1,4 +1,5 @@
 import type { Company, Customer, Invoice, InvoiceLineItem, InvoiceParty } from '@/lib/context'
+import { displayValue } from '@/lib/onboarding'
 
 export interface InvoiceLineDisplay {
   index: number
@@ -92,7 +93,7 @@ export function buildInvoiceDisplayData(
   const customer = customers.find((c) => String(c.id) === String(invoice.customerId))
 
   const billTo: InvoiceParty = invoice.billTo || {
-    name: customer?.name || 'Customer Name',
+    name: customer?.name || '',
     address: customer?.address || '',
     gstin: customer?.gstnumber || '',
     state: customer?.state || company.state || '',
@@ -126,9 +127,9 @@ export function buildInvoiceDisplayData(
     const lineSgst = (lineAmount * sgstPercentage) / 100
     return {
       index: index + 1,
-      description: item.description || 'Service / Product',
-      sacCode: item.sacCode || '9954',
-      unit: item.unit || 'Nos',
+      description: item.description || '',
+      sacCode: item.sacCode || '',
+      unit: item.unit || '',
       qty,
       rate,
       lineAmount,
@@ -141,13 +142,11 @@ export function buildInvoiceDisplayData(
   return {
     invoice,
     company,
-    companyName: company.name || 'SK INTERIORS',
-    companyAddress:
-      company.address ||
-      'Office No. 14, Hansraj Molakram Chawl, PP Road, Ambewadi Mumbai Maharashtra - 400069',
-    companyGst: company.gstnumber || '27CAOPK3510K1ZJ',
-    companyState: company.state || 'MAHARASHTRA',
-    companyStateCode: company.code || '27',
+    companyName: displayValue(company.name),
+    companyAddress: displayValue(company.address),
+    companyGst: displayValue(company.gstnumber),
+    companyState: displayValue(company.state),
+    companyStateCode: displayValue(company.code),
     contactLine: [company.contactPerson || '', company.phone || ''].filter(Boolean).join(' • '),
     billTo,
     shipTo,

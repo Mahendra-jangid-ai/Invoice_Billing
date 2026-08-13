@@ -20,6 +20,7 @@ import { MobilePdfViewer } from '@/components/mobile-pdf-viewer'
 import { InvoiceHtmlViewer } from '@/components/invoice-html-viewer'
 import { useCompactInvoiceView } from '@/lib/invoice-view-mode'
 import { buildInvoiceDisplayData, formatInvoiceCurrency, type InvoiceDisplayData } from '@/lib/invoice-display-data'
+import { displayValue } from '@/lib/onboarding'
 
 function usePdfErrorPopup(error: string | null | undefined) {
   const { error: showError } = useFeedback()
@@ -569,11 +570,11 @@ function InvoicePdfDocument({ data }: { data: InvoiceDisplayData }) {
         <View style={styles.footerRow}>
           <View style={styles.footerBox}>
             <Text style={styles.footerTitle}>Bank Details</Text>
-            <Text style={styles.mutedText}>Bank Name: {company.bankName || 'Axis Bank'}</Text>
-            <Text style={styles.mutedText}>A/C Name: {company.bankAccountName || `${companyName} Bank A/c No.`}</Text>
-            <Text style={styles.mutedText}>A/C No: {company.bankAccountNumber || '923020047215171'}</Text>
-            <Text style={styles.mutedText}>IFSC: {company.bankIfsc || 'UTIB0001584'}</Text>
-            <Text style={styles.mutedText}>Branch: {company.bankBranch || 'OLD NAGARDAS ROAD'}</Text>
+            <Text style={styles.mutedText}>Bank Name: {displayValue(company.bankName)}</Text>
+            <Text style={styles.mutedText}>A/C Name: {displayValue(company.bankAccountName)}</Text>
+            <Text style={styles.mutedText}>A/C No: {displayValue(company.bankAccountNumber)}</Text>
+            <Text style={styles.mutedText}>IFSC: {displayValue(company.bankIfsc)}</Text>
+            <Text style={styles.mutedText}>Branch: {displayValue(company.bankBranch)}</Text>
           </View>
 
           <View style={styles.footerBox}>

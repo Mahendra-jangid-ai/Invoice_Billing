@@ -9,6 +9,7 @@ import { PwaInstallPrompt } from '@/components/pwa-install-prompt'
 import { PwaShellProvider } from '@/lib/use-installed-pwa'
 import { BottomChromeSync } from '@/components/bottom-chrome-sync'
 import { PwaShellScript } from '@/components/pwa-shell-script'
+import { OnboardingGate } from '@/components/onboarding-gate'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -56,6 +57,7 @@ export default function RootLayout({
         <PwaShellScript />
         <AuthProvider>
           <BillingProvider>
+            <OnboardingGate>
             <ConfirmProvider>
               <PwaShellProvider>
                 <BottomChromeSync />
@@ -63,6 +65,7 @@ export default function RootLayout({
                 <PwaInstallPrompt />
               </PwaShellProvider>
             </ConfirmProvider>
+            </OnboardingGate>
           </BillingProvider>
         </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}

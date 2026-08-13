@@ -11,6 +11,7 @@ const PROTECTED_ROUTES = [
   '/settings',
   '/setting',
   '/company-settings',
+  '/onboarding',
 ]
 // Auth routes — redirect to dashboard if already authenticated
 const AUTH_ROUTES = ['/login', '/signup', '/forgot-password', '/reset-password']
@@ -44,7 +45,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (isAuthRoute(pathname) && isAuthenticated) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/onboarding', request.url))
   }
 
   return NextResponse.next()
