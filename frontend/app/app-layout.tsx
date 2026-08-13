@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { BillingErrorBridge } from '@/components/billing-error-bridge'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
+import { MobileBottomSpacer } from '@/components/mobile-bottom-spacer'
 import { useIsInstalledPwa } from '@/lib/use-installed-pwa'
 import {
   Menu,
@@ -280,6 +281,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="mx-auto max-w-7xl animate-fade-in">
             <BillingErrorBridge />
             {children}
+            <MobileBottomSpacer />
           </div>
         </main>
       </div>

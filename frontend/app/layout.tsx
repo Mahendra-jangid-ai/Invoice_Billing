@@ -8,6 +8,7 @@ import { ConfirmProvider } from '@/components/confirm-provider'
 import { PwaInstallPrompt } from '@/components/pwa-install-prompt'
 import { PwaShellProvider } from '@/lib/use-installed-pwa'
 import { BottomChromeSync } from '@/components/bottom-chrome-sync'
+import { PwaShellScript } from '@/components/pwa-shell-script'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -63,6 +64,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.className} antialiased`}>
+        <PwaShellScript />
         <AuthProvider>
           <BillingProvider>
             <ConfirmProvider>
