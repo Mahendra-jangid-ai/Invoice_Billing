@@ -4,26 +4,49 @@ import { getDatabase } from '../lib/mongodb.js'
 import { authMiddleware, logSecurityEvent } from '../lib/auth.js'
 import { handleApiError, parseBody, sendError } from '../lib/api-errors.js'
 import { ItemSchema, ResourceIdSchema } from '../lib/schemas/api-schemas.js'
+import {
+  buildItemSearchPipeline,
+  hasItemSearchParams,
+  ItemListQuerySchema,
+  parseItemSearchResult,
+} from '../lib/items/search.js'
+
+function formatItem(item: Record<string, unknown>) {
+  return {
+    id: item.id || String(item._id),
+    name: item.name || '',
+    description: item.description || '',
+    hsnsac: item.hsnsac || '',
+    unitprice: Number(item.unitprice) || 0,
+  }
+}
 
 export function registerItemRoutes(app: Express): void {
   app.get('/api/items', authMiddleware, async (req: Request, res: Response) => {
     try {
       const db = await getDatabase()
+      const userId = req.user!.userId
+
+      if (hasItemSearchParams(req.query as Record<string, unknown>)) {
+        const parsed = ItemListQuerySchema.safeParse(req.query)
+        if (!parsed.success) {
+          sendError(res, 400, 'Invalid filter parameters', 'VALIDATION_ERROR', parsed.error.flatten())
+          return
+        }
+
+        const pipeline = buildItemSearchPipeline(userId, parsed.data)
+        const raw = await db.collection('items').aggregate(pipeline).toArray()
+        res.json(parseItemSearchResult(parsed.data, raw as Record<string, unknown>[]))
+        return
+      }
+
       const items = await db
         .collection('items')
-        .find({ userId: req.user!.userId })
+        .find({ userId })
         .sort({ name: 1 })
         .limit(5000)
         .toArray()
-      res.json(
-        items.map((item) => ({
-          id: item.id || String(item._id),
-          name: item.name || '',
-          description: item.description || '',
-          hsnsac: item.hsnsac || '',
-          unitprice: Number(item.unitprice) || 0,
-        })),
-      )
+      res.json(items.map((item) => formatItem(item as Record<string, unknown>)))
     } catch (error) {
       handleApiError(res, error, 'Failed to fetch items')
     }

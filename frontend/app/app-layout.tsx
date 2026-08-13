@@ -154,7 +154,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Menu className="h-5 w-5" />
               </button>
             ) : (
-              <img src="/logo.png" alt="" className="h-7 w-auto shrink-0 object-contain md:hidden" />
+              <>
+                <img
+                  src="/favicon.png"
+                  alt="Billing Studio"
+                  className="h-8 w-8 shrink-0 object-contain md:hidden"
+                />
+                <img
+                  src="/logo.png"
+                  alt="Billing Studio"
+                  className="hidden h-8 w-auto max-w-[140px] shrink-0 object-contain md:block"
+                />
+              </>
             )}
 
             <nav className="hidden min-w-0 sm:flex sm:items-center sm:gap-1 sm:text-sm">
@@ -195,20 +206,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 className={cn(
                   'flex items-center transition',
                   isInstalledPwa
-                    ? 'h-10 w-10 justify-center rounded-xl bg-[#2563EB] text-xs font-bold text-white shadow-sm active:scale-95 md:gap-2.5 md:w-auto md:rounded-xl md:border md:border-slate-200 md:bg-white md:px-3 md:py-1.5 md:shadow-sm md:hover:bg-slate-50'
+                    ? 'h-10 w-10 justify-center rounded-xl bg-[#2563EB] text-xs font-bold text-white shadow-sm active:scale-95 md:gap-2.5 md:h-auto md:w-auto md:rounded-xl md:border md:border-slate-200 md:bg-white md:px-3 md:py-1.5 md:text-slate-700 md:shadow-sm md:hover:bg-slate-50'
                     : 'gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:bg-slate-50',
                 )}
               >
                 {isInstalledPwa ? (
-                  <span className="md:hidden">{initials}</span>
+                  <>
+                    <span className="md:hidden">{initials}</span>
+                    <div className="hidden md:flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
+                      {initials}
+                    </div>
+                  </>
                 ) : (
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
                     {initials}
                   </div>
                 )}
-                <div className="hidden md:flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
-                  {initials}
-                </div>
                 <span className="hidden sm:block text-sm font-medium text-slate-700 max-w-[120px] truncate">
                   {user?.name || 'Profile'}
                 </span>

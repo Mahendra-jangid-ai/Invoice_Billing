@@ -4,29 +4,52 @@ import { getDatabase } from '../lib/mongodb.js'
 import { authMiddleware, logSecurityEvent } from '../lib/auth.js'
 import { handleApiError, parseBody, sendError } from '../lib/api-errors.js'
 import { CustomerSchema, ResourceIdSchema } from '../lib/schemas/api-schemas.js'
+import {
+  buildCustomerSearchPipeline,
+  hasCustomerSearchParams,
+  CustomerListQuerySchema,
+  parseCustomerSearchResult,
+} from '../lib/customers/search.js'
+
+function formatCustomer(c: Record<string, unknown>) {
+  return {
+    id: c.id || String(c._id),
+    name: c.name || '',
+    email: c.email || '',
+    phone: c.phone || '',
+    address: c.address || '',
+    gstnumber: c.gstnumber || '',
+    state: c.state || '',
+    code: c.code || '',
+  }
+}
 
 export function registerCustomerRoutes(app: Express): void {
   app.get('/api/customers', authMiddleware, async (req: Request, res: Response) => {
     try {
       const db = await getDatabase()
+      const userId = req.user!.userId
+
+      if (hasCustomerSearchParams(req.query as Record<string, unknown>)) {
+        const parsed = CustomerListQuerySchema.safeParse(req.query)
+        if (!parsed.success) {
+          sendError(res, 400, 'Invalid filter parameters', 'VALIDATION_ERROR', parsed.error.flatten())
+          return
+        }
+
+        const pipeline = buildCustomerSearchPipeline(userId, parsed.data)
+        const raw = await db.collection('customers').aggregate(pipeline).toArray()
+        res.json(parseCustomerSearchResult(parsed.data, raw as Record<string, unknown>[]))
+        return
+      }
+
       const customers = await db
         .collection('customers')
-        .find({ userId: req.user!.userId })
+        .find({ userId })
         .sort({ name: 1 })
         .limit(5000)
         .toArray()
-      res.json(
-        customers.map((c) => ({
-          id: c.id || String(c._id),
-          name: c.name || '',
-          email: c.email || '',
-          phone: c.phone || '',
-          address: c.address || '',
-          gstnumber: c.gstnumber || '',
-          state: c.state || '',
-          code: c.code || '',
-        })),
-      )
+      res.json(customers.map((c) => formatCustomer(c as Record<string, unknown>)))
     } catch (error) {
       handleApiError(res, error, 'Failed to fetch customers')
     }

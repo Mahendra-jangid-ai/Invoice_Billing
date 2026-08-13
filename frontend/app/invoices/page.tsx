@@ -16,6 +16,7 @@ import {
   type InvoiceListItem,
   type InvoiceSearchFilters,
   type InvoiceSearchResponse,
+  type InvoiceStatusFilter,
 } from '@/lib/invoice-search'
 import { InvoiceFilters } from '@/components/invoice-filters'
 import { Button } from '@/components/ui/button'
@@ -127,6 +128,12 @@ function InvoicesPageContent() {
     router.push(`/invoices?${params.toString()}`)
   }
 
+  const setStatusFilter = (status: InvoiceStatusFilter) => {
+    const next = { ...appliedFilters, status, page: 1 }
+    setDraftFilters(next)
+    router.push(`/invoices?${filtersToSearchParams(next).toString()}`)
+  }
+
   const handleDelete = (id: string, invoiceNumber?: string) => {
     confirm({
       title: 'Delete invoice?',
@@ -171,18 +178,22 @@ function InvoicesPageContent() {
           footer={
             <div className="flex flex-wrap gap-2">
               {[
-                { label: 'Total', value: facets?.statusCounts.total ?? 0, cls: 'bg-slate-100 text-slate-700' },
-                { label: 'Draft', value: facets?.statusCounts.draft ?? 0, cls: 'bg-slate-100 text-slate-600' },
-                { label: 'Finalized', value: facets?.statusCounts.finalized ?? 0, cls: 'bg-blue-50 text-blue-700' },
-                { label: 'Paid', value: facets?.statusCounts.paid ?? 0, cls: 'bg-emerald-50 text-emerald-700' },
+                { label: 'Total', value: facets?.statusCounts.total ?? 0, status: 'all' as const, cls: 'bg-slate-100 text-slate-700' },
+                { label: 'Draft', value: facets?.statusCounts.draft ?? 0, status: 'draft' as const, cls: 'bg-slate-100 text-slate-600' },
+                { label: 'Finalized', value: facets?.statusCounts.finalized ?? 0, status: 'finalized' as const, cls: 'bg-blue-50 text-blue-700' },
+                { label: 'Paid', value: facets?.statusCounts.paid ?? 0, status: 'paid' as const, cls: 'bg-emerald-50 text-emerald-700' },
               ].map((chip) => (
-                <div
+                <button
                   key={chip.label}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ${chip.cls}`}
+                  type="button"
+                  onClick={() => setStatusFilter(chip.status)}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition hover:opacity-90 ${
+                    appliedFilters.status === chip.status ? 'ring-2 ring-[#2563EB] ring-offset-1' : ''
+                  } ${chip.cls}`}
                 >
                   <span>{chip.label}</span>
                   <span className="font-semibold">{chip.value}</span>
-                </div>
+                </button>
               ))}
               {facets && (
                 <div className="inline-flex items-center gap-1.5 rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700">

@@ -1,10 +1,23 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useBilling, Customer } from '@/lib/context'
+import { apiFetch } from '@/lib/api-client'
+import {
+  buildCustomerSearchQuery,
+  countActiveFilters,
+  DEFAULT_CUSTOMER_FILTERS,
+  filtersAreEqual,
+  filtersToSearchParams,
+  parseCustomerFiltersFromParams,
+  type CustomerSearchFilters,
+  type CustomerSearchResponse,
+} from '@/lib/customer-search'
+import { CustomerFilters } from '@/components/customer-filters'
 import { Button } from '@/components/ui/button'
-import { Plus, Edit, Trash2, X, Users } from 'lucide-react'
+import { Plus, Edit, Trash2, X, Users, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { SkeletonListPage } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
 import { FormActions } from '@/components/form-actions'
@@ -18,7 +31,6 @@ import {
   MobileCardRow,
 } from '@/components/mobile-ui'
 
-// ── Lazy-load layout ──────────────────────────────────────────────────────────
 const AppLayout = dynamic(
   () => import('@/app/app-layout').then((m) => ({ default: m.AppLayout })),
   { ssr: false, loading: () => null }
@@ -36,13 +48,92 @@ const EMPTY_FORM: Partial<Customer> = {
 }
 
 export default function CustomersPage() {
-  const { customers, loading, addCustomer, updateCustomer, deleteCustomer } = useBilling()
+  return (
+    <Suspense
+      fallback={
+        <AppLayout>
+          <SkeletonListPage cols={7} />
+        </AppLayout>
+      }
+    >
+      <CustomersPageContent />
+    </Suspense>
+  )
+}
+
+function CustomersPageContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { loading: billingLoading, addCustomer, updateCustomer, deleteCustomer } = useBilling()
   const { confirm } = useConfirm()
-  const { warning } = useFeedback()
-  const [showForm, setShowForm]   = useState(false)
+  const { warning, error: showError } = useFeedback()
+
+  const appliedFilters = useMemo(
+    () => parseCustomerFiltersFromParams(searchParams),
+    [searchParams],
+  )
+
+  const [draftFilters, setDraftFilters] = useState<CustomerSearchFilters>(appliedFilters)
+  const [result, setResult] = useState<CustomerSearchResponse | null>(null)
+  const [fetching, setFetching] = useState(true)
+  const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [formData, setFormData]   = useState<Partial<Customer>>(EMPTY_FORM)
+  const [formData, setFormData] = useState<Partial<Customer>>(EMPTY_FORM)
   const [errors, setErrors] = useState<FieldErrors>({})
+
+  useEffect(() => {
+    setDraftFilters(appliedFilters)
+  }, [appliedFilters])
+
+  const loadCustomers = useCallback(async () => {
+    setFetching(true)
+    try {
+      const query = buildCustomerSearchQuery(appliedFilters)
+      const response = await apiFetch<CustomerSearchResponse>(`/api/customers?${query}`)
+      setResult(response)
+    } catch (err) {
+      setResult(null)
+      showError({
+        title: 'Load failed',
+        description: err instanceof Error ? err.message : 'Failed to load customers',
+      })
+    } finally {
+      setFetching(false)
+    }
+  }, [appliedFilters, showError])
+
+  useEffect(() => {
+    if (!billingLoading) {
+      loadCustomers()
+    }
+  }, [billingLoading, loadCustomers])
+
+  useEffect(() => {
+    if (filtersAreEqual(draftFilters, appliedFilters)) return
+
+    const timer = window.setTimeout(() => {
+      const params = filtersToSearchParams(draftFilters)
+      router.push(`/customers?${params.toString()}`)
+    }, 400)
+
+    return () => window.clearTimeout(timer)
+  }, [draftFilters, appliedFilters, router])
+
+  const resetFilters = () => {
+    setDraftFilters(DEFAULT_CUSTOMER_FILTERS)
+    router.push('/customers')
+  }
+
+  const goToPage = (page: number) => {
+    const params = filtersToSearchParams({ ...appliedFilters, page })
+    router.push(`/customers?${params.toString()}`)
+  }
+
+  const setGstFilter = (gst: CustomerSearchFilters['gst']) => {
+    const next = { ...appliedFilters, gst, page: 1 }
+    setDraftFilters(next)
+    router.push(`/customers?${filtersToSearchParams(next).toString()}`)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,6 +157,7 @@ export default function CustomersPage() {
       setFormData(EMPTY_FORM)
       setErrors({})
       setShowForm(false)
+      await loadCustomers()
     } catch {
       // Error shown via billing context banner
     }
@@ -85,6 +177,7 @@ export default function CustomersPage() {
       cancelText: 'No',
       onConfirm: async () => {
         await deleteCustomer(id)
+        await loadCustomers()
       },
     })
   }
@@ -94,14 +187,6 @@ export default function CustomersPage() {
     setEditingId(null)
     setFormData(EMPTY_FORM)
     setErrors({})
-  }
-
-  if (loading) {
-    return (
-      <AppLayout>
-        <SkeletonListPage cols={7} />
-      </AppLayout>
-    )
   }
 
   const updateField = (key: keyof Customer, value: string) => {
@@ -137,28 +222,69 @@ export default function CustomersPage() {
     </FormField>
   )
 
+  const activeFilterCount = countActiveFilters(appliedFilters)
+  const customers = result?.data ?? []
+  const pagination = result?.pagination
+  const facets = result?.facets
+
+  if (billingLoading && !result) {
+    return (
+      <AppLayout>
+        <SkeletonListPage cols={7} />
+      </AppLayout>
+    )
+  }
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-
         <PageHero
           label="People"
           title="Customer Management"
-          description="Keep client details handy for faster invoicing — add anyone you bill regularly."
+          description="Filter by name, state, or GST — aggregation runs on MongoDB for fast counts."
           actions={
             <Button onClick={() => setShowForm(true)} className="gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" /> Add Customer
             </Button>
           }
           footer={
-            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
-              <Users className="h-3.5 w-3.5 text-[#2563EB]" />
-              {customers.length} customer{customers.length !== 1 ? 's' : ''} on file
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: 'Total', value: facets?.total ?? 0, gst: 'all' as const, cls: 'bg-slate-100 text-slate-700' },
+                { label: 'With GST', value: facets?.withGst ?? 0, gst: 'with' as const, cls: 'bg-emerald-50 text-emerald-700' },
+                { label: 'Without GST', value: facets?.withoutGst ?? 0, gst: 'without' as const, cls: 'bg-amber-50 text-amber-700' },
+              ].map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => setGstFilter(chip.gst)}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition hover:opacity-90 ${
+                    appliedFilters.gst === chip.gst ? 'ring-2 ring-[#2563EB] ring-offset-1' : ''
+                  } ${chip.cls}`}
+                >
+                  <span>{chip.label}</span>
+                  <span className="font-semibold">{chip.value}</span>
+                </button>
+              ))}
+              {pagination && (
+                <div className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700">
+                  <Users className="h-3.5 w-3.5" />
+                  <span>Showing</span>
+                  <span className="font-semibold">{pagination.total}</span>
+                  <span>match{pagination.total !== 1 ? 'es' : ''}</span>
+                </div>
+              )}
             </div>
           }
         />
 
-        {/* ── Add/Edit form ── */}
+        <CustomerFilters
+          filters={draftFilters}
+          onChange={setDraftFilters}
+          onReset={resetFilters}
+          topStates={facets?.topStates}
+        />
+
         {showForm && (
           <div className="premium-card p-4 sm:p-6 animate-scale-in">
             <div className="mb-4 flex items-start justify-between gap-3">
@@ -215,26 +341,48 @@ export default function CustomersPage() {
           </div>
         )}
 
-        {/* ── List ── */}
-        {customers.length === 0 ? (
+        {fetching ? (
+          <div className="premium-card flex items-center justify-center gap-2 py-16 text-sm text-slate-500">
+            <Loader2 className="h-5 w-5 animate-spin text-[#2563EB]" />
+            Loading customers…
+          </div>
+        ) : customers.length === 0 ? (
           <div className="premium-card flex flex-col items-center justify-center gap-4 py-20 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
               <Users className="h-8 w-8 text-slate-400" />
             </div>
             <div>
-              <p className="text-lg font-bold text-slate-800">No customers yet</p>
-              <p className="mt-1 text-sm text-slate-400">Add your first customer to start billing.</p>
+              <p className="text-lg font-bold text-slate-800">
+                {activeFilterCount > 0 ? 'No customers match your filters' : 'No customers yet'}
+              </p>
+              <p className="mt-1 text-sm text-slate-400">
+                {activeFilterCount > 0
+                  ? 'Try adjusting the filters or reset to see all customers.'
+                  : 'Add your first customer to start billing.'}
+              </p>
             </div>
-            <Button className="mt-1 gap-2" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" /> Add Customer
-            </Button>
+            {activeFilterCount > 0 ? (
+              <Button variant="outline" onClick={resetFilters}>
+                Clear filters
+              </Button>
+            ) : (
+              <Button className="mt-1 gap-2" onClick={() => setShowForm(true)}>
+                <Plus className="h-4 w-4" /> Add Customer
+              </Button>
+            )}
           </div>
         ) : (
           <div className="premium-card overflow-hidden p-0">
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-6">
-              <h2 className="text-sm font-bold text-slate-900">All Customers</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">Customer results</h2>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  Showing {customers.length} of {pagination?.total ?? customers.length} records
+                  {activeFilterCount > 0 ? ' (filtered)' : ''}
+                </p>
+              </div>
               <span className="rounded-xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                {customers.length} total
+                Page {pagination?.page ?? 1} / {Math.max(pagination?.totalPages ?? 1, 1)}
               </span>
             </div>
 
@@ -329,9 +477,40 @@ export default function CustomersPage() {
                 </tbody>
               </table>
             </div>
+
+            {pagination && pagination.totalPages > 1 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-4 sm:px-6">
+                <p className="text-xs text-slate-500">
+                  {pagination.total} customer{pagination.total !== 1 ? 's' : ''} in this filter
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={pagination.page <= 1}
+                    onClick={() => goToPage(pagination.page - 1)}
+                    className="gap-1"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!pagination.hasMore}
+                    onClick={() => goToPage(pagination.page + 1)}
+                    className="gap-1"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
-
       </div>
     </AppLayout>
   )

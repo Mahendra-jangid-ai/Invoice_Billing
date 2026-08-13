@@ -1,10 +1,23 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useBilling, Item } from '@/lib/context'
+import { apiFetch } from '@/lib/api-client'
+import {
+  buildItemSearchQuery,
+  countActiveFilters,
+  DEFAULT_ITEM_FILTERS,
+  filtersAreEqual,
+  filtersToSearchParams,
+  parseItemFiltersFromParams,
+  type ItemSearchFilters,
+  type ItemSearchResponse,
+} from '@/lib/item-search'
+import { ItemFilters } from '@/components/item-filters'
 import { Button } from '@/components/ui/button'
-import { Plus, Edit, Trash2, X, Package } from 'lucide-react'
+import { Plus, Edit, Trash2, X, Package, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { SkeletonListPage } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
 import { FormActions } from '@/components/form-actions'
@@ -17,8 +30,8 @@ import {
   MobileCardRow,
 } from '@/components/mobile-ui'
 import { InrAmount } from '@/components/inr-amount'
+import { formatInr } from '@/lib/format-inr'
 
-// ── Lazy-load layout ──────────────────────────────────────────────────────────
 const AppLayout = dynamic(
   () => import('@/app/app-layout').then((m) => ({ default: m.AppLayout })),
   { ssr: false, loading: () => null }
@@ -32,13 +45,86 @@ import { type FieldErrors, formatFieldErrors, hasErrors, validateItemForm } from
 const EMPTY_FORM: Partial<Item> = { name: '', description: '', hsnsac: '', unitprice: 0 }
 
 export default function ItemsPage() {
-  const { items, loading, addItem, updateItem, deleteItem } = useBilling()
+  return (
+    <Suspense
+      fallback={
+        <AppLayout>
+          <SkeletonListPage cols={5} />
+        </AppLayout>
+      }
+    >
+      <ItemsPageContent />
+    </Suspense>
+  )
+}
+
+function ItemsPageContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { loading: billingLoading, addItem, updateItem, deleteItem } = useBilling()
   const { confirm } = useConfirm()
-  const { warning } = useFeedback()
-  const [showForm, setShowForm]   = useState(false)
+  const { warning, error: showError } = useFeedback()
+
+  const appliedFilters = useMemo(
+    () => parseItemFiltersFromParams(searchParams),
+    [searchParams],
+  )
+
+  const [draftFilters, setDraftFilters] = useState<ItemSearchFilters>(appliedFilters)
+  const [result, setResult] = useState<ItemSearchResponse | null>(null)
+  const [fetching, setFetching] = useState(true)
+  const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [formData, setFormData]   = useState<Partial<Item>>(EMPTY_FORM)
+  const [formData, setFormData] = useState<Partial<Item>>(EMPTY_FORM)
   const [errors, setErrors] = useState<FieldErrors>({})
+
+  useEffect(() => {
+    setDraftFilters(appliedFilters)
+  }, [appliedFilters])
+
+  const loadItems = useCallback(async () => {
+    setFetching(true)
+    try {
+      const query = buildItemSearchQuery(appliedFilters)
+      const response = await apiFetch<ItemSearchResponse>(`/api/items?${query}`)
+      setResult(response)
+    } catch (err) {
+      setResult(null)
+      showError({
+        title: 'Load failed',
+        description: err instanceof Error ? err.message : 'Failed to load items',
+      })
+    } finally {
+      setFetching(false)
+    }
+  }, [appliedFilters, showError])
+
+  useEffect(() => {
+    if (!billingLoading) {
+      loadItems()
+    }
+  }, [billingLoading, loadItems])
+
+  useEffect(() => {
+    if (filtersAreEqual(draftFilters, appliedFilters)) return
+
+    const timer = window.setTimeout(() => {
+      const params = filtersToSearchParams(draftFilters)
+      router.push(`/items?${params.toString()}`)
+    }, 400)
+
+    return () => window.clearTimeout(timer)
+  }, [draftFilters, appliedFilters, router])
+
+  const resetFilters = () => {
+    setDraftFilters(DEFAULT_ITEM_FILTERS)
+    router.push('/items')
+  }
+
+  const goToPage = (page: number) => {
+    const params = filtersToSearchParams({ ...appliedFilters, page })
+    router.push(`/items?${params.toString()}`)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,6 +148,7 @@ export default function ItemsPage() {
       setFormData(EMPTY_FORM)
       setErrors({})
       setShowForm(false)
+      await loadItems()
     } catch {
       // Error shown via billing context banner
     }
@@ -81,6 +168,7 @@ export default function ItemsPage() {
       cancelText: 'No',
       onConfirm: async () => {
         await deleteItem(id)
+        await loadItems()
       },
     })
   }
@@ -92,7 +180,12 @@ export default function ItemsPage() {
     setErrors({})
   }
 
-  if (loading) {
+  const activeFilterCount = countActiveFilters(appliedFilters)
+  const items = result?.data ?? []
+  const pagination = result?.pagination
+  const facets = result?.facets
+
+  if (billingLoading && !result) {
     return (
       <AppLayout>
         <SkeletonListPage cols={5} />
@@ -103,25 +196,51 @@ export default function ItemsPage() {
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-
         <PageHero
           label="Catalog"
           title="Products & Services"
-          description="Your item list — pick these when building invoices so rates stay consistent."
+          description="Filter by name, HSN/SAC, or price range — stats computed via aggregation."
           actions={
             <Button onClick={() => setShowForm(true)} className="gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" /> Add Item
             </Button>
           }
           footer={
-            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
-              <Package className="h-3.5 w-3.5 text-amber-600" />
-              {items.length} item{items.length !== 1 ? 's' : ''} in catalog
+            <div className="flex flex-wrap gap-2">
+              <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+                <Package className="h-3.5 w-3.5 text-amber-600" />
+                <span>Total</span>
+                <span className="font-semibold">{facets?.total ?? 0}</span>
+              </div>
+              {facets && facets.total > 0 && (
+                <>
+                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700">
+                    <span>Avg price</span>
+                    <span className="font-semibold inr-amount">{formatInr(facets.avgPrice)}</span>
+                  </div>
+                  {activeFilterCount > 0 && (
+                    <div className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700">
+                      <span>Filtered avg</span>
+                      <span className="font-semibold inr-amount">{formatInr(facets.filteredAvgPrice)}</span>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           }
         />
 
-        {/* ── Add/Edit form ── */}
+        <ItemFilters
+          filters={draftFilters}
+          onChange={setDraftFilters}
+          onReset={resetFilters}
+          priceRange={
+            facets
+              ? { min: facets.minCatalogPrice, max: facets.maxCatalogPrice }
+              : undefined
+          }
+        />
+
         {showForm && (
           <div className="premium-card p-4 sm:p-6 animate-scale-in">
             <div className="mb-4 flex items-start justify-between gap-3">
@@ -200,26 +319,48 @@ export default function ItemsPage() {
           </div>
         )}
 
-        {/* ── List ── */}
-        {items.length === 0 ? (
+        {fetching ? (
+          <div className="premium-card flex items-center justify-center gap-2 py-16 text-sm text-slate-500">
+            <Loader2 className="h-5 w-5 animate-spin text-[#2563EB]" />
+            Loading items…
+          </div>
+        ) : items.length === 0 ? (
           <div className="premium-card flex flex-col items-center justify-center gap-4 py-20 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
               <Package className="h-8 w-8 text-slate-400" />
             </div>
             <div>
-              <p className="text-lg font-bold text-slate-800">Catalog is empty</p>
-              <p className="mt-1 text-sm text-slate-400">Add items or services to use them in invoices.</p>
+              <p className="text-lg font-bold text-slate-800">
+                {activeFilterCount > 0 ? 'No items match your filters' : 'Catalog is empty'}
+              </p>
+              <p className="mt-1 text-sm text-slate-400">
+                {activeFilterCount > 0
+                  ? 'Try adjusting the filters or reset to see all items.'
+                  : 'Add items or services to use them in invoices.'}
+              </p>
             </div>
-            <Button className="mt-1 gap-2" onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4" /> Add First Item
-            </Button>
+            {activeFilterCount > 0 ? (
+              <Button variant="outline" onClick={resetFilters}>
+                Clear filters
+              </Button>
+            ) : (
+              <Button className="mt-1 gap-2" onClick={() => setShowForm(true)}>
+                <Plus className="h-4 w-4" /> Add First Item
+              </Button>
+            )}
           </div>
         ) : (
           <div className="premium-card overflow-hidden p-0">
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-6">
-              <h2 className="text-sm font-bold text-slate-900">Catalog Items</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">Catalog results</h2>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  Showing {items.length} of {pagination?.total ?? items.length} records
+                  {activeFilterCount > 0 ? ' (filtered)' : ''}
+                </p>
+              </div>
               <span className="rounded-xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                {items.length} total
+                Page {pagination?.page ?? 1} / {Math.max(pagination?.totalPages ?? 1, 1)}
               </span>
             </div>
 
@@ -314,9 +455,41 @@ export default function ItemsPage() {
                 </tbody>
               </table>
             </div>
+
+            {pagination && pagination.totalPages > 1 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-4 sm:px-6">
+                <p className="text-xs text-slate-500">
+                  Filtered avg:{' '}
+                  <span className="inr-amount font-semibold">{formatInr(facets?.filteredAvgPrice ?? 0)}</span>
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={pagination.page <= 1}
+                    onClick={() => goToPage(pagination.page - 1)}
+                    className="gap-1"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!pagination.hasMore}
+                    onClick={() => goToPage(pagination.page + 1)}
+                    className="gap-1"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
-
       </div>
     </AppLayout>
   )
