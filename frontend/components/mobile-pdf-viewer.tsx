@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { PDFViewer, type DocumentProps } from '@react-pdf/renderer'
-import type { ReactElement } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 export function MobilePdfViewer({
@@ -11,38 +10,69 @@ export function MobilePdfViewer({
   fileName,
   open,
   onClose,
-  pdfDocument,
 }: {
   url?: string | null
   blob?: Blob | null
   fileName: string
   open: boolean
   onClose: () => void
-  pdfDocument?: ReactElement<DocumentProps>
 }) {
-  const [objectUrl, setObjectUrl] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (!open || pdfDocument || !blob) {
-      setObjectUrl(null)
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) {
+      setPreviewUrl(null)
       return
     }
 
-    const nextUrl = URL.createObjectURL(blob)
-    setObjectUrl(nextUrl)
+    if (!blob && !url) {
+      setPreviewUrl(null)
+      return
+    }
+
+    let objectUrl: string | null = null
+    let cancelled = false
+
+    if (blob) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (!cancelled) setPreviewUrl(reader.result as string)
+      }
+      reader.onerror = () => {
+        if (cancelled) return
+        objectUrl = URL.createObjectURL(blob)
+        setPreviewUrl(objectUrl)
+      }
+      reader.readAsDataURL(blob)
+    } else if (url) {
+      setPreviewUrl(url)
+    }
 
     return () => {
-      URL.revokeObjectURL(nextUrl)
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [open, blob, pdfDocument])
+  }, [open, blob, url])
 
-  if (!open) return null
+  if (!open || !mounted) return null
 
-  const embedUrl = pdfDocument ? null : objectUrl || url
-
-  return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-white">
-      <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex flex-col bg-white">
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-slate-900">{fileName}</p>
           <p className="text-xs text-slate-500">Invoice preview</p>
@@ -58,21 +88,11 @@ export function MobilePdfViewer({
       </header>
 
       <div className="min-h-0 flex-1 bg-slate-100">
-        {pdfDocument ? (
-          <PDFViewer
-            width="100%"
-            height="100%"
-            showToolbar={false}
-            style={{ width: '100%', height: '100%', border: 'none' }}
-          >
-            {pdfDocument}
-          </PDFViewer>
-        ) : embedUrl ? (
-          <embed
-            src={embedUrl}
-            type="application/pdf"
+        {previewUrl ? (
+          <iframe
+            src={previewUrl}
             title={fileName}
-            className="h-full w-full border-0"
+            className="h-full w-full border-0 bg-white"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-slate-500">
@@ -80,6 +100,7 @@ export function MobilePdfViewer({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

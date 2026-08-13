@@ -17,6 +17,7 @@ import { Download, ExternalLink, Eye, Loader2, ChevronRight, CheckCircle2 } from
 import { useBilling, Invoice } from '@/lib/context'
 import { useFeedback } from '@/components/confirm-provider'
 import { MobilePdfViewer } from '@/components/mobile-pdf-viewer'
+import { useIsInstalledPwa } from '@/lib/use-installed-pwa'
 
 function usePdfErrorPopup(error: string | null | undefined) {
   const { error: showError } = useFeedback()
@@ -39,10 +40,15 @@ function usePdfErrorPopup(error: string | null | undefined) {
 
 function detectMobilePdfFallback(): boolean {
   if (typeof window === 'undefined') return false
+  if (document.documentElement.dataset.pwaShell === 'true') return true
   const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
   const narrowScreen = window.matchMedia('(max-width: 768px)').matches
   const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-  return mobileUa || (touchDevice && narrowScreen)
+  const standalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    ('standalone' in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone))
+  return standalone || mobileUa || (touchDevice && narrowScreen)
 }
 
 function useMobilePdfFallback() {
@@ -755,9 +761,9 @@ function MobileInvoicePdfPanel({
     : '—'
 
   const handleView = useCallback(() => {
-    if (!instance.url && !instance.blob) return
+    if (!instance.blob && !instance.url) return
     setViewerOpen(true)
-  }, [instance.url, instance.blob])
+  }, [instance.blob, instance.url])
 
   const handleDownload = useCallback(() => {
     if (!instance.blob) return
@@ -777,7 +783,7 @@ function MobileInvoicePdfPanel({
     if (!onActionsReady) return
     onActionsReady({
       loading: instance.loading,
-      ready: Boolean(instance.url && instance.blob),
+      ready: Boolean(instance.blob),
       error: instance.error,
       handleView,
       handleDownload,
@@ -896,7 +902,6 @@ function MobileInvoicePdfPanel({
     <MobilePdfViewer
       url={instance.url}
       blob={instance.blob}
-      pdfDocument={pdfDocument}
       fileName={fileName}
       open={viewerOpen}
       onClose={() => setViewerOpen(false)}
@@ -1065,9 +1070,11 @@ export function InvoicePreview({
   const cashDiscountAmount = invoice.cashDiscount?.discountAmount || 0
   const displayTotal = Math.round(rawTotal - cashDiscountAmount)
 
+  const isInstalledPwa = useIsInstalledPwa()
   const isMobile = useMobilePdfFallback()
+  const useMobilePdf = isMobile || isInstalledPwa
 
-  if (isMobile) {
+  if (useMobilePdf) {
     return (
       <MobileInvoicePdfPanel
         pdfDocument={pdfDocument}
