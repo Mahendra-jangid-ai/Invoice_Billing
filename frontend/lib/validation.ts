@@ -147,6 +147,35 @@ export function validateCompanyForm(data: {
   return errors
 }
 
+/** Validates company fields only when provided — for optional onboarding. */
+export function validateCompanyFormOptional(data: {
+  name?: string
+  email?: string
+  phone?: string
+  gstnumber?: string
+  pan?: string
+  state?: string
+  address?: string
+  bankIfsc?: string
+}) {
+  const errors: FieldErrors = {}
+  if (data.name?.trim()) {
+    setError(errors, 'name', minLength(data.name, 2, 'Company name'))
+  }
+  if (data.email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
+    errors.email = 'Enter a valid email address'
+  }
+  setError(errors, 'phone', phone(data.phone, false))
+  setError(errors, 'gstnumber', gstNumber(data.gstnumber))
+  setError(errors, 'pan', panNumber(data.pan))
+  setError(errors, 'state', indianState(data.state, false))
+  if (data.address?.trim() && data.address.trim().length < 5) {
+    errors.address = 'Address must be at least 5 characters'
+  }
+  setError(errors, 'bankIfsc', ifscCode(data.bankIfsc))
+  return errors
+}
+
 export function validateWebSettings(data: {
   websiteName?: string
   supportEmail?: string
