@@ -158,3 +158,23 @@ export async function listUserSessions(userId: string): Promise<SessionRecord[]>
     .toArray()
   return records.map((record) => mapSessionRecord(record))
 }
+
+const MAX_SESSIONS_PER_USER = 10
+
+export async function enforceSessionLimit(userId: string): Promise<void> {
+  const collection = await getSessionCollection()
+  const sessions = await collection
+    .find({ userId, revokedAt: null, expiresAt: { $gt: new Date() } })
+    .sort({ createdAt: 1 })
+    .toArray()
+
+  const excess = sessions.length - MAX_SESSIONS_PER_USER
+  if (excess <= 0) return
+
+  const toRevoke = sessions.slice(0, excess)
+  await Promise.all(
+    toRevoke.map((session) =>
+      collection.updateOne({ sessionId: session.sessionId }, { $set: { revokedAt: new Date() } }),
+    ),
+  )
+}

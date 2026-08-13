@@ -9,7 +9,12 @@ export function registerCustomerRoutes(app: Express): void {
   app.get('/api/customers', authMiddleware, async (req: Request, res: Response) => {
     try {
       const db = await getDatabase()
-      const customers = await db.collection('customers').find({ userId: req.user!.userId }).toArray()
+      const customers = await db
+        .collection('customers')
+        .find({ userId: req.user!.userId })
+        .sort({ name: 1 })
+        .limit(5000)
+        .toArray()
       res.json(
         customers.map((c) => ({
           id: c.id || String(c._id),

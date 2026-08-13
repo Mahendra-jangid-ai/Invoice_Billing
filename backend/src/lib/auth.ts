@@ -5,6 +5,18 @@ import { sendError } from './api-errors.js'
 import { getActiveSessionRecord, touchSessionRecord } from './session-store.js'
 import { getSession, type SessionPayload } from './session.js'
 
+const SESSION_TOUCH_INTERVAL_MS = 5 * 60 * 1000
+const lastSessionTouch = new Map<string, number>()
+
+async function touchSessionThrottled(sessionId: string): Promise<void> {
+  const now = Date.now()
+  const lastTouch = lastSessionTouch.get(sessionId) ?? 0
+  if (now - lastTouch < SESSION_TOUCH_INTERVAL_MS) return
+
+  lastSessionTouch.set(sessionId, now)
+  await touchSessionRecord(sessionId)
+}
+
 export async function hashPassword(plaintext: string): Promise<string> {
   return bcrypt.hash(plaintext, 12)
 }
@@ -28,7 +40,7 @@ export async function getCurrentUser(req: Request): Promise<SessionPayload | nul
   const activeSession = await getActiveSessionRecord(session.sessionId)
   if (!activeSession || activeSession.userId !== session.userId) return null
 
-  await touchSessionRecord(session.sessionId)
+  await touchSessionThrottled(session.sessionId)
   return session
 }
 

@@ -45,9 +45,11 @@ export default function ForgotPasswordPage() {
           If an account with <strong>{email}</strong> exists, we&apos;ve sent a password reset link.
           Check your inbox (and spam folder).
         </p>
-        <p className="mt-2 text-xs text-[#9CA3AF]">
-          (In development: check the server console for the reset URL)
-        </p>
+        {process.env.NODE_ENV === 'development' && (
+          <p className="mt-2 text-xs text-[#9CA3AF]">
+            (In development: check the server console for the reset URL)
+          </p>
+        )}
         <Link
           href="/login"
           className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[#111827] hover:text-[#2563EB]"

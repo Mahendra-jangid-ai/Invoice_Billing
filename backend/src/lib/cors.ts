@@ -5,6 +5,14 @@ const LOCAL_ORIGINS = new Set([
   'http://127.0.0.1:3001',
 ])
 
+function isLocalOrigin(origin: string): boolean {
+  if (LOCAL_ORIGINS.has(origin)) return true
+  if (process.env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
+    return true
+  }
+  return false
+}
+
 function normalizeOrigin(origin: string): string {
   return origin.replace(/\/$/, '')
 }
@@ -30,14 +38,7 @@ export function isAllowedOrigin(origin: string): boolean {
   const configured = getConfiguredOrigins()
 
   if (configured.has(normalized)) return true
-  if (LOCAL_ORIGINS.has(normalized)) return true
-
-  // Vercel production + preview deployments
-  if (/^https:\/\/[\w.-]+\.vercel\.app$/.test(normalized)) return true
-
-  if (process.env.NODE_ENV !== 'production' && /^https?:\/\/localhost:\d+$/.test(normalized)) {
-    return true
-  }
+  if (isLocalOrigin(normalized)) return true
 
   return false
 }
@@ -46,7 +47,7 @@ export function corsOrigin(
   origin: string | undefined,
   callback: (err: Error | null, allow?: boolean) => void,
 ): void {
-  // Vercel/Next.js server proxy and health checks often omit Origin — allow them.
+  // Server-side proxies (Next.js rewrites) and health checks omit Origin.
   if (!origin) {
     callback(null, true)
     return

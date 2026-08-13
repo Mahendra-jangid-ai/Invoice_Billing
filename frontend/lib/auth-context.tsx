@@ -1,10 +1,11 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { apiFetch, getErrorMessage } from '@/lib/api-client'
+import { apiFetch, getErrorMessage, setUnauthorizedHandler } from '@/lib/api-client'
+import { clearPwaCaches } from '@/lib/pwa-cache'
 
 export interface AuthUser {
-  sessionId: string
+  sessionId?: string
   userId: string
   email: string
   name: string
@@ -24,6 +25,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setUnauthorizedHandler(async () => {
+      setUser(null)
+      try {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      } catch {
+        // Ignore logout failures during forced sign-out
+      }
+      await clearPwaCaches()
+    })
+
+    return () => setUnauthorizedHandler(null)
+  }, [])
 
   useEffect(() => {
     async function fetchCurrentUser() {
@@ -55,13 +70,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userId: string
         email: string
         name: string
-        sessionId: string
       }>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       })
       setUser({
-        sessionId: data.sessionId,
         userId: data.userId,
         email: data.email,
         name: data.name,
@@ -79,6 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Clear local session even if server logout fails
     } finally {
       setUser(null)
+      await clearPwaCaches()
     }
   }, [])
 
@@ -88,13 +102,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userId: string
         email: string
         name: string
-        sessionId: string
       }>('/api/auth/signup', {
         method: 'POST',
         body: JSON.stringify({ name, email, password }),
       })
       setUser({
-        sessionId: data.sessionId,
         userId: data.userId,
         email: data.email,
         name: data.name,

@@ -59,7 +59,12 @@ export function registerInvoiceRoutes(app: Express): void {
         return
       }
 
-      const invoices = await db.collection('invoices').find({ userId }).toArray()
+      const invoices = await db
+        .collection('invoices')
+        .find({ userId })
+        .sort({ date: -1 })
+        .limit(500)
+        .toArray()
       res.json(invoices.map((inv) => formatInvoice(inv as Record<string, unknown>)))
     } catch (error) {
       handleApiError(res, error, 'Failed to fetch invoices')

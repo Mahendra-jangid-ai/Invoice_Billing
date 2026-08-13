@@ -14,6 +14,7 @@ import {
 import { createSession, deleteSession, getSession } from '../lib/session.js'
 import {
   createSessionRecord,
+  enforceSessionLimit,
   getActiveSessionRecord,
   listUserSessions,
   revokeSessionRecord,
@@ -69,9 +70,10 @@ export function registerAuthRoutes(app: Express): void {
         userAgent: req.headers['user-agent'] || 'Unknown device',
         ipAddress: ip,
       }, expiresAt)
+      await enforceSessionLimit(userDoc.userId)
 
       logSecurityEvent('LOGIN_SUCCESS', { userId: userDoc.userId, email: parsed.email, ip })
-      res.json({ userId: userDoc.userId, email: userDoc.email, name: userDoc.name, sessionId })
+      res.json({ userId: userDoc.userId, email: userDoc.email, name: userDoc.name })
     } catch (error) {
       handleApiError(res, error, 'Login failed. Please try again.')
     }
@@ -115,9 +117,10 @@ export function registerAuthRoutes(app: Express): void {
         userAgent: req.headers['user-agent'] || 'Unknown device',
         ipAddress: ip,
       }, expiresAt)
+      await enforceSessionLimit(userId)
 
       logSecurityEvent('SIGNUP_SUCCESS', { userId, email: parsed.email, ip })
-      res.status(201).json({ userId, email: parsed.email, name: parsed.name, sessionId })
+      res.status(201).json({ userId, email: parsed.email, name: parsed.name })
     } catch (error) {
       if (isMongoDuplicateKey(error)) {
         sendError(res, 409, 'An account with this email already exists', 'CONFLICT')

@@ -59,6 +59,7 @@ export default function SignupPage() {
     if (password.length === 0) return { label: '', color: '', width: '0%' }
     let score = 0
     if (password.length >= 12) score++
+    if (/[a-z]/.test(password)) score++
     if (/[A-Z]/.test(password)) score++
     if (/[0-9]/.test(password)) score++
     if (/[^a-zA-Z0-9]/.test(password)) score++

@@ -185,8 +185,10 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       billToName: billTo.name,
       billToGstin: billTo.gstin,
       billToState: billTo.state,
-      shipToGstin: sameAsBillTo ? billTo.gstin : shipTo.gstin,
-      shipToState: sameAsBillTo ? billTo.state : shipTo.state,
+      sameAsBillTo,
+      shipToName: shipTo.name,
+      shipToGstin: shipTo.gstin,
+      shipToState: shipTo.state,
       placeOfService,
       lineItems,
     })

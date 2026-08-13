@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Lock, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
@@ -25,14 +25,27 @@ export default function ResetPasswordPage() {
 function ResetPasswordPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const token = searchParams.get('token') || ''
   const { error: showError, warning } = useFeedback()
+  const [token, setToken] = useState('')
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    const queryToken = searchParams.get('token')?.trim() || ''
+    const storedToken = sessionStorage.getItem('reset-password-token')?.trim() || ''
+    const nextToken = queryToken || storedToken
+
+    if (queryToken) {
+      sessionStorage.setItem('reset-password-token', queryToken)
+      router.replace('/reset-password')
+    }
+
+    setToken(nextToken)
+  }, [router, searchParams])
 
   if (!token) {
     return (
@@ -79,6 +92,7 @@ function ResetPasswordPageContent() {
         body: JSON.stringify({ token, password }),
       })
       setSuccess(true)
+      sessionStorage.removeItem('reset-password-token')
       setTimeout(() => router.push('/login'), 2500)
     } catch (error) {
       showError({

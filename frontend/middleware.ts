@@ -3,6 +3,7 @@ import { decrypt, SESSION_COOKIE } from '@/lib/session'
 
 // Routes that require authentication
 const PROTECTED_ROUTES = [
+  '/',
   '/dashboard',
   '/invoices',
   '/customers',
@@ -10,7 +11,6 @@ const PROTECTED_ROUTES = [
   '/settings',
   '/setting',
   '/company-settings',
-  '/reports',
 ]
 // Auth routes — redirect to dashboard if already authenticated
 const AUTH_ROUTES = ['/login', '/signup', '/forgot-password', '/reset-password']

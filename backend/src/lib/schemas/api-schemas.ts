@@ -13,7 +13,14 @@ const StrongPasswordSchema = z
 export const CustomerSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Name is required').max(200).trim(),
-  email: z.string().max(200).optional().default(''),
+  email: z
+    .string()
+    .max(200)
+    .optional()
+    .default('')
+    .refine((value) => !value.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()), {
+      message: 'Enter a valid email address',
+    }),
   phone: z.string().max(50).optional().default(''),
   address: z.string().max(500).optional().default(''),
   gstnumber: z.string().max(50).optional().default(''),
@@ -91,7 +98,14 @@ export const CompanySchema = z.object({
   name: z.string().max(200).optional().default(''),
   address: z.string().max(500).optional().default(''),
   phone: z.string().max(50).optional().default(''),
-  email: z.string().max(200).optional().default(''),
+  email: z
+    .string()
+    .max(200)
+    .optional()
+    .default('')
+    .refine((value) => !value.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()), {
+      message: 'Enter a valid email address',
+    }),
   contactPerson: z.string().max(200).optional().default(''),
   gstnumber: z.string().max(50).optional().default(''),
   pan: z.string().max(20).optional().default(''),
@@ -103,8 +117,13 @@ export const CompanySchema = z.object({
     .optional()
     .default('')
     .refine(
-      (value) => !value || value.startsWith('data:image/') || value.startsWith('http'),
-      'Logo must be a valid image URL or data URI',
+      (value) =>
+        !value ||
+        value.startsWith('http') ||
+        value.startsWith('data:image/png') ||
+        value.startsWith('data:image/jpeg') ||
+        value.startsWith('data:image/webp'),
+      'Logo must be a PNG, JPEG, or WebP image',
     ),
   bankName: z.string().max(200).optional().default(''),
   bankAccountName: z.string().max(200).optional().default(''),

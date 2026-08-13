@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useBilling, Invoice } from '@/lib/context'
+import { apiFetch } from '@/lib/api-client'
 import { InvoiceForm } from '@/components/invoice-form'
 import { Button } from '@/components/ui/button'
 import { AppLayout } from '@/app/app-layout'
@@ -18,6 +19,8 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
   const router = useRouter()
   const { invoices, loading, updateInvoice } = useBilling()
   const [id, setId] = useState<string | null>(null)
+  const [invoice, setInvoice] = useState<Invoice | null>(null)
+  const [fetching, setFetching] = useState(false)
 
   useEffect(() => {
     paramsPromise.then((params) => {
@@ -25,7 +28,35 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
     })
   }, [paramsPromise])
 
-  if (!id || loading) {
+  useEffect(() => {
+    if (!id) return
+
+    const contextInvoice = invoices.find((inv) => String(inv.id) === String(id))
+    if (contextInvoice) {
+      setInvoice(contextInvoice)
+      return
+    }
+
+    let cancelled = false
+    setFetching(true)
+
+    apiFetch<Invoice>(`/api/invoices/${id}`)
+      .then((data) => {
+        if (!cancelled) setInvoice(data)
+      })
+      .catch(() => {
+        if (!cancelled) setInvoice(null)
+      })
+      .finally(() => {
+        if (!cancelled) setFetching(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [id, invoices])
+
+  if (!id || loading || fetching) {
     return (
       <AppLayout>
         <div className="flex h-64 items-center justify-center">
@@ -34,8 +65,6 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
       </AppLayout>
     )
   }
-
-  const invoice = invoices.find((inv) => String(inv.id) === String(id))
 
   if (!invoice) {
     return (

@@ -49,6 +49,14 @@ export default function CompanySettingsPage() {
         })
         return
       }
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/webp']
+      if (!allowedTypes.includes(file.type)) {
+        warning({
+          title: 'Invalid file type',
+          description: 'Please upload a PNG, JPEG, or WebP image.',
+        })
+        return
+      }
       const reader = new FileReader()
       reader.onloadend = () => {
         setFormData((prev) => ({ ...prev, logoUrl: reader.result as string }))
@@ -140,14 +148,14 @@ export default function CompanySettingsPage() {
                   <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
                     <Upload className="h-4 w-4" />
                     Choose image
-                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleFileUpload} className="hidden" />
                   </label>
                   <Button type="button" variant="outline" onClick={handleRemoveLogo} className="gap-2 w-full sm:w-auto">
                     <Trash2 className="h-4 w-4" />
                     Remove
                   </Button>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">PNG, JPG or SVG — max 5MB.</p>
+                <p className="mt-2 text-xs text-slate-500">PNG, JPEG or WebP — max 500KB.</p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

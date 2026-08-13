@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
@@ -26,7 +26,7 @@ function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login } = useAuth()
-  const { error: showError } = useFeedback()
+  const { error: showError, info } = useFeedback()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -34,6 +34,15 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false)
 
   const from = getSafeRedirectPath(searchParams.get('from'))
+
+  useEffect(() => {
+    if (searchParams.get('expired') === '1') {
+      info({
+        title: 'Session expired',
+        description: 'Please sign in again to continue.',
+      })
+    }
+  }, [searchParams, info])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

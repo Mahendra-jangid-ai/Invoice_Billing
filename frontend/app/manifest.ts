@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Billing Studio',
     short_name: 'Billing',
     description: 'Professional billing and invoicing software',
-    start_url: '/',
+    start_url: '/dashboard',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait-primary',

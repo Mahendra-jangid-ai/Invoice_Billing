@@ -67,6 +67,13 @@ export function positiveNumber(value: number | string | undefined, label: string
   return null
 }
 
+export function positiveNumberStrict(value: number | string | undefined, label: string): string | null {
+  const num = Number(value)
+  if (Number.isNaN(num)) return `${label} must be a number`
+  if (num <= 0) return `${label} must be greater than zero`
+  return null
+}
+
 export function minLength(value: string | undefined, min: number, label: string): string | null {
   if (!value?.trim()) return `${label} is required`
   if (value.trim().length < min) return `${label} must be at least ${min} characters`
@@ -162,8 +169,10 @@ export function validateInvoiceForm(data: {
   billToName?: string
   billToGstin?: string
   billToState?: string
+  shipToName?: string
   shipToGstin?: string
   shipToState?: string
+  sameAsBillTo?: boolean
   placeOfService?: string
   lineItems?: Array<{ description?: string; quantity?: number; rate?: number }>
 }) {
@@ -173,8 +182,13 @@ export function validateInvoiceForm(data: {
   setError(errors, 'billToName', minLength(data.billToName, 2, 'Bill to party name'))
   setError(errors, 'billToGstin', gstNumber(data.billToGstin))
   setError(errors, 'billToState', indianState(data.billToState))
-  setError(errors, 'shipToGstin', gstNumber(data.shipToGstin))
-  setError(errors, 'shipToState', indianState(data.shipToState))
+
+  if (!data.sameAsBillTo) {
+    setError(errors, 'shipToName', minLength(data.shipToName, 2, 'Ship to party name'))
+    setError(errors, 'shipToGstin', gstNumber(data.shipToGstin))
+    setError(errors, 'shipToState', indianState(data.shipToState))
+  }
+
   setError(errors, 'placeOfService', indianState(data.placeOfService))
 
   if (!data.lineItems?.length) {
@@ -184,11 +198,11 @@ export function validateInvoiceForm(data: {
       if (!item.description?.trim()) {
         errors[`lineItems.${index}.description`] = 'Description is required'
       }
-      if (positiveNumber(item.quantity, 'Quantity')) {
-        errors[`lineItems.${index}.quantity`] = positiveNumber(item.quantity, 'Quantity')!
+      if (positiveNumberStrict(item.quantity, 'Quantity')) {
+        errors[`lineItems.${index}.quantity`] = positiveNumberStrict(item.quantity, 'Quantity')!
       }
-      if (positiveNumber(item.rate, 'Rate')) {
-        errors[`lineItems.${index}.rate`] = positiveNumber(item.rate, 'Rate')!
+      if (positiveNumberStrict(item.rate, 'Rate')) {
+        errors[`lineItems.${index}.rate`] = positiveNumberStrict(item.rate, 'Rate')!
       }
     })
   }

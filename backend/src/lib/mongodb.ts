@@ -1,11 +1,19 @@
 import { MongoClient, MongoClientOptions, Db } from 'mongodb'
 
+const isProduction = process.env.NODE_ENV === 'production'
+
+if (isProduction && !process.env.MONGODB_URI?.trim()) {
+  console.error('MONGODB_URI environment variable is required in production')
+  process.exit(1)
+}
+
 // Use 127.0.0.1 instead of localhost to avoid IPv6 (::1) connection issues on Windows
-const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017'
+const uri = process.env.MONGODB_URI?.trim() || 'mongodb://127.0.0.1:27017'
 const dbName = process.env.MONGODB_DB || 'billing'
 
 const options: MongoClientOptions = {
-  maxPoolSize: 10,
+  maxPoolSize: Number(process.env.MONGODB_MAX_POOL_SIZE) || 50,
+  serverSelectionTimeoutMS: 10_000,
 }
 
 declare global {

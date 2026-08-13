@@ -8,19 +8,19 @@ import { registerItemRoutes } from './routes/items.js'
 import { registerInvoiceRoutes } from './routes/invoices.js'
 import { registerCompanyRoutes } from './routes/company.js'
 import { registerWebSettingsRoutes } from './routes/web-settings.js'
-import { handleApiError } from './lib/api-errors.js'
-import { ensureIndexes } from './lib/mongodb.js'
+import { handleApiError, sendError } from './lib/api-errors.js'
+import { ensureIndexes, getDatabase, getMongoClient } from './lib/mongodb.js'
 import { corsOrigin } from './lib/cors.js'
+import { globalApiRateLimit } from './lib/api-middleware.js'
 
 dotenv.config()
 
-const DEFAULT_SESSION_SECRET = 'VGdqDIcgZxAmsvcQSXTFhiAI30gFNLkWDF/Xhf77BAA='
 if (!process.env.SESSION_SECRET) {
   console.error('SESSION_SECRET environment variable is required')
   process.exit(1)
 }
-if (process.env.NODE_ENV === 'production' && process.env.SESSION_SECRET === DEFAULT_SESSION_SECRET) {
-  console.error('SESSION_SECRET must be changed from the default value in production')
+if (process.env.SESSION_SECRET.length < 32) {
+  console.error('SESSION_SECRET must be at least 32 characters long')
   process.exit(1)
 }
 
@@ -45,7 +45,16 @@ app.use((_req, res, next) => {
   next()
 })
 app.use(express.json({ limit: '2mb' }))
+app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    sendError(res, 400, 'Invalid JSON in request body', 'INVALID_JSON')
+    return
+  }
+  next(err)
+})
 app.use(cookieParser())
+
+app.use(globalApiRateLimit)
 
 app.get('/', (_req, res) => {
   res.json({
@@ -55,8 +64,14 @@ app.get('/', (_req, res) => {
   })
 })
 
-app.get('/api/health', (_req, res) => {
-  res.json({ ok: true })
+app.get('/api/health', async (_req, res) => {
+  try {
+    const db = await getDatabase()
+    await db.command({ ping: 1 })
+    res.json({ ok: true })
+  } catch {
+    res.status(503).json({ ok: false, error: 'Database unavailable' })
+  }
 })
 
 registerAuthRoutes(app)
@@ -88,3 +103,16 @@ server.on('error', (err: NodeJS.ErrnoException) => {
   console.error(err)
   process.exit(1)
 })
+
+function shutdown(signal: string) {
+  console.info(`Received ${signal}, shutting down gracefully...`)
+  server.close(() => {
+    getMongoClient()
+      .then((client) => client.close())
+      .catch(() => undefined)
+      .finally(() => process.exit(0))
+  })
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))

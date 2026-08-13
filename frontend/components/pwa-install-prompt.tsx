@@ -80,8 +80,8 @@ export function PwaInstallPrompt() {
             <p className="text-sm font-semibold text-slate-900">Install Billing Studio</p>
             <p className="mt-1 text-xs leading-relaxed text-slate-500">
               {showIosHint
-                ? 'Safari mein Share dabao, phir "Add to Home Screen" choose karo — app ki tarah khulega.'
-                : 'Home screen par add karo aur app ki tarah use karo — browser bar ke bina.'}
+                ? 'Tap Share in Safari, then choose "Add to Home Screen" to open like an app.'
+                : 'Add to your home screen and use it like a native app — without the browser bar.'}
             </p>
           </div>
           <button

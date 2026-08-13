@@ -9,7 +9,12 @@ export function registerItemRoutes(app: Express): void {
   app.get('/api/items', authMiddleware, async (req: Request, res: Response) => {
     try {
       const db = await getDatabase()
-      const items = await db.collection('items').find({ userId: req.user!.userId }).toArray()
+      const items = await db
+        .collection('items')
+        .find({ userId: req.user!.userId })
+        .sort({ name: 1 })
+        .limit(5000)
+        .toArray()
       res.json(
         items.map((item) => ({
           id: item.id || String(item._id),

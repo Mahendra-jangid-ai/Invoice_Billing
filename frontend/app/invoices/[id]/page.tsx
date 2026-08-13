@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useBilling } from '@/lib/context'
+import { useBilling, type Invoice } from '@/lib/context'
+import { apiFetch } from '@/lib/api-client'
 import { InvoicePreview } from '@/components/invoice-preview'
 import { Button } from '@/components/ui/button'
 import { Edit, Trash2, Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { AppLayout } from '@/app/app-layout'
-import { useConfirm } from '@/components/confirm-provider'
+import { useConfirm, useFeedback } from '@/components/confirm-provider'
 import { useEffect, useMemo, useState } from 'react'
 
 interface PageProps {
@@ -24,7 +25,11 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
   const router = useRouter()
   const { invoices, loading, deleteInvoice, updateInvoice } = useBilling()
   const { confirm } = useConfirm()
+  const { success, error: showError } = useFeedback()
   const [id, setId] = useState<string | null>(null)
+  const [invoice, setInvoice] = useState<Invoice | null>(null)
+  const [fetching, setFetching] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     paramsPromise.then((params) => {
@@ -32,12 +37,39 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
     })
   }, [paramsPromise])
 
-  const invoice = useMemo(
-    () => invoices.find((inv) => String(inv.id) === String(id)),
+  const contextInvoice = useMemo(
+    () => (id ? invoices.find((inv) => String(inv.id) === String(id)) : undefined),
     [invoices, id],
   )
 
-  if (!id || loading) {
+  useEffect(() => {
+    if (!id) return
+
+    if (contextInvoice) {
+      setInvoice(contextInvoice)
+      return
+    }
+
+    let cancelled = false
+    setFetching(true)
+
+    apiFetch<Invoice>(`/api/invoices/${id}`)
+      .then((data) => {
+        if (!cancelled) setInvoice(data)
+      })
+      .catch(() => {
+        if (!cancelled) setInvoice(null)
+      })
+      .finally(() => {
+        if (!cancelled) setFetching(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [id, contextInvoice])
+
+  if (!id || loading || fetching) {
     return (
       <AppLayout>
         <div className="flex h-64 items-center justify-center">
@@ -79,18 +111,30 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
     })
   }
 
-  const handleFinalize = () => {
-    updateInvoice(invoice.id, {
-      ...invoice,
-      status: 'finalized',
-    })
+  const handleFinalize = async () => {
+    setSaving(true)
+    try {
+      await updateInvoice(invoice.id, { ...invoice, status: 'finalized' })
+      setInvoice((prev) => (prev ? { ...prev, status: 'finalized' } : prev))
+      success({ title: 'Invoice finalized', description: 'This invoice is now marked as finalized.' })
+    } catch {
+      showError({ title: 'Update failed', description: 'Could not finalize the invoice. Please try again.' })
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handleMarkPaid = () => {
-    updateInvoice(invoice.id, {
-      ...invoice,
-      status: 'paid',
-    })
+  const handleMarkPaid = async () => {
+    setSaving(true)
+    try {
+      await updateInvoice(invoice.id, { ...invoice, status: 'paid' })
+      setInvoice((prev) => (prev ? { ...prev, status: 'paid' } : prev))
+      success({ title: 'Payment recorded', description: 'This invoice is now marked as paid.' })
+    } catch {
+      showError({ title: 'Update failed', description: 'Could not mark the invoice as paid. Please try again.' })
+    } finally {
+      setSaving(false)
+    }
   }
 
   const statusBadge = STATUS_MAP[invoice.status] ?? { label: invoice.status, cls: 'badge badge-gray' }
@@ -145,12 +189,12 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
           {/* Status Actions - desktop only */}
           <div className="no-print hidden gap-2 md:flex">
             {invoice.status === 'draft' && (
-              <Button onClick={handleFinalize} className="gap-2">
+              <Button onClick={handleFinalize} disabled={saving} className="gap-2">
                 Mark as Finalized
               </Button>
             )}
             {invoice.status === 'finalized' && (
-              <Button onClick={handleMarkPaid} className="gap-2">
+              <Button onClick={handleMarkPaid} disabled={saving} className="gap-2">
                 Mark as Paid
               </Button>
             )}
@@ -172,14 +216,14 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
                     Edit
                   </Button>
                 </Link>
-                <Button onClick={handleFinalize} className="h-11 flex-[1.4] gap-2">
+                <Button onClick={handleFinalize} disabled={saving} className="h-11 flex-[1.4] gap-2">
                   <CheckCircle2 className="h-4 w-4" />
                   Finalize
                 </Button>
               </>
             )}
             {invoice.status === 'finalized' && (
-              <Button onClick={handleMarkPaid} className="h-11 flex-1 gap-2">
+              <Button onClick={handleMarkPaid} disabled={saving} className="h-11 flex-1 gap-2">
                 <CheckCircle2 className="h-4 w-4" />
                 Mark Paid
               </Button>

@@ -201,7 +201,7 @@ export default function SettingsPage() {
         />
 
         <div className="premium-card p-5 sm:p-6">
-          <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <form onSubmit={handleSubmit} className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
               <h2 className="card-heading">Website preferences</h2>
               <p className="card-subtext">Shown on login and public-facing pages.</p>
@@ -291,13 +291,13 @@ export default function SettingsPage() {
                 </select>
               </div>
             </div>
-          </div>
 
-          <FormActions className="is-sticky mt-6">
-            <Button type="button" onClick={handleSubmit} disabled={saving} className="gap-2">
+          <FormActions className="is-sticky mt-6 col-span-full">
+            <Button type="submit" disabled={saving} className="gap-2">
               {saving ? 'Saving…' : 'Save changes'}
             </Button>
           </FormActions>
+          </form>
         </div>
 
         <div className="premium-card p-5 sm:p-6">
