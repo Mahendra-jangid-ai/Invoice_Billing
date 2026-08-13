@@ -20,6 +20,7 @@ import {
   Download,
 } from 'lucide-react'
 import { AppLayout } from '@/app/app-layout'
+import { PageHero } from '@/components/page-hero'
 import { useConfirm, useFeedback } from '@/components/confirm-provider'
 import { cn } from '@/lib/utils'
 import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react'
@@ -128,15 +129,16 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
   if (!invoice) {
     return (
       <AppLayout>
-        <div className="flex flex-col">
-          <div className="border-b border-[#E5E7EB] bg-white px-4 py-5 sm:px-8 sm:py-6">
-            <h1 className="text-xl font-bold text-[#111827] sm:text-3xl">Invoice Not Found</h1>
-          </div>
-          <div className="flex-1 p-4 sm:p-8">
-            <Link href="/invoices">
-              <Button>Back to Invoices</Button>
-            </Link>
-          </div>
+        <div className="space-y-5 animate-fade-in">
+          <PageHero
+            title="Invoice not found"
+            description="It may have been deleted or you may not have access."
+            actions={
+              <Link href="/invoices">
+                <Button>Back to invoices</Button>
+              </Link>
+            }
+          />
         </div>
       </AppLayout>
     )
@@ -194,7 +196,7 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
 
   return (
     <AppLayout>
-      <div className={cn('flex flex-col', compactView && 'invoice-detail-mobile md:pb-0')}>
+      <div className={cn('animate-fade-in', compactView ? 'invoice-detail-mobile' : 'space-y-5 sm:space-y-6')}>
         {compactView && (
           <div className="no-print flex items-center gap-3">
             <Link
@@ -213,49 +215,52 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
         )}
 
         {!compactView && (
-          <div className="no-print border-b border-[#E5E7EB] bg-white px-4 py-5 sm:px-8 sm:py-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-[#111827] sm:text-3xl">{invoice.invoiceNumber}</h1>
-                <p className="mt-1 text-[#4B5563]">Invoice details and management</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
+          <PageHero
+            label="Billing"
+            title={invoice.invoiceNumber}
+            description="Invoice details and management"
+            actions={
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                 {invoice.status === 'draft' && (
-                  <Link href={`/invoices/${invoice.id}/edit`}>
-                    <Button variant="outline" className="gap-2">
+                  <Link href={`/invoices/${invoice.id}/edit`} className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full gap-2 sm:w-auto">
                       <Edit className="h-4 w-4" />
                       Edit
                     </Button>
                   </Link>
                 )}
-                <button
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2 sm:w-auto"
                   onClick={handleDelete}
-                  className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F3F4F6]"
                 >
                   <Trash2 className="h-4 w-4" />
                   Delete
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
+            }
+            footer={
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={statusBadge.cls}>{statusBadge.label}</span>
+                {invoice.status === 'draft' && (
+                  <Button onClick={handleFinalize} disabled={saving} size="sm" className="gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Mark as Finalized
+                  </Button>
+                )}
+                {invoice.status === 'finalized' && (
+                  <Button onClick={handleMarkPaid} disabled={saving} size="sm" className="gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Mark as Paid
+                  </Button>
+                )}
+              </div>
+            }
+          />
         )}
 
-        <div className={cn('flex-1', compactView ? 'pt-2' : 'space-y-4 pt-4 sm:space-y-6 sm:p-8 sm:pt-6')}>
-          {!compactView && (
-            <div className="no-print flex flex-wrap gap-2">
-              {invoice.status === 'draft' && (
-                <Button onClick={handleFinalize} disabled={saving} className="gap-2">
-                  Mark as Finalized
-                </Button>
-              )}
-              {invoice.status === 'finalized' && (
-                <Button onClick={handleMarkPaid} disabled={saving} className="gap-2">
-                  Mark as Paid
-                </Button>
-              )}
-            </div>
-          )}
-
+        <div className={cn(compactView && 'pt-2')}>
           <InvoicePreview
             invoice={invoice}
             mobileActions={compactView ? 'external' : 'panel'}

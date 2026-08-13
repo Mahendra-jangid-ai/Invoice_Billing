@@ -914,7 +914,7 @@ export function InvoicePreview({
   }
 
   return (
-    <div className="w-full rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm soft-card">
+    <div className="premium-card w-full p-4 sm:p-5">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm font-semibold text-[#374151]">PDF Preview</div>
         <DesktopPdfActions
