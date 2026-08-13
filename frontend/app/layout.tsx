@@ -20,7 +20,6 @@ export const metadata: Metadata = {
   title: 'Billing Studio',
   description: 'Professional billing and invoicing software',
   applicationName: 'Billing Studio',
-  generator: 'v0.app',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -28,18 +27,8 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/fevicon.png', type: 'image/png', sizes: '512x512' },
     ],
     apple: '/apple-icon.png',
   },

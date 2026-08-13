@@ -16,6 +16,7 @@ import {
 import { Download, ExternalLink, Eye, Loader2, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { useBilling, Invoice } from '@/lib/context'
 import { useFeedback } from '@/components/confirm-provider'
+import { MobilePdfViewer } from '@/components/mobile-pdf-viewer'
 
 function usePdfErrorPopup(error: string | null | undefined) {
   const { error: showError } = useFeedback()
@@ -36,14 +37,19 @@ function usePdfErrorPopup(error: string | null | undefined) {
   }, [error, showError])
 }
 
+function detectMobilePdfFallback(): boolean {
+  if (typeof window === 'undefined') return false
+  const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+  const narrowScreen = window.matchMedia('(max-width: 768px)').matches
+  const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  return mobileUa || (touchDevice && narrowScreen)
+}
+
 function useMobilePdfFallback() {
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(detectMobilePdfFallback)
 
   useEffect(() => {
-    const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
-    const narrowScreen = window.matchMedia('(max-width: 768px)').matches
-    const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-    setIsMobile(mobileUa || (touchDevice && narrowScreen))
+    setIsMobile(detectMobilePdfFallback())
   }, [])
 
   return isMobile
@@ -732,7 +738,7 @@ function MobileInvoicePdfPanel({
 }) {
   const [instance, updateInstance] = usePDF()
   const [downloadState, setDownloadState] = useState<'idle' | 'done'>('idle')
-  const [viewState, setViewState] = useState<'idle' | 'opened'>('idle')
+  const [viewerOpen, setViewerOpen] = useState(false)
   usePdfErrorPopup(instance.error)
 
   useEffect(() => {
@@ -750,18 +756,7 @@ function MobileInvoicePdfPanel({
 
   const handleView = () => {
     if (!instance.url) return
-    const tab = window.open(instance.url, '_blank', 'noopener,noreferrer')
-    if (!tab) {
-      const anchor = window.document.createElement('a')
-      anchor.href = instance.url
-      anchor.target = '_blank'
-      anchor.rel = 'noopener noreferrer'
-      window.document.body.appendChild(anchor)
-      anchor.click()
-      window.document.body.removeChild(anchor)
-    }
-    setViewState('opened')
-    window.setTimeout(() => setViewState('idle'), 2500)
+    setViewerOpen(true)
   }
 
   const handleDownload = () => {
@@ -790,6 +785,7 @@ function MobileInvoicePdfPanel({
   }, [instance.loading, instance.url, instance.blob, instance.error, onActionsReady])
 
   return (
+    <>
     <div className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 py-5 text-white">
         <div className="flex items-start justify-between gap-3">
@@ -846,19 +842,11 @@ function MobileInvoicePdfPanel({
               className="group flex w-full items-center gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-white p-4 text-left shadow-sm transition active:scale-[0.98]"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2563EB] text-white shadow-md shadow-blue-200">
-                {viewState === 'opened' ? (
-                  <CheckCircle2 className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
+                <Eye className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-slate-900">
-                  {viewState === 'opened' ? 'Opened in browser' : 'View Invoice'}
-                </p>
-                <p className="mt-0.5 text-xs text-slate-500">
-                  {viewState === 'opened' ? 'Switch to the new tab to read' : 'Opens in browser — no download'}
-                </p>
+                <p className="text-sm font-semibold text-slate-900">View Invoice</p>
+                <p className="mt-0.5 text-xs text-slate-500">Full-screen preview in the app</p>
               </div>
               <ChevronRight className="h-5 w-5 shrink-0 text-slate-300" />
             </button>
@@ -897,6 +885,13 @@ function MobileInvoicePdfPanel({
         </div>
       ) : null}
     </div>
+    <MobilePdfViewer
+      url={instance.url}
+      fileName={fileName}
+      open={viewerOpen}
+      onClose={() => setViewerOpen(false)}
+    />
+    </>
   )
 }
 
