@@ -17,7 +17,7 @@ import { Download, ExternalLink, Eye, Loader2, ChevronRight, CheckCircle2 } from
 import { useBilling, Invoice } from '@/lib/context'
 import { useFeedback } from '@/components/confirm-provider'
 import { MobilePdfViewer } from '@/components/mobile-pdf-viewer'
-import { useIsInstalledPwa } from '@/lib/use-installed-pwa'
+import { useCompactInvoiceView } from '@/lib/invoice-view-mode'
 
 function usePdfErrorPopup(error: string | null | undefined) {
   const { error: showError } = useFeedback()
@@ -38,31 +38,6 @@ function usePdfErrorPopup(error: string | null | undefined) {
   }, [error, showError])
 }
 
-function detectMobilePdfFallback(): boolean {
-  if (typeof window === 'undefined') return false
-  if (document.documentElement.dataset.pwaShell === 'true') return true
-  const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
-  const narrowScreen = window.matchMedia('(max-width: 768px)').matches
-  const mobileUa = /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent,
-  )
-  const standalone =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.matchMedia('(display-mode: fullscreen)').matches ||
-    ('standalone' in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone))
-  return standalone || mobileUa || (touchDevice && narrowScreen)
-}
-
-function useMobilePdfFallback() {
-  const [isMobile, setIsMobile] = useState(detectMobilePdfFallback)
-
-  useEffect(() => {
-    setIsMobile(detectMobilePdfFallback())
-  }, [])
-
-  return isMobile
-}
-
 Font.register({
   family: 'Roboto',
   fonts: [
@@ -79,7 +54,6 @@ Font.register({
 interface InvoicePreviewProps {
   invoice: Invoice
   mobileActions?: 'panel' | 'external'
-  forceMobileLayout?: boolean
   viewOpen?: boolean
   onViewOpenChange?: (open: boolean) => void
   onMobilePdfActions?: (actions: InvoicePdfMobileActions) => void
@@ -923,7 +897,18 @@ function MobileInvoicePdfPanel({
             Preparing invoice PDF…
           </p>
         </div>
-      ) : null}
+      ) : (
+        <div className="border-t border-white/20 p-4">
+          <button
+            type="button"
+            onClick={handleView}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3.5 text-sm font-semibold text-[#2563EB] shadow-sm active:scale-[0.98]"
+          >
+            <Eye className="h-4 w-4" />
+            View Invoice PDF
+          </button>
+        </div>
+      )}
     </div>
     {!viewerControlledOnPage && (
       <MobilePdfViewer
@@ -940,7 +925,6 @@ function MobileInvoicePdfPanel({
 export function InvoicePreview({
   invoice,
   mobileActions = 'panel',
-  forceMobileLayout = false,
   viewOpen,
   onViewOpenChange,
   onMobilePdfActions,
@@ -1100,11 +1084,9 @@ export function InvoicePreview({
   const cashDiscountAmount = invoice.cashDiscount?.discountAmount || 0
   const displayTotal = Math.round(rawTotal - cashDiscountAmount)
 
-  const isInstalledPwa = useIsInstalledPwa()
-  const isMobile = useMobilePdfFallback()
-  const useMobilePdf = forceMobileLayout || isMobile || isInstalledPwa
+  const compactView = useCompactInvoiceView()
 
-  if (useMobilePdf) {
+  if (compactView) {
     return (
       <MobileInvoicePdfPanel
         pdfDocument={pdfDocument}

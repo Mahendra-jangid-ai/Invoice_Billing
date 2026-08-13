@@ -428,8 +428,16 @@
     padding-bottom: calc(11rem + var(--mobile-safe-bottom));
   }
 
+  html[data-pwa-shell='true'] .invoice-detail-footer {
+    display: block;
+  }
+
   @media (min-width: 768px) {
-    .invoice-detail-mobile {
+    html:not([data-pwa-shell='true']) .invoice-detail-footer {
+      display: none;
+    }
+
+    html:not([data-pwa-shell='true']) .invoice-detail-mobile {
       padding-bottom: 0;
     }
   }

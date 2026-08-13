@@ -17,7 +17,7 @@ interface PageProps {
 
 export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
   const router = useRouter()
-  const { invoices, loading, updateInvoice } = useBilling()
+  const { invoices, updateInvoice } = useBilling()
   const [id, setId] = useState<string | null>(null)
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [fetching, setFetching] = useState(false)
@@ -31,13 +31,14 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
   useEffect(() => {
     if (!id) return
 
+    let cancelled = false
     const contextInvoice = invoices.find((inv) => String(inv.id) === String(id))
     if (contextInvoice) {
       setInvoice(contextInvoice)
-      return
+    } else {
+      setInvoice(null)
     }
 
-    let cancelled = false
     setFetching(true)
 
     apiFetch<Invoice>(`/api/invoices/${id}`)
@@ -45,7 +46,7 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
         if (!cancelled) setInvoice(data)
       })
       .catch(() => {
-        if (!cancelled) setInvoice(null)
+        if (!cancelled && !contextInvoice) setInvoice(null)
       })
       .finally(() => {
         if (!cancelled) setFetching(false)
@@ -56,7 +57,7 @@ export default function EditInvoicePage({ params: paramsPromise }: PageProps) {
     }
   }, [id, invoices])
 
-  if (!id || loading || fetching) {
+  if (!id || (!invoice && fetching)) {
     return (
       <AppLayout>
         <div className="flex h-64 items-center justify-center">
