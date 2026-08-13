@@ -8,7 +8,7 @@ import {
   InvoicePreview,
   type InvoicePdfMobileActions,
 } from '@/components/invoice-preview'
-import { MobilePdfViewer } from '@/components/mobile-pdf-viewer'
+import { InvoiceHtmlViewer } from '@/components/invoice-html-viewer'
 import { useCompactInvoiceView } from '@/lib/invoice-view-mode'
 import { Button } from '@/components/ui/button'
 import {
@@ -277,7 +277,7 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
                   onClick={openPdfView}
                 >
                   <Eye className="h-4 w-4" />
-                  View PDF
+                  View Invoice
                 </Button>
                 <Button
                   type="button"
@@ -330,10 +330,9 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
         )}
       </div>
 
-      {pdfViewOpen && pdfActions && (
-        <MobilePdfViewer
-          pdfDocument={pdfActions.pdfDocument}
-          fileName={pdfActions.fileName}
+      {pdfViewOpen && (
+        <InvoiceHtmlViewer
+          invoice={invoice}
           open={pdfViewOpen}
           onClose={() => setPdfViewOpen(false)}
         />

@@ -17,6 +17,7 @@ import { Download, ExternalLink, Eye, Loader2, ChevronRight, CheckCircle2 } from
 import { useBilling, Invoice } from '@/lib/context'
 import { useFeedback } from '@/components/confirm-provider'
 import { MobilePdfViewer } from '@/components/mobile-pdf-viewer'
+import { InvoiceHtmlViewer } from '@/components/invoice-html-viewer'
 import { useCompactInvoiceView } from '@/lib/invoice-view-mode'
 
 function usePdfErrorPopup(error: string | null | undefined) {
@@ -65,7 +66,6 @@ export interface InvoicePdfMobileActions {
   canView: boolean
   error?: string | null
   fileName: string
-  pdfDocument: ReactElement<DocumentProps>
   handleView: () => void
   handleDownload: () => void
 }
@@ -714,6 +714,7 @@ const STATUS_STYLES = {
 } as const
 
 function MobileInvoicePdfPanel({
+  invoice,
   pdfDocument,
   invoiceNumber,
   date,
@@ -725,6 +726,7 @@ function MobileInvoicePdfPanel({
   onViewOpenChange,
   onActionsReady,
 }: {
+  invoice: Invoice
   pdfDocument: ReactElement<DocumentProps>
   invoiceNumber?: string
   date?: string
@@ -783,7 +785,6 @@ function MobileInvoicePdfPanel({
       canView: true,
       error: instance.error,
       fileName,
-      pdfDocument,
       handleView,
       handleDownload,
     })
@@ -795,7 +796,6 @@ function MobileInvoicePdfPanel({
     handleView,
     handleDownload,
     fileName,
-    pdfDocument,
   ])
 
   return (
@@ -911,9 +911,8 @@ function MobileInvoicePdfPanel({
       )}
     </div>
     {!viewerControlledOnPage && (
-      <MobilePdfViewer
-        pdfDocument={pdfDocument}
-        fileName={fileName}
+      <InvoiceHtmlViewer
+        invoice={invoice}
         open={viewerOpen}
         onClose={() => setViewerOpen(false)}
       />
@@ -1089,6 +1088,7 @@ export function InvoicePreview({
   if (compactView) {
     return (
       <MobileInvoicePdfPanel
+        invoice={invoice}
         pdfDocument={pdfDocument}
         invoiceNumber={invoice.invoiceNumber}
         date={invoice.date}
