@@ -374,6 +374,7 @@
   /* Tab bar + FAB clearance for scrollable lists */
     --mobile-content-inset: calc(var(--mobile-bottom-chrome) + 3.5rem);
     --mobile-form-sticky-h: 5.75rem;
+    --invoice-detail-footer-h: 8.5rem;
   }
 
   html[data-pwa-shell='true'] {
@@ -425,7 +426,7 @@
   }
 
   .invoice-detail-mobile {
-    padding-bottom: calc(11rem + var(--mobile-safe-bottom));
+    padding-bottom: calc(var(--invoice-detail-footer-h) + var(--mobile-safe-bottom));
   }
 
   html[data-pwa-shell='true'] .invoice-detail-footer {

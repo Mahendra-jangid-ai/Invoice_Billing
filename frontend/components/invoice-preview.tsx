@@ -852,24 +852,13 @@ function MobileInvoicePdfPanel({
         ) : null}
         </div>
       ) : instance.loading ? (
-        <div className="px-4 pb-4">
-          <p className="flex items-center justify-center gap-2 py-2 text-xs text-slate-400">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Preparing invoice PDF…
+        <div className="border-t border-white/15 px-4 py-2">
+          <p className="flex items-center justify-center gap-1.5 text-[11px] text-blue-100">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Preparing PDF…
           </p>
         </div>
-      ) : (
-        <div className="border-t border-white/20 p-4">
-          <button
-            type="button"
-            onClick={handleView}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3.5 text-sm font-semibold text-[#2563EB] shadow-sm active:scale-[0.98]"
-          >
-            <Eye className="h-4 w-4" />
-            View Invoice PDF
-          </button>
-        </div>
-      )}
+      ) : null}
     </div>
     <InvoiceHtmlViewer
       invoice={invoice}

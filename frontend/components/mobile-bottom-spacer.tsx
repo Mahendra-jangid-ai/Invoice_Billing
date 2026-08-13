@@ -11,6 +11,9 @@ export function MobileBottomSpacer() {
 
   if (!isInstalledPwa) return null
 
+  // Invoice detail uses its own fixed footer + invoice-detail-mobile padding.
+  if (/^\/invoices\/[^/]+$/.test(pathname) && pathname !== '/invoices') return null
+
   if (shouldHideBottomNav(pathname)) {
     return (
       <div

@@ -240,7 +240,7 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
           </div>
         )}
 
-        <div className="flex-1 space-y-4 pt-4 sm:space-y-6 sm:p-8 sm:pt-6">
+        <div className={cn('flex-1', compactView ? 'pt-2' : 'space-y-4 pt-4 sm:space-y-6 sm:p-8 sm:pt-6')}>
           {!compactView && (
             <div className="no-print flex flex-wrap gap-2">
               {invoice.status === 'draft' && (
@@ -266,8 +266,8 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
         </div>
 
         {compactView && (
-          <div className="no-print invoice-detail-footer mobile-sticky-footer fixed inset-x-0 z-40 border-t border-slate-200 bg-white/95 px-3 py-3 backdrop-blur-md">
-            <div className="space-y-2">
+          <div className="no-print invoice-detail-footer mobile-sticky-footer fixed inset-x-0 z-40 border-t border-slate-200 bg-white/95 px-3 py-2 backdrop-blur-md">
+            <div className="space-y-1.5">
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
