@@ -51,7 +51,7 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
 function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { invoices, loading, deleteInvoice, updateInvoice } = useBilling()
+  const { invoices, deleteInvoice, updateInvoice } = useBilling()
   const { confirm } = useConfirm()
   const { success, error: showError } = useFeedback()
   const [id, setId] = useState<string | null>(null)
@@ -62,17 +62,7 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
   const autoDownloadDone = useRef(false)
 
   const handlePdfActions = useCallback((actions: InvoicePdfMobileActions) => {
-    setPdfActions((prev) => {
-      if (
-        prev &&
-        prev.loading === actions.loading &&
-        prev.ready === actions.ready &&
-        prev.error === actions.error
-      ) {
-        return prev
-      }
-      return actions
-    })
+    setPdfActions(actions)
   }, [])
 
   useEffect(() => {
@@ -87,12 +77,13 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
   useEffect(() => {
     if (!id) return
 
+    let cancelled = false
     if (contextInvoice) {
       setInvoice(contextInvoice)
-      return
+    } else {
+      setInvoice(null)
     }
 
-    let cancelled = false
     setFetching(true)
 
     apiFetch<Invoice>(`/api/invoices/${id}`)
@@ -100,7 +91,7 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
         if (!cancelled) setInvoice(data)
       })
       .catch(() => {
-        if (!cancelled) setInvoice(null)
+        if (!cancelled && !contextInvoice) setInvoice(null)
       })
       .finally(() => {
         if (!cancelled) setFetching(false)
@@ -120,7 +111,7 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
     pdfActions.handleDownload()
   }, [searchParams, pdfActions])
 
-  if (!id || loading || fetching) {
+  if (!id || (!invoice && fetching)) {
     return (
       <AppLayout>
         <div className="flex h-64 items-center justify-center">

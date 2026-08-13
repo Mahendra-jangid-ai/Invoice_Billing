@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import {
   Document,
   Font,
@@ -754,12 +754,12 @@ function MobileInvoicePdfPanel({
     ? `₹${totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
     : '—'
 
-  const handleView = () => {
-    if (!instance.url) return
+  const handleView = useCallback(() => {
+    if (!instance.url && !instance.blob) return
     setViewerOpen(true)
-  }
+  }, [instance.url, instance.blob])
 
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     if (!instance.blob) return
     const url = URL.createObjectURL(instance.blob)
     const anchor = window.document.createElement('a')
@@ -771,7 +771,7 @@ function MobileInvoicePdfPanel({
     URL.revokeObjectURL(url)
     setDownloadState('done')
     window.setTimeout(() => setDownloadState('idle'), 2500)
-  }
+  }, [instance.blob, fileName])
 
   useEffect(() => {
     if (!onActionsReady) return
@@ -782,7 +782,15 @@ function MobileInvoicePdfPanel({
       handleView,
       handleDownload,
     })
-  }, [instance.loading, instance.url, instance.blob, instance.error, onActionsReady])
+  }, [
+    instance.loading,
+    instance.url,
+    instance.blob,
+    instance.error,
+    onActionsReady,
+    handleView,
+    handleDownload,
+  ])
 
   return (
     <>
@@ -887,6 +895,8 @@ function MobileInvoicePdfPanel({
     </div>
     <MobilePdfViewer
       url={instance.url}
+      blob={instance.blob}
+      pdfDocument={pdfDocument}
       fileName={fileName}
       open={viewerOpen}
       onClose={() => setViewerOpen(false)}
