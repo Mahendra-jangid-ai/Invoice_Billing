@@ -761,9 +761,9 @@ function MobileInvoicePdfPanel({
     : '—'
 
   const handleView = useCallback(() => {
-    if (!instance.blob && !instance.url) return
+    if (instance.loading || instance.error) return
     setViewerOpen(true)
-  }, [instance.blob, instance.url])
+  }, [instance.loading, instance.error])
 
   const handleDownload = useCallback(() => {
     if (!instance.blob) return
@@ -783,7 +783,7 @@ function MobileInvoicePdfPanel({
     if (!onActionsReady) return
     onActionsReady({
       loading: instance.loading,
-      ready: Boolean(instance.blob),
+      ready: !instance.loading && !instance.error,
       error: instance.error,
       handleView,
       handleDownload,
@@ -900,8 +900,7 @@ function MobileInvoicePdfPanel({
       ) : null}
     </div>
     <MobilePdfViewer
-      url={instance.url}
-      blob={instance.blob}
+      pdfDocument={pdfDocument}
       fileName={fileName}
       open={viewerOpen}
       onClose={() => setViewerOpen(false)}

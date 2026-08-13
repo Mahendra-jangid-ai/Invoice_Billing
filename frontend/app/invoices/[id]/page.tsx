@@ -245,72 +245,65 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
           />
         </div>
 
-        <div className="no-print mobile-sticky-footer fixed inset-x-0 z-40 border-t border-slate-200 bg-white/95 px-2 py-2 backdrop-blur-md md:hidden">
-          <div className="flex items-stretch gap-1">
-            <button
-              type="button"
-              disabled={pdfBusy}
-              onClick={() => pdfActions?.handleView()}
-              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-slate-700 active:bg-slate-100 disabled:opacity-50"
-            >
-              {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-              <span>View</span>
-            </button>
-            <button
-              type="button"
-              disabled={pdfBusy}
-              onClick={() => pdfActions?.handleDownload()}
-              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-slate-700 active:bg-slate-100 disabled:opacity-50"
-            >
-              {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              <span>Save</span>
-            </button>
-            {invoice.status === 'draft' && (
-              <Link
-                href={`/invoices/${invoice.id}/edit`}
-                className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-slate-700 active:bg-slate-100"
+        <div className="no-print mobile-sticky-footer fixed inset-x-0 z-40 border-t border-slate-200 bg-white/95 px-3 py-3 backdrop-blur-md md:hidden">
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 gap-2"
+                disabled={pdfBusy}
+                onClick={() => pdfActions?.handleView()}
               >
-                <Edit className="h-4 w-4" />
-                <span>Edit</span>
-              </Link>
-            )}
-            {invoice.status === 'draft' && (
+                {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+                View PDF
+              </Button>
+              <Button
+                type="button"
+                className="h-11 gap-2"
+                disabled={pdfBusy}
+                onClick={() => pdfActions?.handleDownload()}
+              >
+                {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                Download
+              </Button>
+            </div>
+
+            <div className="flex gap-2">
+              {invoice.status === 'draft' && (
+                <>
+                  <Link href={`/invoices/${invoice.id}/edit`} className="min-w-0 flex-1">
+                    <Button variant="outline" className="h-11 w-full gap-2">
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </Button>
+                  </Link>
+                  <Button onClick={handleFinalize} disabled={saving} className="h-11 min-w-0 flex-[1.2] gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Finalize
+                  </Button>
+                </>
+              )}
+              {invoice.status === 'finalized' && (
+                <Button onClick={handleMarkPaid} disabled={saving} className="h-11 flex-1 gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Mark Paid
+                </Button>
+              )}
+              {invoice.status === 'paid' && (
+                <p className="flex h-11 flex-1 items-center justify-center rounded-xl bg-emerald-50 text-sm font-medium text-emerald-700">
+                  Payment received
+                </p>
+              )}
               <button
                 type="button"
-                onClick={handleFinalize}
-                disabled={saving}
-                className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-emerald-700 active:bg-emerald-50 disabled:opacity-50"
+                onClick={handleDelete}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600"
+                aria-label="Delete invoice"
               >
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Finalize</span>
+                <Trash2 className="h-4 w-4" />
               </button>
-            )}
-            {invoice.status === 'finalized' && (
-              <button
-                type="button"
-                onClick={handleMarkPaid}
-                disabled={saving}
-                className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-emerald-700 active:bg-emerald-50 disabled:opacity-50"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Paid</span>
-              </button>
-            )}
-            {invoice.status === 'paid' && (
-              <div className="flex min-w-0 flex-[2] flex-col items-center justify-center gap-0.5 rounded-lg bg-emerald-50 py-1.5 text-[10px] font-medium text-emerald-700">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Received</span>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-red-600 active:bg-red-50"
-              aria-label="Delete invoice"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>Delete</span>
-            </button>
+            </div>
           </div>
         </div>
       </div>

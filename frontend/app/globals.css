@@ -425,7 +425,7 @@
   }
 
   .invoice-detail-mobile {
-    padding-bottom: calc(4.5rem + var(--mobile-safe-bottom));
+    padding-bottom: calc(11rem + var(--mobile-safe-bottom));
   }
 
   @media (min-width: 768px) {
