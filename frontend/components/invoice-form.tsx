@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button'
 import { FormActions } from '@/components/form-actions'
 import { Plus, Trash2 } from 'lucide-react'
 import { INVOICE_PLACEHOLDERS } from '@/lib/form-placeholders'
+import { useConfirm } from '@/components/confirm-provider'
+import { StateCodeFields } from '@/components/state-select'
+import { fieldClassName } from '@/components/form-field'
+import { type FieldErrors, hasErrors, validateInvoiceForm } from '@/lib/validation'
 
 interface InvoiceFormProps {
   onSubmit: (invoice: Invoice) => void
@@ -16,6 +20,7 @@ const labelClass = 'block text-xs font-semibold text-slate-600 mb-1.5'
 
 export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   const { customers, items, company, getNextInvoiceNumber } = useBilling()
+  const { confirm } = useConfirm()
 
   const [invoiceNumber, setInvoiceNumber] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -47,6 +52,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   const [taxPercentage, setTaxPercentage] = useState(18)
   const [cashDiscount, setCashDiscount] = useState(0)
   const [notes, setNotes] = useState('')
+  const [errors, setErrors] = useState<FieldErrors>({})
 
   useEffect(() => {
     if (initialInvoice) {
@@ -127,7 +133,15 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   }
 
   const removeLineItem = (index: number) => {
-    setLineItems(lineItems.filter((_, i) => i !== index))
+    confirm({
+      title: 'Remove line item?',
+      description: 'Are you sure you want to remove this line item?',
+      confirmText: 'Yes',
+      cancelText: 'No',
+      onConfirm: () => {
+        setLineItems(lineItems.filter((_, i) => i !== index))
+      },
+    })
   }
 
   const updateLineItem = (index: number, updates: Partial<InvoiceLineItem>) => {
@@ -164,15 +178,19 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!billTo.name) {
-      alert('Please select a customer or enter Bill to Party Name')
-      return
-    }
-
-    if (lineItems.length === 0) {
-      alert('Please add at least one item')
-      return
-    }
+    const nextErrors = validateInvoiceForm({
+      invoiceNumber,
+      date,
+      billToName: billTo.name,
+      billToGstin: billTo.gstin,
+      billToState: billTo.state,
+      shipToGstin: sameAsBillTo ? billTo.gstin : shipTo.gstin,
+      shipToState: sameAsBillTo ? billTo.state : shipTo.state,
+      placeOfService,
+      lineItems,
+    })
+    setErrors(nextErrors)
+    if (hasErrors(nextErrors)) return
 
     const formattedLineItems: InvoiceLineItem[] = lineItems.map((item) => ({
       itemId: item.itemId || Date.now().toString(),
@@ -298,23 +316,23 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
 
           <div>
             <label className={labelClass}>Place of Service (State)</label>
-            <input
-              type="text"
-              value={placeOfService}
-              onChange={(e) => setPlaceOfService(e.target.value)}
-              placeholder={INVOICE_PLACEHOLDERS.placeOfService}
-              className="field-input"
-            />
-          </div>
-
-          <div>
-            <label className={labelClass}>Place of Service Code</label>
-            <input
-              type="text"
-              value={placeOfServiceCode}
-              onChange={(e) => setPlaceOfServiceCode(e.target.value)}
-              placeholder={INVOICE_PLACEHOLDERS.placeOfServiceCode}
-              className="field-input"
+            <StateCodeFields
+              stateValue={placeOfService}
+              codeValue={placeOfServiceCode}
+              onChange={(state, code) => {
+                setPlaceOfService(state)
+                setPlaceOfServiceCode(code)
+                if (errors.placeOfService) {
+                  setErrors((prev) => {
+                    const next = { ...prev }
+                    delete next.placeOfService
+                    return next
+                  })
+                }
+              }}
+              stateLabel="Place of Service"
+              codeLabel="Place of Service Code"
+              stateError={errors.placeOfService}
             />
           </div>
         </div>
@@ -358,9 +376,9 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                 value={billTo.name}
                 onChange={(e) => setBillTo({ ...billTo, name: e.target.value })}
                 placeholder={INVOICE_PLACEHOLDERS.partyName}
-                className="field-input"
-                required
+                className={fieldClassName(errors.billToName)}
               />
+              {errors.billToName && <p className="mt-1 text-xs text-red-600">{errors.billToName}</p>}
             </div>
 
             <div>
@@ -380,29 +398,18 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                 <input
                   type="text"
                   value={billTo.gstin}
-                  onChange={(e) => setBillTo({ ...billTo, gstin: e.target.value })}
+                  onChange={(e) => setBillTo({ ...billTo, gstin: e.target.value.toUpperCase() })}
                   placeholder={INVOICE_PLACEHOLDERS.gstin}
-                  className="field-input"
+                  className={fieldClassName(errors.billToGstin)}
                 />
+                {errors.billToGstin && <p className="mt-1 text-xs text-red-600">{errors.billToGstin}</p>}
               </div>
-              <div>
-                <label className={labelClass}>State</label>
-                <input
-                  type="text"
-                  value={billTo.state}
-                  onChange={(e) => setBillTo({ ...billTo, state: e.target.value })}
-                  placeholder={INVOICE_PLACEHOLDERS.placeOfService}
-                  className="field-input"
-                />
-              </div>
-              <div>
-                <label className={labelClass}>State Code</label>
-                <input
-                  type="text"
-                  value={billTo.code}
-                  onChange={(e) => setBillTo({ ...billTo, code: e.target.value })}
-                  placeholder={INVOICE_PLACEHOLDERS.placeOfServiceCode}
-                  className="field-input"
+              <div className="sm:col-span-2">
+                <StateCodeFields
+                  stateValue={billTo.state}
+                  codeValue={billTo.code}
+                  onChange={(state, code) => setBillTo({ ...billTo, state, code })}
+                  stateError={errors.billToState}
                 />
               </div>
             </div>
@@ -460,24 +467,13 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                   className="field-input disabled:bg-slate-100 disabled:text-slate-500"
                 />
               </div>
-              <div>
-                <label className={labelClass}>State</label>
-                <input
-                  type="text"
-                  value={sameAsBillTo ? billTo.state : shipTo.state}
-                  onChange={(e) => setShipTo({ ...shipTo, state: e.target.value })}
+              <div className="sm:col-span-2">
+                <StateCodeFields
+                  stateValue={sameAsBillTo ? billTo.state : shipTo.state}
+                  codeValue={sameAsBillTo ? billTo.code : shipTo.code}
+                  onChange={(state, code) => setShipTo({ ...shipTo, state, code })}
+                  stateError={errors.shipToState}
                   disabled={sameAsBillTo}
-                  className="field-input disabled:bg-slate-100 disabled:text-slate-500"
-                />
-              </div>
-              <div>
-                <label className={labelClass}>State Code</label>
-                <input
-                  type="text"
-                  value={sameAsBillTo ? billTo.code : shipTo.code}
-                  onChange={(e) => setShipTo({ ...shipTo, code: e.target.value })}
-                  disabled={sameAsBillTo}
-                  className="field-input disabled:bg-slate-100 disabled:text-slate-500"
                 />
               </div>
             </div>
@@ -501,6 +497,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
         {lineItems.length === 0 ? (
           <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-12 text-center">
             <p className="text-sm text-slate-500">No items yet. Click &quot;Add Row&quot; to add a line item.</p>
+            {errors.lineItems && <p className="mt-2 text-xs text-red-600">{errors.lineItems}</p>}
           </div>
         ) : (
           <div className="space-y-4">
@@ -552,9 +549,11 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                         value={item.description || ''}
                         onChange={(e) => updateLineItem(index, { description: e.target.value })}
                         placeholder={INVOICE_PLACEHOLDERS.lineDescription}
-                        className="field-input"
-                        required
+                        className={fieldClassName(errors[`lineItems.${index}.description`])}
                       />
+                      {errors[`lineItems.${index}.description`] && (
+                        <p className="mt-1 text-xs text-red-600">{errors[`lineItems.${index}.description`]}</p>
+                      )}
                     </div>
 
                     <div>

@@ -7,6 +7,7 @@ import { InvoicePreview } from '@/components/invoice-preview'
 import { Button } from '@/components/ui/button'
 import { Edit, Trash2, Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { AppLayout } from '@/app/app-layout'
+import { useConfirm } from '@/components/confirm-provider'
 import { useEffect, useMemo, useState } from 'react'
 
 interface PageProps {
@@ -22,6 +23,7 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
 export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) {
   const router = useRouter()
   const { invoices, loading, deleteInvoice, updateInvoice } = useBilling()
+  const { confirm } = useConfirm()
   const [id, setId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -65,10 +67,16 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
   }
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this invoice?')) {
-      deleteInvoice(invoice.id)
-      router.push('/invoices')
-    }
+    confirm({
+      title: 'Delete invoice?',
+      description: `Are you sure you want to delete ${invoice.invoiceNumber}? This action cannot be undone.`,
+      confirmText: 'Yes',
+      cancelText: 'No',
+      onConfirm: async () => {
+        await deleteInvoice(invoice.id)
+        router.push('/invoices')
+      },
+    })
   }
 
   const handleFinalize = () => {

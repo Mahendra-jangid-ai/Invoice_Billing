@@ -23,21 +23,26 @@ const AppLayout = dynamic(
 )
 
 import { ITEM_PLACEHOLDERS } from '@/lib/form-placeholders'
+import { useConfirm } from '@/components/confirm-provider'
+import { FormField, fieldClassName } from '@/components/form-field'
+import { type FieldErrors, hasErrors, validateItemForm } from '@/lib/validation'
 
 const EMPTY_FORM: Partial<Item> = { name: '', description: '', hsnsac: '', unitprice: 0 }
 
 export default function ItemsPage() {
   const { items, loading, addItem, updateItem, deleteItem } = useBilling()
+  const { confirm } = useConfirm()
   const [showForm, setShowForm]   = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData]   = useState<Partial<Item>>(EMPTY_FORM)
+  const [errors, setErrors] = useState<FieldErrors>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name || formData.unitprice === undefined || formData.unitprice < 0) {
-      alert('Please fill in Name and a valid Unit Price')
-      return
-    }
+    const nextErrors = validateItemForm(formData)
+    setErrors(nextErrors)
+    if (hasErrors(nextErrors)) return
+
     try {
       if (editingId) {
         await updateItem(editingId, formData as Item)
@@ -46,6 +51,7 @@ export default function ItemsPage() {
         await addItem(formData as Item)
       }
       setFormData(EMPTY_FORM)
+      setErrors({})
       setShowForm(false)
     } catch {
       // Error shown via billing context banner
@@ -58,14 +64,23 @@ export default function ItemsPage() {
     setShowForm(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Delete this item?')) await deleteItem(id)
+  const handleDelete = (id: string, name?: string) => {
+    confirm({
+      title: 'Delete item?',
+      description: `Are you sure you want to delete ${name || 'this item'}? This action cannot be undone.`,
+      confirmText: 'Yes',
+      cancelText: 'No',
+      onConfirm: async () => {
+        await deleteItem(id)
+      },
+    })
   }
 
   const handleCancel = () => {
     setShowForm(false)
     setEditingId(null)
     setFormData(EMPTY_FORM)
+    setErrors({})
   }
 
   if (loading) {
@@ -115,44 +130,44 @@ export default function ItemsPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                    Item Name <span className="text-red-500">*</span>
-                  </label>
+                <FormField label="Item Name" required error={errors.name}>
                   <input
                     type="text"
                     value={formData.name || ''}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="field-input"
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value })
+                      if (errors.name) setErrors((prev) => ({ ...prev, name: '' }))
+                    }}
+                    className={fieldClassName(errors.name)}
                     placeholder={ITEM_PLACEHOLDERS.name}
-                    required
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                    Unit Price (₹) <span className="text-red-500">*</span>
-                  </label>
+                </FormField>
+                <FormField label="Unit Price (₹)" required error={errors.unitprice}>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
                     value={formData.unitprice ?? ''}
-                    onChange={(e) => setFormData({ ...formData, unitprice: parseFloat(e.target.value) || 0 })}
-                    className="field-input"
+                    onChange={(e) => {
+                      setFormData({ ...formData, unitprice: parseFloat(e.target.value) || 0 })
+                      if (errors.unitprice) setErrors((prev) => ({ ...prev, unitprice: '' }))
+                    }}
+                    className={fieldClassName(errors.unitprice)}
                     placeholder={ITEM_PLACEHOLDERS.unitprice}
-                    required
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">HSN / SAC Code</label>
+                </FormField>
+                <FormField label="HSN / SAC Code" error={errors.hsnsac}>
                   <input
                     type="text"
                     value={formData.hsnsac || ''}
-                    onChange={(e) => setFormData({ ...formData, hsnsac: e.target.value })}
-                    className="field-input"
+                    onChange={(e) => {
+                      setFormData({ ...formData, hsnsac: e.target.value })
+                      if (errors.hsnsac) setErrors((prev) => ({ ...prev, hsnsac: '' }))
+                    }}
+                    className={fieldClassName(errors.hsnsac)}
                     placeholder={ITEM_PLACEHOLDERS.hsnsac}
                   />
-                </div>
+                </FormField>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description</label>
@@ -230,7 +245,7 @@ export default function ItemsPage() {
                       icon={Trash2}
                       label="Delete"
                       variant="danger"
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => handleDelete(item.id, item.name)}
                     />
                   </MobileCardActions>
                 </MobileCard>
@@ -282,7 +297,7 @@ export default function ItemsPage() {
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(item.id)}
+                            onClick={() => handleDelete(item.id, item.name)}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
                             title="Delete"
                           >

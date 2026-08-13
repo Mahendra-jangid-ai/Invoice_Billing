@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, Eye, Edit, Trash2, FileText, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { SkeletonInvoicesPage } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
+import { useConfirm } from '@/components/confirm-provider'
 
 const AppLayout = dynamic(
   () => import('@/app/app-layout').then((m) => ({ default: m.AppLayout })),
@@ -56,6 +57,7 @@ function InvoicesPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { customers, deleteInvoice, loading: billingLoading } = useBilling()
+  const { confirm } = useConfirm()
 
   const appliedFilters = useMemo(
     () => parseInvoiceFiltersFromParams(searchParams),
@@ -113,9 +115,17 @@ function InvoicesPageContent() {
     router.push(`/invoices?${params.toString()}`)
   }
 
-  const handleDelete = async (id: string) => {
-    await deleteInvoice(id)
-    await loadInvoices()
+  const handleDelete = (id: string, invoiceNumber?: string) => {
+    confirm({
+      title: 'Delete invoice?',
+      description: `Are you sure you want to delete ${invoiceNumber || 'this invoice'}? This action cannot be undone.`,
+      confirmText: 'Yes',
+      cancelText: 'No',
+      onConfirm: async () => {
+        await deleteInvoice(id)
+        await loadInvoices()
+      },
+    })
   }
 
   const activeFilterCount = countActiveFilters(appliedFilters)
@@ -278,7 +288,7 @@ function InvoicesPageContent() {
                       )}
                       <button
                         type="button"
-                        onClick={() => handleDelete(invoice.id)}
+                        onClick={() => handleDelete(invoice.id, invoice.invoiceNumber)}
                         className="flex flex-1 items-center justify-center gap-1.5 border-l border-slate-100 py-3 text-xs font-semibold text-red-600 active:bg-red-50"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -346,7 +356,7 @@ function InvoicesPageContent() {
                               </Link>
                             )}
                             <button
-                              onClick={() => handleDelete(invoice.id)}
+                              onClick={() => handleDelete(invoice.id, invoice.invoiceNumber)}
                               className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
                               title="Delete"
                             >

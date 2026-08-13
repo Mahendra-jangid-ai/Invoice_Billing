@@ -10,6 +10,9 @@ import { useAuth } from '@/lib/auth-context'
 import { apiFetch, getErrorMessage } from '@/lib/api-client'
 import { PageHero } from '@/components/page-hero'
 import { FormActions } from '@/components/form-actions'
+import { useConfirm } from '@/components/confirm-provider'
+import { FormField, fieldClassName } from '@/components/form-field'
+import { type FieldErrors, hasErrors, validateWebSettings } from '@/lib/validation'
 
 interface WebSettings {
   websiteName: string
@@ -53,10 +56,12 @@ const LANGUAGE_OPTIONS = [
 
 export default function SettingsPage() {
   const { user } = useAuth()
+  const { confirm } = useConfirm()
   const [settings, setSettings] = useState<WebSettings>(DEFAULT_SETTINGS)
   const [saving, setSaving] = useState(false)
   const [savedMessage, setSavedMessage] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errors, setErrors] = useState<FieldErrors>({})
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [sessionsError, setSessionsError] = useState<string | null>(null)
@@ -120,6 +125,10 @@ export default function SettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const nextErrors = validateWebSettings(settings)
+    setErrors(nextErrors)
+    if (hasErrors(nextErrors)) return
+
     setSaving(true)
     setError(null)
 
@@ -140,16 +149,24 @@ export default function SettingsPage() {
     }
   }
 
-  const revokeSession = async (sessionId: string) => {
-    setRevokingSessionId(sessionId)
-    try {
-      await apiFetch(`/api/auth/sessions/${sessionId}`, { method: 'DELETE' })
-      await loadSessions()
-    } catch (err) {
-      setSessionsError(getErrorMessage(err, 'Failed to revoke session'))
-    } finally {
-      setRevokingSessionId(null)
-    }
+  const revokeSession = (sessionId: string, deviceName: string) => {
+    confirm({
+      title: 'Logout this device?',
+      description: `Are you sure you want to sign out from ${deviceName}?`,
+      confirmText: 'Yes',
+      cancelText: 'No',
+      onConfirm: async () => {
+        setRevokingSessionId(sessionId)
+        try {
+          await apiFetch(`/api/auth/sessions/${sessionId}`, { method: 'DELETE' })
+          await loadSessions()
+        } catch (err) {
+          setSessionsError(getErrorMessage(err, 'Failed to revoke session'))
+        } finally {
+          setRevokingSessionId(null)
+        }
+      },
+    })
   }
 
   return (
@@ -181,15 +198,17 @@ export default function SettingsPage() {
               )}
 
               <div className="mt-5 grid gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Website name</label>
+                <FormField label="Website name" required error={errors.websiteName}>
                   <Input
                     value={settings.websiteName}
-                    onChange={(e) => setSettings((prev) => ({ ...prev, websiteName: e.target.value }))}
+                    onChange={(e) => {
+                      setSettings((prev) => ({ ...prev, websiteName: e.target.value }))
+                      if (errors.websiteName) setErrors((prev) => ({ ...prev, websiteName: '' }))
+                    }}
                     placeholder={WEB_SETTINGS_PLACEHOLDERS.websiteName}
-                    className="field-input border-slate-300"
+                    className={fieldClassName(errors.websiteName, 'border-slate-300')}
                   />
-                </div>
+                </FormField>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tagline</label>
                   <Input
@@ -199,25 +218,29 @@ export default function SettingsPage() {
                     className="field-input border-slate-300"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Support email</label>
+                <FormField label="Support email" error={errors.supportEmail}>
                   <Input
                     type="email"
                     value={settings.supportEmail}
-                    onChange={(e) => setSettings((prev) => ({ ...prev, supportEmail: e.target.value }))}
+                    onChange={(e) => {
+                      setSettings((prev) => ({ ...prev, supportEmail: e.target.value }))
+                      if (errors.supportEmail) setErrors((prev) => ({ ...prev, supportEmail: '' }))
+                    }}
                     placeholder={WEB_SETTINGS_PLACEHOLDERS.supportEmail}
-                    className="field-input border-slate-300"
+                    className={fieldClassName(errors.supportEmail, 'border-slate-300')}
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Support phone</label>
+                </FormField>
+                <FormField label="Support phone" error={errors.supportPhone}>
                   <Input
                     value={settings.supportPhone}
-                    onChange={(e) => setSettings((prev) => ({ ...prev, supportPhone: e.target.value }))}
+                    onChange={(e) => {
+                      setSettings((prev) => ({ ...prev, supportPhone: e.target.value }))
+                      if (errors.supportPhone) setErrors((prev) => ({ ...prev, supportPhone: '' }))
+                    }}
                     placeholder={WEB_SETTINGS_PLACEHOLDERS.supportPhone}
-                    className="field-input border-slate-300"
+                    className={fieldClassName(errors.supportPhone, 'border-slate-300')}
                   />
-                </div>
+                </FormField>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">Footer text</label>
                   <Textarea
@@ -334,7 +357,7 @@ export default function SettingsPage() {
                             Session: {session.sessionId.slice(0, 8)}…{session.sessionId.slice(-6)}
                           </p>
                           {!session.isCurrent && !session.revokedAt ? (
-                            <Button type="button" variant="outline" onClick={() => revokeSession(session.sessionId)} disabled={revokingSessionId === session.sessionId} className="h-11 w-full gap-2 sm:w-auto">
+                            <Button type="button" variant="outline" onClick={() => revokeSession(session.sessionId, session.deviceName)} disabled={revokingSessionId === session.sessionId} className="h-11 w-full gap-2 sm:w-auto">
                               <Trash2 className="h-4 w-4" />
                               {revokingSessionId === session.sessionId ? 'Signing out...' : 'Logout this device'}
                             </Button>

@@ -12,12 +12,18 @@ import { getErrorMessage } from '@/lib/api-client'
 import { COMPANY_PLACEHOLDERS } from '@/lib/form-placeholders'
 import { PageHero } from '@/components/page-hero'
 import { FormActions } from '@/components/form-actions'
+import { FormField, fieldClassName } from '@/components/form-field'
+import { StateCodeFields } from '@/components/state-select'
+import { useConfirm } from '@/components/confirm-provider'
+import { type FieldErrors, hasErrors, validateCompanyForm } from '@/lib/validation'
 
 export default function CompanySettingsPage() {
   const { company, updateCompany } = useBilling()
+  const { confirm } = useConfirm()
   const [formData, setFormData] = useState(company)
   const [savedMessage, setSavedMessage] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [errors, setErrors] = useState<FieldErrors>({})
 
   useEffect(() => {
     setFormData(company)
@@ -26,13 +32,20 @@ export default function CompanySettingsPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    if (errors[name]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[name]
+        return next
+      })
+    }
   }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 500 * 1024) {
-        alert('File size is too large. Please select an image under 500KB.')
+        setErrors((prev) => ({ ...prev, logoUrl: 'Please select an image under 500KB' }))
         return
       }
       const reader = new FileReader()
@@ -44,11 +57,23 @@ export default function CompanySettingsPage() {
   }
 
   const handleRemoveLogo = () => {
-    setFormData((prev) => ({ ...prev, logoUrl: '' }))
+    confirm({
+      title: 'Remove logo?',
+      description: 'Are you sure you want to remove the company logo?',
+      confirmText: 'Yes',
+      cancelText: 'No',
+      onConfirm: () => {
+        setFormData((prev) => ({ ...prev, logoUrl: '' }))
+      },
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const nextErrors = validateCompanyForm(formData)
+    setErrors(nextErrors)
+    if (hasErrors(nextErrors)) return
+
     setSaveError(null)
     try {
       await updateCompany(formData)
@@ -126,40 +151,38 @@ export default function CompanySettingsPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Company name</label>
-                  <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.name} className="field-input border-slate-300" />
+                  <FormField label="Company name" required error={errors.name}>
+                    <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.name} className={fieldClassName(errors.name, 'border-slate-300')} />
+                  </FormField>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Email</label>
-                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.email} className="field-input border-slate-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Phone</label>
-                  <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.phone} className="field-input border-slate-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">GST number</label>
-                  <Input id="gstnumber" name="gstnumber" value={formData.gstnumber} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.gstnumber} className="field-input border-slate-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">PAN</label>
-                  <Input id="pan" name="pan" value={formData.pan || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.pan} className="field-input border-slate-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Contact person</label>
+                <FormField label="Email" required error={errors.email}>
+                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.email} className={fieldClassName(errors.email, 'border-slate-300')} />
+                </FormField>
+                <FormField label="Phone" required error={errors.phone}>
+                  <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.phone} className={fieldClassName(errors.phone, 'border-slate-300')} />
+                </FormField>
+                <FormField label="GST number" error={errors.gstnumber}>
+                  <Input id="gstnumber" name="gstnumber" value={formData.gstnumber} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.gstnumber} className={fieldClassName(errors.gstnumber, 'border-slate-300')} />
+                </FormField>
+                <FormField label="PAN" error={errors.pan}>
+                  <Input id="pan" name="pan" value={formData.pan || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.pan} className={fieldClassName(errors.pan, 'border-slate-300')} />
+                </FormField>
+                <FormField label="Contact person">
                   <Input id="contactPerson" name="contactPerson" value={formData.contactPerson || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.contactPerson} className="field-input border-slate-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">State</label>
-                  <Input id="state" name="state" value={formData.state || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.state} className="field-input border-slate-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">State code</label>
-                  <Input id="code" name="code" value={formData.code || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.code} className="field-input border-slate-300" />
+                </FormField>
+                <div className="sm:col-span-2">
+                  <StateCodeFields
+                    stateValue={formData.state || ''}
+                    codeValue={formData.code || ''}
+                    onChange={(state, code) => setFormData((prev) => ({ ...prev, state, code }))}
+                    stateError={errors.state}
+                    required
+                  />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Address</label>
-                  <Textarea id="address" name="address" value={formData.address || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.address} rows={3} className="field-input border-slate-300 min-h-[88px]" />
+                  <FormField label="Address" required error={errors.address}>
+                    <Textarea id="address" name="address" value={formData.address || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.address} rows={3} className={fieldClassName(errors.address, 'border-slate-300 min-h-[88px]')} />
+                  </FormField>
                 </div>
               </div>
 
@@ -179,8 +202,9 @@ export default function CompanySettingsPage() {
                     <Input id="bankAccountNumber" name="bankAccountNumber" value={formData.bankAccountNumber || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankAccountNumber} className="field-input border-slate-300" />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">IFSC</label>
-                    <Input id="bankIfsc" name="bankIfsc" value={formData.bankIfsc || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankIfsc} className="field-input border-slate-300" />
+                    <FormField label="IFSC" error={errors.bankIfsc}>
+                      <Input id="bankIfsc" name="bankIfsc" value={formData.bankIfsc || ''} onChange={handleChange} placeholder={COMPANY_PLACEHOLDERS.bankIfsc} className={fieldClassName(errors.bankIfsc, 'border-slate-300')} />
+                    </FormField>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 mb-1.5">Branch</label>

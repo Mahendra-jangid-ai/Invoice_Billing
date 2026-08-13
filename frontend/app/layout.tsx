@@ -4,6 +4,7 @@ import { Poppins } from 'next/font/google'
 import './globals.css'
 import { BillingProvider } from '@/lib/context'
 import { AuthProvider } from '@/lib/auth-context'
+import { ConfirmProvider } from '@/components/confirm-provider'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -51,7 +52,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${poppins.className} antialiased`}>
         <AuthProvider>
-          <BillingProvider>{children}</BillingProvider>
+          <ConfirmProvider>
+            <BillingProvider>{children}</BillingProvider>
+          </ConfirmProvider>
         </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

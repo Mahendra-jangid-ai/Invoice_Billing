@@ -264,6 +264,15 @@
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   }
 
+  .field-input-error {
+    border-color: #EF4444 !important;
+  }
+
+  .field-input-error:focus {
+    border-color: #EF4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  }
+
   /* ── Typography helpers ── */
   .section-label {
     font-size: 0.75rem;

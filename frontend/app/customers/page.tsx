@@ -24,6 +24,11 @@ const AppLayout = dynamic(
 )
 
 import { CUSTOMER_PLACEHOLDERS } from '@/lib/form-placeholders'
+import { useConfirm } from '@/components/confirm-provider'
+import { FormField, fieldClassName } from '@/components/form-field'
+import { StateCodeFields } from '@/components/state-select'
+import { getIndianStateCode } from '@/lib/indian-states'
+import { type FieldErrors, hasErrors, validateCustomerForm } from '@/lib/validation'
 
 const EMPTY_FORM: Partial<Customer> = {
   name: '', email: '', phone: '', address: '', gstnumber: '', state: '', code: '',
@@ -31,16 +36,18 @@ const EMPTY_FORM: Partial<Customer> = {
 
 export default function CustomersPage() {
   const { customers, loading, addCustomer, updateCustomer, deleteCustomer } = useBilling()
+  const { confirm } = useConfirm()
   const [showForm, setShowForm]   = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData]   = useState<Partial<Customer>>(EMPTY_FORM)
+  const [errors, setErrors] = useState<FieldErrors>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name || !formData.email) {
-      alert('Please fill in required fields (Name and Email)')
-      return
-    }
+    const nextErrors = validateCustomerForm(formData)
+    setErrors(nextErrors)
+    if (hasErrors(nextErrors)) return
+
     try {
       if (editingId) {
         await updateCustomer(editingId, formData as Customer)
@@ -49,6 +56,7 @@ export default function CustomersPage() {
         await addCustomer(formData as Customer)
       }
       setFormData(EMPTY_FORM)
+      setErrors({})
       setShowForm(false)
     } catch {
       // Error shown via billing context banner
@@ -61,14 +69,23 @@ export default function CustomersPage() {
     setShowForm(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Delete this customer?')) await deleteCustomer(id)
+  const handleDelete = (id: string, name?: string) => {
+    confirm({
+      title: 'Delete customer?',
+      description: `Are you sure you want to delete ${name || 'this customer'}? This action cannot be undone.`,
+      confirmText: 'Yes',
+      cancelText: 'No',
+      onConfirm: async () => {
+        await deleteCustomer(id)
+      },
+    })
   }
 
   const handleCancel = () => {
     setShowForm(false)
     setEditingId(null)
     setFormData(EMPTY_FORM)
+    setErrors({})
   }
 
   if (loading) {
@@ -79,24 +96,37 @@ export default function CustomersPage() {
     )
   }
 
+  const updateField = (key: keyof Customer, value: string) => {
+    setFormData((prev) => {
+      const next = { ...prev, [key]: value }
+      if (key === 'state') {
+        next.code = getIndianStateCode(value)
+      }
+      return next
+    })
+    if (errors[key]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[key]
+        return next
+      })
+    }
+  }
+
   const field = (
     label: string,
     key: keyof Customer,
     opts?: { type?: string; required?: boolean; placeholder?: string }
   ) => (
-    <div>
-      <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-        {label} {opts?.required && <span className="text-red-500">*</span>}
-      </label>
+    <FormField label={label} required={opts?.required} error={errors[key]}>
       <input
         type={opts?.type || 'text'}
         value={(formData[key] as string) || ''}
-        onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-        className="field-input"
+        onChange={(e) => updateField(key, e.target.value)}
+        className={fieldClassName(errors[key])}
         placeholder={opts?.placeholder}
-        required={opts?.required}
       />
-    </div>
+    </FormField>
   )
 
   return (
@@ -144,18 +174,26 @@ export default function CustomersPage() {
                 {field('Email',       'email',     { type: 'email', required: true, placeholder: CUSTOMER_PLACEHOLDERS.email })}
                 {field('Phone',       'phone',     { type: 'tel',  placeholder: CUSTOMER_PLACEHOLDERS.phone })}
                 {field('GST Number',  'gstnumber', { placeholder: CUSTOMER_PLACEHOLDERS.gstnumber })}
-                {field('State',       'state',     { placeholder: CUSTOMER_PLACEHOLDERS.state })}
-                {field('State Code',  'code',      { placeholder: CUSTOMER_PLACEHOLDERS.code })}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Address</label>
-                <textarea
-                  value={formData.address || ''}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="field-input resize-none"
-                  placeholder={CUSTOMER_PLACEHOLDERS.address}
-                  rows={3}
-                />
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <StateCodeFields
+                    stateValue={formData.state || ''}
+                    codeValue={formData.code || ''}
+                    onChange={(state, code) => setFormData((prev) => ({ ...prev, state, code }))}
+                    stateError={errors.state}
+                    className="sm:col-span-2 lg:col-span-3"
+                  />
+                </div>
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <FormField label="Address" error={errors.address}>
+                    <textarea
+                      value={formData.address || ''}
+                      onChange={(e) => updateField('address', e.target.value)}
+                      className={fieldClassName(errors.address, 'resize-none')}
+                      placeholder={CUSTOMER_PLACEHOLDERS.address}
+                      rows={3}
+                    />
+                  </FormField>
+                </div>
               </div>
               <FormActions className="is-sticky">
                 <Button type="submit" className="gap-2">
@@ -222,7 +260,7 @@ export default function CustomersPage() {
                       icon={Trash2}
                       label="Delete"
                       variant="danger"
-                      onClick={() => handleDelete(customer.id)}
+                      onClick={() => handleDelete(customer.id, customer.name)}
                     />
                   </MobileCardActions>
                 </MobileCard>
@@ -272,7 +310,7 @@ export default function CustomersPage() {
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(customer.id)}
+                            onClick={() => handleDelete(customer.id, customer.name)}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
                             title="Delete"
                           >
