@@ -4,6 +4,42 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Loader2, X } from 'lucide-react'
 
+/** Minimum PDF scale so invoice text stays readable on narrow phones. */
+const MIN_DISPLAY_SCALE = 0.92
+
+function getOutputScale(): number {
+  return Math.min(window.devicePixelRatio || 1, 3)
+}
+
+async function renderPageToCanvas(
+  page: import('pdfjs-dist').PDFPageProxy,
+  containerWidth: number,
+): Promise<HTMLCanvasElement> {
+  const dpr = getOutputScale()
+  const baseViewport = page.getViewport({ scale: 1 })
+  const fitScale = containerWidth / baseViewport.width
+  const displayScale = Math.max(fitScale, MIN_DISPLAY_SCALE)
+  const renderScale = displayScale * dpr
+  const viewport = page.getViewport({ scale: renderScale })
+
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d', { alpha: false })
+  if (!context) throw new Error('Canvas not supported')
+
+  canvas.width = Math.floor(viewport.width)
+  canvas.height = Math.floor(viewport.height)
+  canvas.style.width = `${Math.floor(viewport.width / dpr)}px`
+  canvas.style.height = `${Math.floor(viewport.height / dpr)}px`
+  canvas.className = 'mx-auto block max-w-none bg-white'
+
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+
+  await page.render({ canvas, canvasContext: context, viewport }).promise
+
+  return canvas
+}
+
 export function MobilePdfViewer({
   url,
   blob,
@@ -45,6 +81,7 @@ export function MobilePdfViewer({
     if (!blob && !url) return
 
     let cancelled = false
+    let resizeObserver: ResizeObserver | null = null
 
     const renderPdf = async () => {
       const container = scrollRef.current
@@ -69,35 +106,42 @@ export function MobilePdfViewer({
         if (cancelled) return
 
         const doc = await pdfjs.getDocument({ data }).promise
-        const containerWidth = container.clientWidth || window.innerWidth - 16
 
-        for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
+        const paint = async () => {
           if (cancelled) return
 
-          const page = await doc.getPage(pageNum)
-          const baseViewport = page.getViewport({ scale: 1 })
-          const scale = containerWidth / baseViewport.width
-          const viewport = page.getViewport({ scale })
+          const containerWidth = container.clientWidth || window.innerWidth - 16
+          container.innerHTML = ''
 
-          const canvas = document.createElement('canvas')
-          const context = canvas.getContext('2d')
-          if (!context) continue
+          for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
+            if (cancelled) return
 
-          canvas.width = Math.floor(viewport.width)
-          canvas.height = Math.floor(viewport.height)
-          canvas.className = 'mx-auto block w-full max-w-full bg-white shadow-sm'
+            const page = await doc.getPage(pageNum)
+            const canvas = await renderPageToCanvas(page, containerWidth)
 
-          await page.render({ canvas, canvasContext: context, viewport }).promise
+            if (cancelled) return
 
-          if (cancelled) return
+            const wrap = document.createElement('div')
+            wrap.className = pageNum < doc.numPages ? 'mb-2 flex justify-center' : 'flex justify-center'
+            wrap.appendChild(canvas)
+            container.appendChild(wrap)
+          }
 
-          const wrap = document.createElement('div')
-          wrap.className = pageNum < doc.numPages ? 'mb-2' : ''
-          wrap.appendChild(canvas)
-          container.appendChild(wrap)
+          if (!cancelled) setLoading(false)
         }
 
-        if (!cancelled) setLoading(false)
+        await paint()
+
+        if (cancelled || typeof ResizeObserver === 'undefined') return
+
+        let resizeTimer: ReturnType<typeof setTimeout> | null = null
+        resizeObserver = new ResizeObserver(() => {
+          if (resizeTimer) clearTimeout(resizeTimer)
+          resizeTimer = setTimeout(() => {
+            if (!cancelled) void paint()
+          }, 200)
+        })
+        resizeObserver.observe(container)
       } catch {
         if (!cancelled) {
           setLoading(false)
@@ -113,13 +157,14 @@ export function MobilePdfViewer({
     return () => {
       cancelled = true
       cancelAnimationFrame(frame)
+      resizeObserver?.disconnect()
     }
   }, [open, blob, url])
 
   if (!open || !mounted) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex flex-col bg-slate-100">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-white">
       <header className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
         <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">{fileName}</p>
         <button
@@ -132,7 +177,10 @@ export function MobilePdfViewer({
         </button>
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2">
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 overflow-auto overscroll-contain bg-slate-100 px-2 py-2 [-webkit-overflow-scrolling:touch]"
+      >
         {loading && (
           <div className="flex h-40 items-center justify-center gap-2 text-sm text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" />
