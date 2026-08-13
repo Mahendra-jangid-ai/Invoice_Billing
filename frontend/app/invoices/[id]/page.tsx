@@ -21,7 +21,7 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
 
 export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) {
   const router = useRouter()
-  const { invoices, customers, loading, deleteInvoice, updateInvoice } = useBilling()
+  const { invoices, loading, deleteInvoice, updateInvoice } = useBilling()
   const [id, setId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -34,26 +34,6 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
     () => invoices.find((inv) => String(inv.id) === String(id)),
     [invoices, id],
   )
-
-  const customerName = useMemo(() => {
-    if (!invoice) return 'Customer'
-    const customer = customers.find((c) => String(c.id) === String(invoice.customerId))
-    return invoice.billTo?.name || customer?.name || 'Customer'
-  }, [invoice, customers])
-
-  const totalAmount = useMemo(() => {
-    if (!invoice) return 0
-    const subtotal = (invoice.items || []).reduce((sum, item) => {
-      const qty = Number(item.quantity) || 0
-      const rate = Number(item.rate) || 0
-      return sum + qty * rate
-    }, 0)
-    const taxPercentage = Number(invoice.taxPercentage) || 0
-    const tax = (subtotal * taxPercentage) / 100
-    const rawTotal = subtotal + tax
-    const discount = invoice.cashDiscount?.discountAmount || 0
-    return Math.round(rawTotal - discount)
-  }, [invoice])
 
   if (!id || loading) {
     return (
@@ -110,31 +90,28 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
   return (
     <AppLayout>
       <div className="flex flex-col pb-28 md:pb-0">
-        {/* Header - Hidden during print */}
-        <div className="no-print space-y-4 md:border-b md:border-[#E5E7EB] md:bg-white md:px-8 md:py-6">
-          <div className="flex items-center gap-2 md:hidden">
-            <Link
-              href="/invoices"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm"
-              aria-label="Back to invoices"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Invoice details</p>
-              <h1 className="truncate text-lg font-bold text-slate-900">{invoice.invoiceNumber}</h1>
-            </div>
-            <span className={statusBadge.cls}>{statusBadge.label}</span>
+        {/* Mobile header */}
+        <div className="no-print flex items-center gap-3 md:hidden">
+          <Link
+            href="/invoices"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm active:bg-slate-50"
+            aria-label="Back to invoices"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Invoice</p>
+            <h1 className="truncate text-base font-bold text-slate-900">{invoice.invoiceNumber}</h1>
           </div>
+          <span className={`${statusBadge.cls} shrink-0`}>{statusBadge.label}</span>
+        </div>
 
-          <div className="hidden md:flex md:flex-wrap md:items-center md:justify-between md:gap-4">
+        {/* Desktop header */}
+        <div className="no-print hidden md:block md:border-b md:border-[#E5E7EB] md:bg-white md:px-8 md:py-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-[#111827]">
-                {invoice.invoiceNumber}
-              </h1>
-              <p className="mt-1 text-[#4B5563]">
-                Invoice details and management
-              </p>
+              <h1 className="text-3xl font-bold text-[#111827]">{invoice.invoiceNumber}</h1>
+              <p className="mt-1 text-[#4B5563]">Invoice details and management</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {invoice.status === 'draft' && (
@@ -154,22 +131,8 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
               </button>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-2 md:hidden">
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Customer</p>
-              <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">{customerName}</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Amount</p>
-              <p className="mt-0.5 text-sm font-semibold text-slate-900">
-                ₹{totalAmount.toLocaleString('en-IN')}
-              </p>
-            </div>
-          </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 space-y-4 pt-4 md:space-y-6 md:p-8 md:pt-6">
           {/* Status Actions - desktop only */}
           <div className="no-print hidden gap-2 md:flex">
@@ -210,8 +173,13 @@ export default function InvoiceDetailPage({ params: paramsPromise }: PageProps) 
             {invoice.status === 'finalized' && (
               <Button onClick={handleMarkPaid} className="h-11 flex-1 gap-2">
                 <CheckCircle2 className="h-4 w-4" />
-                Mark as Paid
+                Mark Paid
               </Button>
+            )}
+            {invoice.status === 'paid' && (
+              <p className="flex h-11 flex-1 items-center justify-center rounded-xl bg-emerald-50 text-sm font-medium text-emerald-700">
+                Payment received
+              </p>
             )}
             <button
               onClick={handleDelete}
