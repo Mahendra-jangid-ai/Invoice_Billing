@@ -10,9 +10,17 @@ import {
   Users2,
   Package2,
   IndianRupee,
+  Eye,
 } from 'lucide-react'
 import { SkeletonDashboard } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
+import {
+  MobileCard,
+  MobileCardAction,
+  MobileCardActions,
+  MobileCardBody,
+  MobileCardList,
+} from '@/components/mobile-ui'
 
 const AppLayout = dynamic(
   () => import('@/app/app-layout').then((m) => ({ default: m.AppLayout })),
@@ -149,9 +157,9 @@ export default function DashboardPage() {
               </div>
               <Link
                 href="/invoices/new"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-blue-700 transition"
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="h-4 w-4" />
                 New Invoice
               </Link>
             </div>
@@ -166,7 +174,7 @@ export default function DashboardPage() {
                   <Link
                     key={action.href}
                     href={action.href}
-                    className="group flex flex-col items-center gap-2.5 rounded-xl border border-gray-100 bg-gray-50 px-4 py-4 text-center transition hover:border-blue-200 hover:bg-blue-50"
+                    className="group flex min-h-[88px] flex-col items-center justify-center gap-2.5 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-4 text-center transition active:border-blue-200 active:bg-blue-50"
                   >
                     <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${action.bg} transition group-hover:scale-105`}>
                       <Icon className={`h-4.5 w-4.5 ${action.fg} h-[18px] w-[18px]`} />
@@ -253,7 +261,55 @@ export default function DashboardPage() {
               </Link>
             </div>
           ) : (
-            <div className="table-scroll">
+            <>
+              <MobileCardList className="p-4">
+                {recentInvoices.map((invoice) => {
+                  const customer = customers.find((c) => String(c.id) === String(invoice.customerId))
+                  const itemsList = invoice.items || []
+                  const amount = itemsList.reduce((sum, lineItem) => {
+                    const catalogItem = items.find((i) => String(i.id) === String(lineItem.itemId))
+                    const rate = Number(lineItem.rate) || Number(catalogItem?.unitprice) || 0
+                    const qty = Number(lineItem.quantity) || 0
+                    return sum + qty * rate
+                  }, 0)
+                  const taxPercentage = Number(invoice.taxPercentage) || 0
+                  const total = amount + (amount * taxPercentage) / 100
+                  const badge = STATUS_BADGE[invoice.status] ?? { label: invoice.status, cls: 'badge badge-gray' }
+
+                  return (
+                    <MobileCard key={invoice.id}>
+                      <MobileCardBody href={`/invoices/${invoice.id}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-900">{invoice.invoiceNumber}</p>
+                            <p className="mt-0.5 truncate text-sm text-slate-500">{customer?.name || 'Unknown'}</p>
+                          </div>
+                          <span className={badge.cls}>{badge.label}</span>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between">
+                          <p className="text-xs text-slate-400">
+                            {invoice.date ? new Date(invoice.date).toLocaleDateString('en-IN') : '—'}
+                          </p>
+                          <p className="text-base font-bold text-slate-900">
+                            ₹{total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                          </p>
+                        </div>
+                      </MobileCardBody>
+                      <MobileCardActions>
+                        <MobileCardAction
+                          href={`/invoices/${invoice.id}`}
+                          icon={Eye}
+                          label="View"
+                          variant="primary"
+                          bordered={false}
+                        />
+                      </MobileCardActions>
+                    </MobileCard>
+                  )
+                })}
+              </MobileCardList>
+
+              <div className="table-scroll hidden md:block">
               <table className="min-w-full">
                 <thead>
                   <tr>
@@ -306,6 +362,7 @@ export default function DashboardPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
 

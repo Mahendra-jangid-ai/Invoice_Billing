@@ -29,8 +29,8 @@ export function InvoiceFilters({ filters, onChange, onReset }: InvoiceFiltersPro
 
   return (
     <div className="premium-card overflow-hidden p-4">
-      <div className="grid grid-cols-2 items-end gap-3 md:grid-cols-3 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
-        <div className="col-span-2 min-w-0 md:col-span-1 xl:col-span-1">
+      <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <div className="min-w-0 sm:col-span-2 md:col-span-1 xl:col-span-1">
           <label className={labelClass}>Search</label>
           <div className="relative min-w-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -91,7 +91,7 @@ export function InvoiceFilters({ filters, onChange, onReset }: InvoiceFiltersPro
           />
         </div>
 
-        <div className="col-span-2 flex justify-end md:col-span-1 xl:col-span-1">
+        <div className="sm:col-span-2 md:col-span-1 xl:col-span-1">
           <Button
             type="button"
             variant="outline"

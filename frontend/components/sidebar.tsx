@@ -55,7 +55,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm hover:bg-gray-50 transition"
+          className="touch-target rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm active:bg-gray-50 transition"
         >
           Close
         </button>
@@ -82,7 +82,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
                     <Link
                       href={item.href}
                       className={cn(
-                        'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150',
+                        'group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors duration-150',
                         active
                           ? 'bg-[#2563EB] text-white shadow-sm'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'

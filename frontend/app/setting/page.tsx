@@ -329,10 +329,12 @@ export default function SettingsPage() {
                             <p className="mt-1 text-sm text-[#111827]">{formatDateTime(session.expiresAt)}</p>
                           </div>
                         </div>
-                        <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#E5E7EB] pt-4">
-                          <p className="text-sm text-[#6B7280]">Session ID: {session.sessionId.slice(0, 8)}...{session.sessionId.slice(-6)}</p>
+                        <div className="mt-4 flex flex-col gap-3 border-t border-[#E5E7EB] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="break-all text-xs text-[#6B7280] sm:text-sm">
+                            Session: {session.sessionId.slice(0, 8)}…{session.sessionId.slice(-6)}
+                          </p>
                           {!session.isCurrent && !session.revokedAt ? (
-                            <Button type="button" variant="outline" onClick={() => revokeSession(session.sessionId)} disabled={revokingSessionId === session.sessionId} className="gap-2">
+                            <Button type="button" variant="outline" onClick={() => revokeSession(session.sessionId)} disabled={revokingSessionId === session.sessionId} className="h-11 w-full gap-2 sm:w-auto">
                               <Trash2 className="h-4 w-4" />
                               {revokingSessionId === session.sessionId ? 'Signing out...' : 'Logout this device'}
                             </Button>

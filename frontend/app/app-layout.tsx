@@ -117,20 +117,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="md:pl-72 flex flex-col min-h-screen">
 
         {/* ── Top bar ── */}
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white/80 px-4 py-3 backdrop-blur-xl sm:px-6 lg:px-8 shadow-sm">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200/80 bg-white/90 px-3 py-2.5 backdrop-blur-xl sm:px-6 lg:px-8 shadow-sm pt-[max(0.5rem,env(safe-area-inset-top))]">
 
           {/* Left: hamburger + breadcrumb */}
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <button
               type="button"
               onClick={() => setSidebarOpen((o) => !o)}
-              className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 transition"
+              className="md:hidden touch-target inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm active:bg-slate-50 transition"
               aria-label="Toggle menu"
             >
-              <Menu className="h-4 w-4" />
+              <Menu className="h-5 w-5" />
             </button>
 
-            <nav className="flex items-center gap-1 text-sm min-w-0">
+            <nav className="hidden min-w-0 sm:flex sm:items-center sm:gap-1 sm:text-sm">
               {breadcrumbs.map((crumb, i) => (
                 <span key={crumb.href} className="flex items-center gap-1 min-w-0">
                   {i > 0 && <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-slate-300" />}
@@ -147,6 +147,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </span>
               ))}
             </nav>
+
+            <p className="truncate text-sm font-semibold text-slate-900 sm:hidden">{label}</p>
           </div>
 
           {/* Right: profile */}
@@ -223,7 +225,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* ── Page content ── */}
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main className="flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 mobile-page">
           <div className="mx-auto max-w-7xl animate-fade-in">
             <ApiErrorBanner message={billingError} onDismiss={clearError} />
             {children}

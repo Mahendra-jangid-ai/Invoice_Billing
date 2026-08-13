@@ -51,14 +51,11 @@ function LoginPageContent() {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-100px)] overflow-hidden bg-[#F9FAFB] px-4 py-12">
-      <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-white to-transparent opacity-80" aria-hidden="true" />
-      <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[48px] border border-[#E5E7EB] bg-white/95 p-8 shadow-[0_40px_80px_-54px_rgba(17,24,39,0.12)] backdrop-blur-xl">
-        <div className="mb-8 text-center">
-          <img src="/logo.png" alt="Billing Studio logo" className="mx-auto mb-4 h-16 w-auto object-contain" />
-          <h2 className="text-3xl font-semibold text-[#111827]">Welcome back</h2>
-          <p className="mt-2 text-sm text-[#475569]">Sign in to your account and get back to invoicing fast.</p>
-        </div>
+    <div className="overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-lg shadow-slate-200/50 sm:p-8">
+      <div className="mb-6 text-center sm:mb-8">
+        <h2 className="text-2xl font-semibold text-[#111827] sm:text-3xl">Welcome back</h2>
+        <p className="mt-2 text-sm text-[#475569]">Sign in to your account and get back to invoicing fast.</p>
+      </div>
 
         {error && (
           <div
@@ -125,7 +122,7 @@ function LoginPageContent() {
             id="login-submit"
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-[22px] bg-[#2563EB] px-6 py-4 text-sm font-semibold text-white shadow-lg shadow-[#2563EB]/20 transition duration-200 hover:bg-[#1D4ED8] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#2563EB] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#2563EB]/20 transition duration-200 active:scale-[0.98] hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">
@@ -144,7 +141,6 @@ function LoginPageContent() {
             Create one
           </Link>
         </p>
-      </div>
     </div>
   )
 }

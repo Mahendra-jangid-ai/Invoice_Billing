@@ -8,6 +8,14 @@ import { Plus, Edit, Trash2, X, Users } from 'lucide-react'
 import { SkeletonListPage } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
 import { FormActions } from '@/components/form-actions'
+import {
+  MobileAvatar,
+  MobileCard,
+  MobileCardAction,
+  MobileCardActions,
+  MobileCardBody,
+  MobileCardList,
+} from '@/components/mobile-ui'
 
 // ── Lazy-load layout ──────────────────────────────────────────────────────────
 const AppLayout = dynamic(
@@ -114,7 +122,7 @@ export default function CustomersPage() {
 
         {/* ── Add/Edit form ── */}
         {showForm && (
-          <div className="premium-card p-6 animate-scale-in">
+          <div className="premium-card p-4 sm:p-6 animate-scale-in">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <h2 className="card-heading">
@@ -177,13 +185,51 @@ export default function CustomersPage() {
           </div>
         ) : (
           <div className="premium-card overflow-hidden p-0">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-6">
               <h2 className="text-sm font-bold text-slate-900">All Customers</h2>
               <span className="rounded-xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                 {customers.length} total
               </span>
             </div>
-            <div className="table-scroll">
+
+            <MobileCardList className="p-4">
+              {customers.map((customer) => (
+                <MobileCard key={customer.id}>
+                  <MobileCardBody onClick={() => handleEdit(customer)}>
+                    <div className="flex items-start gap-3">
+                      <MobileAvatar label={customer.name?.[0]?.toUpperCase() || '?'} />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-slate-900">{customer.name}</p>
+                        <p className="mt-0.5 truncate text-sm text-slate-500">{customer.email}</p>
+                        <p className="mt-2 text-xs text-slate-400">
+                          {[customer.phone, customer.state].filter(Boolean).join(' • ') || 'No phone/state'}
+                        </p>
+                        {customer.gstnumber && (
+                          <p className="mt-1 font-mono text-xs text-slate-600">GST: {customer.gstnumber}</p>
+                        )}
+                      </div>
+                    </div>
+                  </MobileCardBody>
+                  <MobileCardActions>
+                    <MobileCardAction
+                      icon={Edit}
+                      label="Edit"
+                      variant="amber"
+                      bordered={false}
+                      onClick={() => handleEdit(customer)}
+                    />
+                    <MobileCardAction
+                      icon={Trash2}
+                      label="Delete"
+                      variant="danger"
+                      onClick={() => handleDelete(customer.id)}
+                    />
+                  </MobileCardActions>
+                </MobileCard>
+              ))}
+            </MobileCardList>
+
+            <div className="table-scroll hidden md:block">
               <table className="min-w-full">
                 <thead className="bg-slate-50">
                   <tr>

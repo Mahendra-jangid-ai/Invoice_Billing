@@ -8,6 +8,13 @@ import { Plus, Edit, Trash2, X, Package } from 'lucide-react'
 import { SkeletonListPage } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
 import { FormActions } from '@/components/form-actions'
+import {
+  MobileCard,
+  MobileCardAction,
+  MobileCardActions,
+  MobileCardBody,
+  MobileCardList,
+} from '@/components/mobile-ui'
 
 // ── Lazy-load layout ──────────────────────────────────────────────────────────
 const AppLayout = dynamic(
@@ -92,7 +99,7 @@ export default function ItemsPage() {
 
         {/* ── Add/Edit form ── */}
         {showForm && (
-          <div className="premium-card p-6 animate-scale-in">
+          <div className="premium-card p-4 sm:p-6 animate-scale-in">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <h2 className="card-heading">{editingId ? 'Edit item' : 'New item'}</h2>
@@ -185,13 +192,52 @@ export default function ItemsPage() {
           </div>
         ) : (
           <div className="premium-card overflow-hidden p-0">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-6">
               <h2 className="text-sm font-bold text-slate-900">Catalog Items</h2>
               <span className="rounded-xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                 {items.length} total
               </span>
             </div>
-            <div className="table-scroll">
+
+            <MobileCardList className="p-4">
+              {items.map((item) => (
+                <MobileCard key={item.id}>
+                  <MobileCardBody onClick={() => handleEdit(item)}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900">{item.name}</p>
+                        <p className="mt-0.5 line-clamp-2 text-sm text-slate-500">{item.description || 'No description'}</p>
+                      </div>
+                      <p className="shrink-0 text-base font-bold text-slate-900">
+                        ₹{Number(item.unitprice || 0).toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                    {item.hsnsac && (
+                      <p className="mt-2 inline-flex rounded-lg bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-600">
+                        {item.hsnsac}
+                      </p>
+                    )}
+                  </MobileCardBody>
+                  <MobileCardActions>
+                    <MobileCardAction
+                      icon={Edit}
+                      label="Edit"
+                      variant="amber"
+                      bordered={false}
+                      onClick={() => handleEdit(item)}
+                    />
+                    <MobileCardAction
+                      icon={Trash2}
+                      label="Delete"
+                      variant="danger"
+                      onClick={() => handleDelete(item.id)}
+                    />
+                  </MobileCardActions>
+                </MobileCard>
+              ))}
+            </MobileCardList>
+
+            <div className="table-scroll hidden md:block">
               <table className="min-w-full">
                 <thead className="bg-slate-50">
                   <tr>

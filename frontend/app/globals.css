@@ -341,9 +341,39 @@
       position: sticky;
       bottom: 0;
       z-index: 20;
-      margin-bottom: -0.5rem;
+      margin-left: -1rem;
+      margin-right: -1rem;
+      padding: 0.75rem 1rem;
       padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
-      background: linear-gradient(to top, #F6F7FB 88%, rgba(246, 247, 251, 0));
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid #E5E7EB;
+      box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+    }
+  }
+
+  /* ── Mobile touch helpers ── */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .mobile-page {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: 767px) {
+    .premium-card {
+      border-radius: 16px;
+    }
+
+    .hero-card {
+      border-radius: 16px;
+      padding: 1rem !important;
+    }
+
+    .stat-card {
+      padding: 1rem;
     }
   }
 
