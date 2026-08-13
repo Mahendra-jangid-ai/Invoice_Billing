@@ -15,7 +15,13 @@ function detectInstalledPwa(): boolean {
 const PwaShellContext = createContext(false)
 
 export function PwaShellProvider({ children }: { children: React.ReactNode }) {
-  const [isInstalledPwa, setIsInstalledPwa] = useState(false)
+  const [isInstalledPwa, setIsInstalledPwa] = useState(() => {
+    const installed = detectInstalledPwa()
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.pwaShell = installed ? 'true' : 'false'
+    }
+    return installed
+  })
 
   useEffect(() => {
     const sync = () => {

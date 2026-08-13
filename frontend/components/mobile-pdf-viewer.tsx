@@ -2,22 +2,21 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { PDFViewer, type DocumentProps } from '@react-pdf/renderer'
-import type { ReactElement } from 'react'
-import { X } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 
 export function MobilePdfViewer({
-  pdfDocument,
+  blob,
   fileName,
   open,
   onClose,
 }: {
-  pdfDocument: ReactElement<DocumentProps>
+  blob: Blob | null | undefined
   fileName: string
   open: boolean
   onClose: () => void
 }) {
   const [mounted, setMounted] = useState(false)
+  const [objectUrl, setObjectUrl] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -32,10 +31,26 @@ export function MobilePdfViewer({
     }
   }, [open])
 
+  useEffect(() => {
+    if (!open || !blob) {
+      setObjectUrl(null)
+      return
+    }
+
+    const url = URL.createObjectURL(blob)
+    setObjectUrl(url)
+    return () => {
+      URL.revokeObjectURL(url)
+    }
+  }, [open, blob])
+
   if (!open || !mounted) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex flex-col bg-white">
+    <div
+      className="fixed inset-0 z-[100] flex flex-col bg-white"
+      style={{ height: '100dvh', width: '100vw' }}
+    >
       <header className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
         <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">{fileName}</p>
         <button
@@ -48,15 +63,19 @@ export function MobilePdfViewer({
         </button>
       </header>
 
-      <div className="min-h-0 flex-1 [&_iframe]:!h-full [&_iframe]:!w-full [&_iframe]:!border-0">
-        <PDFViewer
-          width="100%"
-          height="100%"
-          showToolbar={false}
-          style={{ width: '100%', height: '100%', border: 'none' }}
-        >
-          {pdfDocument}
-        </PDFViewer>
+      <div className="relative min-h-0 flex-1 bg-slate-200">
+        {objectUrl ? (
+          <iframe
+            src={objectUrl}
+            title={fileName}
+            className="absolute inset-0 h-full w-full border-0 bg-white"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center gap-2 text-sm text-slate-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Preparing preview…
+          </div>
+        )}
       </div>
     </div>,
     document.body,
