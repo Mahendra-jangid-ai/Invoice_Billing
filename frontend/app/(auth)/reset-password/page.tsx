@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Lock, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
 import { apiFetch, getErrorMessage } from '@/lib/api-client'
 import { validateStrongPassword } from '@/lib/utils'
+import { useFeedback } from '@/components/confirm-provider'
 
 export default function ResetPasswordPage() {
   return (
@@ -25,12 +26,12 @@ function ResetPasswordPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get('token') || ''
+  const { error: showError, warning } = useFeedback()
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   if (!token) {
@@ -52,16 +53,21 @@ function ResetPasswordPageContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      warning({
+        title: 'Passwords do not match',
+        description: 'Please make sure both password fields match.',
+      })
       return
     }
 
     const passwordError = validateStrongPassword(password)
     if (passwordError) {
-      setError(passwordError)
+      warning({
+        title: 'Weak password',
+        description: passwordError,
+      })
       return
     }
 
@@ -75,7 +81,10 @@ function ResetPasswordPageContent() {
       setSuccess(true)
       setTimeout(() => router.push('/login'), 2500)
     } catch (error) {
-      setError(getErrorMessage(error, 'Failed to reset password'))
+      showError({
+        title: 'Reset failed',
+        description: getErrorMessage(error, 'Failed to reset password'),
+      })
     } finally {
       setLoading(false)
     }
@@ -105,15 +114,6 @@ function ResetPasswordPageContent() {
           Choose a strong password for your account
         </p>
       </div>
-
-      {error && (
-        <div
-          role="alert"
-          className="mb-4 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm text-[#111827]"
-        >
-          {error}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div>

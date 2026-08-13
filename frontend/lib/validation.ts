@@ -73,8 +73,18 @@ export function minLength(value: string | undefined, min: number, label: string)
   return null
 }
 
-export function setError(errors: FieldErrors, field: string, message: string | null) {
+export function setFieldError(errors: FieldErrors, field: string, message: string | null) {
   if (message) errors[field] = message
+}
+
+export const setError = setFieldError
+
+export function formatFieldErrors(errors: FieldErrors, limit = 4): string {
+  const messages = Object.values(errors).filter(Boolean)
+  if (messages.length === 0) return 'Please check the form and try again.'
+  const shown = messages.slice(0, limit)
+  const suffix = messages.length > limit ? `\n…and ${messages.length - limit} more issue(s).` : ''
+  return `${shown.join('\n')}${suffix}`
 }
 
 export function validateCustomerForm(data: {

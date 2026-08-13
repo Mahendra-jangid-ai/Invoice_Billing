@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, Eye, Edit, Trash2, FileText, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { SkeletonInvoicesPage } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
-import { useConfirm } from '@/components/confirm-provider'
+import { useConfirm, useFeedback } from '@/components/confirm-provider'
 
 const AppLayout = dynamic(
   () => import('@/app/app-layout').then((m) => ({ default: m.AppLayout })),
@@ -58,6 +58,7 @@ function InvoicesPageContent() {
   const searchParams = useSearchParams()
   const { customers, deleteInvoice, loading: billingLoading } = useBilling()
   const { confirm } = useConfirm()
+  const { error: showError } = useFeedback()
 
   const appliedFilters = useMemo(
     () => parseInvoiceFiltersFromParams(searchParams),
@@ -67,7 +68,6 @@ function InvoicesPageContent() {
   const [draftFilters, setDraftFilters] = useState<InvoiceSearchFilters>(appliedFilters)
   const [result, setResult] = useState<InvoiceSearchResponse | null>(null)
   const [fetching, setFetching] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setDraftFilters(appliedFilters)
@@ -75,18 +75,20 @@ function InvoicesPageContent() {
 
   const loadInvoices = useCallback(async () => {
     setFetching(true)
-    setError(null)
     try {
       const query = buildInvoiceSearchQuery(appliedFilters)
       const response = await apiFetch<InvoiceSearchResponse>(`/api/invoices?${query}`)
       setResult(response)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load invoices')
       setResult(null)
+      showError({
+        title: 'Load failed',
+        description: err instanceof Error ? err.message : 'Failed to load invoices',
+      })
     } finally {
       setFetching(false)
     }
-  }, [appliedFilters])
+  }, [appliedFilters, showError])
 
   useEffect(() => {
     if (!billingLoading) {
@@ -187,12 +189,6 @@ function InvoicesPageContent() {
           onChange={setDraftFilters}
           onReset={resetFilters}
         />
-
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
 
         {fetching ? (
           <div className="premium-card flex items-center justify-center gap-2 py-16 text-sm text-slate-500">

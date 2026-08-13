@@ -52,9 +52,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${poppins.className} antialiased`}>
         <AuthProvider>
-          <ConfirmProvider>
-            <BillingProvider>{children}</BillingProvider>
-          </ConfirmProvider>
+          <BillingProvider>
+            <ConfirmProvider>{children}</ConfirmProvider>
+          </BillingProvider>
         </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

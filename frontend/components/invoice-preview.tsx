@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import {
   Document,
   Font,
@@ -15,6 +15,26 @@ import {
 } from '@react-pdf/renderer'
 import { Download, ExternalLink, Eye, Loader2, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { useBilling, Invoice } from '@/lib/context'
+import { useFeedback } from '@/components/confirm-provider'
+
+function usePdfErrorPopup(error: string | null | undefined) {
+  const { error: showError } = useFeedback()
+  const lastShown = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!error) {
+      lastShown.current = null
+      return
+    }
+    if (error === lastShown.current) return
+
+    lastShown.current = error
+    showError({
+      title: 'PDF generation failed',
+      description: error,
+    })
+  }, [error, showError])
+}
 
 function useMobilePdfFallback() {
   const [isMobile, setIsMobile] = useState(false)
@@ -614,6 +634,7 @@ function DesktopPdfActions({
   className?: string
 }) {
   const [instance, updateInstance] = usePDF()
+  usePdfErrorPopup(instance.error)
 
   useEffect(() => {
     updateInstance(pdfDocument)
@@ -647,7 +668,7 @@ function DesktopPdfActions({
   }
 
   if (instance.error) {
-    return <p className={`text-sm text-red-600 ${className}`}>{instance.error}</p>
+    return <p className={`text-sm text-slate-500 ${className}`}>Could not generate PDF. Please try again.</p>
   }
 
   if (!instance.url) return null
@@ -698,6 +719,7 @@ function MobileInvoicePdfPanel({
   const [instance, updateInstance] = usePDF()
   const [downloadState, setDownloadState] = useState<'idle' | 'done'>('idle')
   const [viewState, setViewState] = useState<'idle' | 'opened'>('idle')
+  usePdfErrorPopup(instance.error)
 
   useEffect(() => {
     updateInstance(pdfDocument)
@@ -789,7 +811,7 @@ function MobileInvoicePdfPanel({
             </p>
           </div>
         ) : instance.error ? (
-          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{instance.error}</p>
+          <p className="text-center text-sm text-slate-500">Could not generate PDF. Please try again.</p>
         ) : instance.url ? (
           <div className="space-y-3">
             <button

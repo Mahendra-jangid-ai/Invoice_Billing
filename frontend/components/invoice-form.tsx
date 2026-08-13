@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button'
 import { FormActions } from '@/components/form-actions'
 import { Plus, Trash2 } from 'lucide-react'
 import { INVOICE_PLACEHOLDERS } from '@/lib/form-placeholders'
-import { useConfirm } from '@/components/confirm-provider'
+import { useConfirm, useFeedback } from '@/components/confirm-provider'
 import { StateCodeFields } from '@/components/state-select'
 import { fieldClassName } from '@/components/form-field'
-import { type FieldErrors, hasErrors, validateInvoiceForm } from '@/lib/validation'
+import { type FieldErrors, formatFieldErrors, hasErrors, validateInvoiceForm } from '@/lib/validation'
 
 interface InvoiceFormProps {
   onSubmit: (invoice: Invoice) => void
@@ -21,6 +21,7 @@ const labelClass = 'block text-xs font-semibold text-slate-600 mb-1.5'
 export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   const { customers, items, company, getNextInvoiceNumber } = useBilling()
   const { confirm } = useConfirm()
+  const { warning } = useFeedback()
 
   const [invoiceNumber, setInvoiceNumber] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -190,7 +191,13 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       lineItems,
     })
     setErrors(nextErrors)
-    if (hasErrors(nextErrors)) return
+    if (hasErrors(nextErrors)) {
+      warning({
+        title: 'Please fix the invoice',
+        description: formatFieldErrors(nextErrors),
+      })
+      return
+    }
 
     const formattedLineItems: InvoiceLineItem[] = lineItems.map((item) => ({
       itemId: item.itemId || Date.now().toString(),

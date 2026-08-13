@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { CheckCircle, RefreshCw, Trash2 } from 'lucide-react'
+import { RefreshCw, Trash2 } from 'lucide-react'
 import { AppLayout } from '@/app/app-layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,9 +10,9 @@ import { useAuth } from '@/lib/auth-context'
 import { apiFetch, getErrorMessage } from '@/lib/api-client'
 import { PageHero } from '@/components/page-hero'
 import { FormActions } from '@/components/form-actions'
-import { useConfirm } from '@/components/confirm-provider'
+import { useConfirm, useFeedback } from '@/components/confirm-provider'
 import { FormField, fieldClassName } from '@/components/form-field'
-import { type FieldErrors, hasErrors, validateWebSettings } from '@/lib/validation'
+import { type FieldErrors, formatFieldErrors, hasErrors, validateWebSettings } from '@/lib/validation'
 
 interface WebSettings {
   websiteName: string
@@ -57,14 +57,12 @@ const LANGUAGE_OPTIONS = [
 export default function SettingsPage() {
   const { user } = useAuth()
   const { confirm } = useConfirm()
+  const { warning, success, error: showError } = useFeedback()
   const [settings, setSettings] = useState<WebSettings>(DEFAULT_SETTINGS)
   const [saving, setSaving] = useState(false)
-  const [savedMessage, setSavedMessage] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [errors, setErrors] = useState<FieldErrors>({})
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
-  const [sessionsError, setSessionsError] = useState<string | null>(null)
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null)
 
   const profileInitial = useMemo(() => user?.name?.charAt(0).toUpperCase() || 'U', [user?.name])
@@ -95,7 +93,10 @@ export default function SettingsPage() {
       setSettings(nextSettings)
       document.documentElement.lang = nextSettings.language
     } catch (err) {
-      setError(getErrorMessage(err, 'Failed to load web settings'))
+      showError({
+        title: 'Load failed',
+        description: getErrorMessage(err, 'Failed to load web settings'),
+      })
     }
   }
 
@@ -106,10 +107,12 @@ export default function SettingsPage() {
     try {
       const data = await apiFetch<{ sessions: SessionSummary[] }>('/api/auth/sessions')
       setSessions(data.sessions || [])
-      setSessionsError(null)
     } catch (err) {
       setSessions([])
-      setSessionsError(getErrorMessage(err, 'Failed to load sessions'))
+      showError({
+        title: 'Load failed',
+        description: getErrorMessage(err, 'Failed to load sessions'),
+      })
     } finally {
       setSessionsLoading(false)
     }
@@ -127,11 +130,15 @@ export default function SettingsPage() {
     e.preventDefault()
     const nextErrors = validateWebSettings(settings)
     setErrors(nextErrors)
-    if (hasErrors(nextErrors)) return
+    if (hasErrors(nextErrors)) {
+      warning({
+        title: 'Please fix the form',
+        description: formatFieldErrors(nextErrors),
+      })
+      return
+    }
 
     setSaving(true)
-    setError(null)
-
     try {
       const data = await apiFetch<WebSettings>('/api/web-settings', {
         method: 'PUT',
@@ -140,10 +147,15 @@ export default function SettingsPage() {
       const nextLanguage = data.language || settings.language
       setSettings((prev) => ({ ...prev, updatedAt: data.updatedAt, language: nextLanguage }))
       document.documentElement.lang = nextLanguage
-      setSavedMessage(true)
-      setTimeout(() => setSavedMessage(false), 3000)
+      success({
+        title: 'Settings saved',
+        description: 'Your website preferences have been updated.',
+      })
     } catch (err) {
-      setError(getErrorMessage(err, 'Failed to save web settings'))
+      showError({
+        title: 'Save failed',
+        description: getErrorMessage(err, 'Failed to save web settings'),
+      })
     } finally {
       setSaving(false)
     }
@@ -161,7 +173,10 @@ export default function SettingsPage() {
           await apiFetch(`/api/auth/sessions/${sessionId}`, { method: 'DELETE' })
           await loadSessions()
         } catch (err) {
-          setSessionsError(getErrorMessage(err, 'Failed to revoke session'))
+          showError({
+            title: 'Logout failed',
+            description: getErrorMessage(err, 'Failed to revoke session'),
+          })
         } finally {
           setRevokingSessionId(null)
         }
@@ -190,12 +205,6 @@ export default function SettingsPage() {
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
               <h2 className="card-heading">Website preferences</h2>
               <p className="card-subtext">Shown on login and public-facing pages.</p>
-
-              {error && (
-                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
 
               <div className="mt-5 grid gap-4">
                 <FormField label="Website name" required error={errors.websiteName}>
@@ -281,13 +290,6 @@ export default function SettingsPage() {
                   ))}
                 </select>
               </div>
-
-              {savedMessage && (
-                <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                  <CheckCircle className="h-4 w-4" />
-                  Saved
-                </div>
-              )}
             </div>
           </div>
 
@@ -316,12 +318,6 @@ export default function SettingsPage() {
                 <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-500">
                   IP comes from the server. MAC address isn’t available in the browser.
                 </div>
-
-                {sessionsError && (
-                  <div className="mt-4 rounded-[22px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
-                    {sessionsError}
-                  </div>
-                )}
 
                 {sessionsLoading ? (
                   <div className="mt-4 rounded-[22px] border border-dashed border-[#D1D5DB] bg-[#F9FAFB] px-4 py-8 text-center text-sm text-[#6B7280]">

@@ -5,11 +5,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { validateStrongPassword } from '@/lib/utils'
+import { useFeedback } from '@/components/confirm-provider'
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react'
 
 export default function SignupPage() {
   const router = useRouter()
   const { signup } = useAuth()
+  const { error: showError, warning } = useFeedback()
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -17,20 +19,24 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      warning({
+        title: 'Passwords do not match',
+        description: 'Please make sure both password fields match.',
+      })
       return
     }
 
     const passwordError = validateStrongPassword(password)
     if (passwordError) {
-      setError(passwordError)
+      warning({
+        title: 'Weak password',
+        description: passwordError,
+      })
       return
     }
 
@@ -41,7 +47,10 @@ export default function SignupPage() {
       router.push('/dashboard')
       router.refresh()
     } else {
-      setError(result.error || 'Sign up failed')
+      showError({
+        title: 'Sign up failed',
+        description: result.error || 'Sign up failed',
+      })
       setLoading(false)
     }
   }
@@ -66,15 +75,6 @@ export default function SignupPage() {
         <h2 className="text-2xl font-semibold text-[#111827] sm:text-3xl">Create your account</h2>
         <p className="mt-2 text-sm text-[#475569]">Create your profile and begin sending invoices instantly.</p>
       </div>
-
-        {error && (
-          <div
-            role="alert"
-            className="mb-5 rounded-[20px] border border-[#FEE2E2] bg-[#FEF3F2] px-4 py-3 text-sm text-[#991B1B]"
-          >
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="space-y-3">

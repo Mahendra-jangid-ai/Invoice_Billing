@@ -6,23 +6,21 @@ import { AppLayout } from '@/app/app-layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { CheckCircle, Upload, Trash2 } from 'lucide-react'
-import { ApiErrorBanner } from '@/components/api-error-banner'
+import { Upload, Trash2 } from 'lucide-react'
 import { getErrorMessage } from '@/lib/api-client'
 import { COMPANY_PLACEHOLDERS } from '@/lib/form-placeholders'
 import { PageHero } from '@/components/page-hero'
 import { FormActions } from '@/components/form-actions'
 import { FormField, fieldClassName } from '@/components/form-field'
 import { StateCodeFields } from '@/components/state-select'
-import { useConfirm } from '@/components/confirm-provider'
-import { type FieldErrors, hasErrors, validateCompanyForm } from '@/lib/validation'
+import { useConfirm, useFeedback } from '@/components/confirm-provider'
+import { type FieldErrors, formatFieldErrors, hasErrors, validateCompanyForm } from '@/lib/validation'
 
 export default function CompanySettingsPage() {
   const { company, updateCompany } = useBilling()
   const { confirm } = useConfirm()
+  const { warning, success, error: showError } = useFeedback()
   const [formData, setFormData] = useState(company)
-  const [savedMessage, setSavedMessage] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
   const [errors, setErrors] = useState<FieldErrors>({})
 
   useEffect(() => {
@@ -45,7 +43,10 @@ export default function CompanySettingsPage() {
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 500 * 1024) {
-        setErrors((prev) => ({ ...prev, logoUrl: 'Please select an image under 500KB' }))
+        warning({
+          title: 'File too large',
+          description: 'Please select an image under 500KB.',
+        })
         return
       }
       const reader = new FileReader()
@@ -72,35 +73,35 @@ export default function CompanySettingsPage() {
     e.preventDefault()
     const nextErrors = validateCompanyForm(formData)
     setErrors(nextErrors)
-    if (hasErrors(nextErrors)) return
+    if (hasErrors(nextErrors)) {
+      warning({
+        title: 'Please fix the form',
+        description: formatFieldErrors(nextErrors),
+      })
+      return
+    }
 
-    setSaveError(null)
     try {
       await updateCompany(formData)
-      setSavedMessage(true)
-      setTimeout(() => setSavedMessage(false), 3000)
+      success({
+        title: 'Saved successfully',
+        description: 'Company profile has been updated.',
+      })
     } catch (err) {
-      setSaveError(getErrorMessage(err, 'Failed to save company profile'))
+      showError({
+        title: 'Save failed',
+        description: getErrorMessage(err, 'Failed to save company profile'),
+      })
     }
   }
 
   return (
     <AppLayout>
       <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6 animate-fade-in">
-        <ApiErrorBanner message={saveError} onDismiss={() => setSaveError(null)} />
-
         <PageHero
           label="Manage"
           title="Company profile"
           description="This info appears on your invoices — logo, GST, bank details, and contact."
-          footer={
-            savedMessage ? (
-              <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700">
-                <CheckCircle className="h-4 w-4" />
-                Changes saved
-              </div>
-            ) : null
-          }
         />
 
         <div className="premium-card p-5 sm:p-6">

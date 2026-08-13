@@ -5,8 +5,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { useBilling } from '@/lib/context'
-import { ApiErrorBanner } from '@/components/api-error-banner'
+import { BillingErrorBridge } from '@/components/billing-error-bridge'
 import {
   Menu,
   ChevronRight,
@@ -73,7 +72,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [profileOpen, setProfileOpen] = useState(false)
   const pathname = usePathname()
   const { user, logout } = useAuth()
-  const { error: billingError, clearError } = useBilling()
   const router = useRouter()
 
   // Close everything on navigation
@@ -227,7 +225,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {/* ── Page content ── */}
         <main className="flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 mobile-page">
           <div className="mx-auto max-w-7xl animate-fade-in">
-            <ApiErrorBanner message={billingError} onDismiss={clearError} />
+            <BillingErrorBridge />
             {children}
           </div>
         </main>

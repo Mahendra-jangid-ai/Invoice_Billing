@@ -4,16 +4,16 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Mail, Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { apiFetch, getErrorMessage } from '@/lib/api-client'
+import { useFeedback } from '@/components/confirm-provider'
 
 export default function ForgotPasswordPage() {
+  const { error: showError } = useFeedback()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
@@ -23,7 +23,10 @@ export default function ForgotPasswordPage() {
       })
       setSubmitted(true)
     } catch (error) {
-      setError(getErrorMessage(error, 'Network error. Please try again.'))
+      showError({
+        title: 'Request failed',
+        description: getErrorMessage(error, 'Network error. Please try again.'),
+      })
     } finally {
       setLoading(false)
     }
@@ -72,15 +75,6 @@ export default function ForgotPasswordPage() {
           Enter your email and we&apos;ll send you a reset link
         </p>
       </div>
-
-      {error && (
-        <div
-          role="alert"
-          className="mb-4 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm text-[#111827]"
-        >
-          {error}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div>

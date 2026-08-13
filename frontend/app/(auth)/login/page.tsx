@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { getSafeRedirectPath } from '@/lib/utils'
+import { useFeedback } from '@/components/confirm-provider'
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react'
 
 export default function LoginPage() {
@@ -25,18 +26,17 @@ function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login } = useAuth()
+  const { error: showError } = useFeedback()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const from = getSafeRedirectPath(searchParams.get('from'))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     const result = await login(email, password)
@@ -45,7 +45,10 @@ function LoginPageContent() {
       router.push(from)
       router.refresh()
     } else {
-      setError(result.error || 'Login failed')
+      showError({
+        title: 'Sign in failed',
+        description: result.error || 'Login failed',
+      })
       setLoading(false)
     }
   }
@@ -56,15 +59,6 @@ function LoginPageContent() {
         <h2 className="text-2xl font-semibold text-[#111827] sm:text-3xl">Welcome back</h2>
         <p className="mt-2 text-sm text-[#475569]">Sign in to your account and get back to invoicing fast.</p>
       </div>
-
-        {error && (
-          <div
-            role="alert"
-            className="mb-5 rounded-[20px] border border-[#FEE2E2] bg-[#FEF3F2] px-4 py-3 text-sm text-[#991B1B]"
-          >
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="space-y-3">

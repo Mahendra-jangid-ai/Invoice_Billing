@@ -24,11 +24,11 @@ const AppLayout = dynamic(
 )
 
 import { CUSTOMER_PLACEHOLDERS } from '@/lib/form-placeholders'
-import { useConfirm } from '@/components/confirm-provider'
+import { useConfirm, useFeedback } from '@/components/confirm-provider'
 import { FormField, fieldClassName } from '@/components/form-field'
 import { StateCodeFields } from '@/components/state-select'
 import { getIndianStateCode } from '@/lib/indian-states'
-import { type FieldErrors, hasErrors, validateCustomerForm } from '@/lib/validation'
+import { type FieldErrors, formatFieldErrors, hasErrors, validateCustomerForm } from '@/lib/validation'
 
 const EMPTY_FORM: Partial<Customer> = {
   name: '', email: '', phone: '', address: '', gstnumber: '', state: '', code: '',
@@ -37,6 +37,7 @@ const EMPTY_FORM: Partial<Customer> = {
 export default function CustomersPage() {
   const { customers, loading, addCustomer, updateCustomer, deleteCustomer } = useBilling()
   const { confirm } = useConfirm()
+  const { warning } = useFeedback()
   const [showForm, setShowForm]   = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData]   = useState<Partial<Customer>>(EMPTY_FORM)
@@ -46,7 +47,13 @@ export default function CustomersPage() {
     e.preventDefault()
     const nextErrors = validateCustomerForm(formData)
     setErrors(nextErrors)
-    if (hasErrors(nextErrors)) return
+    if (hasErrors(nextErrors)) {
+      warning({
+        title: 'Please fix the form',
+        description: formatFieldErrors(nextErrors),
+      })
+      return
+    }
 
     try {
       if (editingId) {

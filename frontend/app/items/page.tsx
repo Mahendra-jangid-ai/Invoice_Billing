@@ -23,15 +23,16 @@ const AppLayout = dynamic(
 )
 
 import { ITEM_PLACEHOLDERS } from '@/lib/form-placeholders'
-import { useConfirm } from '@/components/confirm-provider'
+import { useConfirm, useFeedback } from '@/components/confirm-provider'
 import { FormField, fieldClassName } from '@/components/form-field'
-import { type FieldErrors, hasErrors, validateItemForm } from '@/lib/validation'
+import { type FieldErrors, formatFieldErrors, hasErrors, validateItemForm } from '@/lib/validation'
 
 const EMPTY_FORM: Partial<Item> = { name: '', description: '', hsnsac: '', unitprice: 0 }
 
 export default function ItemsPage() {
   const { items, loading, addItem, updateItem, deleteItem } = useBilling()
   const { confirm } = useConfirm()
+  const { warning } = useFeedback()
   const [showForm, setShowForm]   = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData]   = useState<Partial<Item>>(EMPTY_FORM)
@@ -41,7 +42,13 @@ export default function ItemsPage() {
     e.preventDefault()
     const nextErrors = validateItemForm(formData)
     setErrors(nextErrors)
-    if (hasErrors(nextErrors)) return
+    if (hasErrors(nextErrors)) {
+      warning({
+        title: 'Please fix the form',
+        description: formatFieldErrors(nextErrors),
+      })
+      return
+    }
 
     try {
       if (editingId) {
