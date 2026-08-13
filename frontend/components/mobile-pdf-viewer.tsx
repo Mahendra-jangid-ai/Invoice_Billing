@@ -2,21 +2,28 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { PDFViewer, type DocumentProps } from '@react-pdf/renderer'
+import type { ReactElement } from 'react'
 import { Loader2, X } from 'lucide-react'
 
 export function MobilePdfViewer({
   blob,
+  url,
+  pdfDocument,
   fileName,
   open,
   onClose,
 }: {
-  blob: Blob | null | undefined
+  blob?: Blob | null
+  url?: string | null
+  pdfDocument?: ReactElement<DocumentProps>
   fileName: string
   open: boolean
   onClose: () => void
 }) {
   const [mounted, setMounted] = useState(false)
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
+  const [useReactPdf, setUseReactPdf] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -32,19 +39,35 @@ export function MobilePdfViewer({
   }, [open])
 
   useEffect(() => {
-    if (!open || !blob) {
+    if (!open) {
       setObjectUrl(null)
+      setUseReactPdf(false)
       return
     }
 
-    const url = URL.createObjectURL(blob)
-    setObjectUrl(url)
-    return () => {
-      URL.revokeObjectURL(url)
+    if (blob) {
+      const nextUrl = URL.createObjectURL(blob)
+      setObjectUrl(nextUrl)
+      setUseReactPdf(false)
+      return () => {
+        URL.revokeObjectURL(nextUrl)
+      }
     }
-  }, [open, blob])
+
+    if (url) {
+      setObjectUrl(url)
+      setUseReactPdf(false)
+      return
+    }
+
+    if (pdfDocument) {
+      setUseReactPdf(true)
+    }
+  }, [open, blob, url, pdfDocument])
 
   if (!open || !mounted) return null
+
+  const viewerHeight = typeof window !== 'undefined' ? Math.max(window.innerHeight - 64, 400) : 600
 
   return createPortal(
     <div
@@ -63,8 +86,17 @@ export function MobilePdfViewer({
         </button>
       </header>
 
-      <div className="relative min-h-0 flex-1 bg-slate-200">
-        {objectUrl ? (
+      <div className="relative min-h-0 flex-1 bg-slate-100">
+        {useReactPdf && pdfDocument ? (
+          <PDFViewer
+            width="100%"
+            height={Math.max(viewerHeight, 400)}
+            showToolbar={false}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+          >
+            {pdfDocument}
+          </PDFViewer>
+        ) : objectUrl ? (
           <iframe
             src={objectUrl}
             title={fileName}

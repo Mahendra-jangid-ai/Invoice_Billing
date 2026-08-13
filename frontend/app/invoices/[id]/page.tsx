@@ -241,6 +241,7 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
           <InvoicePreview
             invoice={invoice}
             mobileActions="external"
+            forceMobileLayout
             onMobilePdfActions={handlePdfActions}
           />
         </div>

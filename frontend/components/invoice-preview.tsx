@@ -43,7 +43,9 @@ function detectMobilePdfFallback(): boolean {
   if (document.documentElement.dataset.pwaShell === 'true') return true
   const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
   const narrowScreen = window.matchMedia('(max-width: 768px)').matches
-  const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  const mobileUa = /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  )
   const standalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     window.matchMedia('(display-mode: fullscreen)').matches ||
@@ -77,6 +79,7 @@ Font.register({
 interface InvoicePreviewProps {
   invoice: Invoice
   mobileActions?: 'panel' | 'external'
+  forceMobileLayout?: boolean
   onMobilePdfActions?: (actions: InvoicePdfMobileActions) => void
 }
 
@@ -646,12 +649,6 @@ function InvoicePdfDocument({
   )
 }
 
-function usePreferInAppPdf() {
-  const isInstalledPwa = useIsInstalledPwa()
-  const isMobile = useMobilePdfFallback()
-  return isMobile || isInstalledPwa
-}
-
 function DesktopPdfActions({
   pdfDocument,
   invoiceNumber,
@@ -663,7 +660,6 @@ function DesktopPdfActions({
 }) {
   const [instance, updateInstance] = usePDF()
   const [viewerOpen, setViewerOpen] = useState(false)
-  const preferInApp = usePreferInAppPdf()
   usePdfErrorPopup(instance.error)
 
   useEffect(() => {
@@ -673,8 +669,8 @@ function DesktopPdfActions({
   const fileName = `${invoiceNumber || 'invoice'}.pdf`
 
   const handleOpen = () => {
-    if (preferInApp) {
-      if (instance.blob) setViewerOpen(true)
+    if (instance.blob || instance.url) {
+      setViewerOpen(true)
       return
     }
     if (instance.url) window.open(instance.url, '_blank', 'noopener,noreferrer')
@@ -713,7 +709,7 @@ function DesktopPdfActions({
       <button
         type="button"
         onClick={handleOpen}
-        disabled={preferInApp ? !instance.blob : !instance.url}
+        disabled={!instance.blob && !instance.url}
         className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white hover:bg-[#1D4ED8] disabled:opacity-50"
       >
         <ExternalLink className="h-4 w-4" />
@@ -730,6 +726,8 @@ function DesktopPdfActions({
     </div>
     <MobilePdfViewer
       blob={instance.blob}
+      url={instance.url}
+      pdfDocument={pdfDocument}
       fileName={fileName}
       open={viewerOpen}
       onClose={() => setViewerOpen(false)}
@@ -782,9 +780,10 @@ function MobileInvoicePdfPanel({
     : '—'
 
   const handleView = useCallback(() => {
-    if (!instance.blob || instance.loading || instance.error) return
+    if (instance.loading || instance.error) return
+    if (!instance.blob && !instance.url) return
     setViewerOpen(true)
-  }, [instance.blob, instance.loading, instance.error])
+  }, [instance.blob, instance.url, instance.loading, instance.error])
 
   const handleDownload = useCallback(() => {
     if (!instance.blob) return
@@ -804,7 +803,7 @@ function MobileInvoicePdfPanel({
     if (!onActionsReady) return
     onActionsReady({
       loading: instance.loading,
-      ready: Boolean(instance.blob) && !instance.error,
+      ready: Boolean(instance.blob || instance.url) && !instance.loading && !instance.error,
       error: instance.error,
       handleView,
       handleDownload,
@@ -922,6 +921,8 @@ function MobileInvoicePdfPanel({
     </div>
     <MobilePdfViewer
       blob={instance.blob}
+      url={instance.url}
+      pdfDocument={pdfDocument}
       fileName={fileName}
       open={viewerOpen}
       onClose={() => setViewerOpen(false)}
@@ -933,6 +934,7 @@ function MobileInvoicePdfPanel({
 export function InvoicePreview({
   invoice,
   mobileActions = 'panel',
+  forceMobileLayout = false,
   onMobilePdfActions,
 }: InvoicePreviewProps) {
   const { customers, company } = useBilling()
@@ -1092,7 +1094,7 @@ export function InvoicePreview({
 
   const isInstalledPwa = useIsInstalledPwa()
   const isMobile = useMobilePdfFallback()
-  const useMobilePdf = isMobile || isInstalledPwa
+  const useMobilePdf = forceMobileLayout || isMobile || isInstalledPwa
 
   if (useMobilePdf) {
     return (
