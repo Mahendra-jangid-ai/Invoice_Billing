@@ -3,71 +3,29 @@
 import { useEffect, useState } from 'react'
 import { Download, Share, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
-}
-
-function isStandaloneMode() {
-  if (typeof window === 'undefined') return false
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    ('standalone' in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone))
-  )
-}
-
-function isIosDevice() {
-  if (typeof navigator === 'undefined') return false
-  return /iphone|ipad|ipod/i.test(navigator.userAgent)
-}
+import { usePwaInstall } from '@/lib/use-pwa-install'
 
 export function PwaInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const [showIosHint, setShowIosHint] = useState(false)
+  const { canInstall, canPrompt, install, isIos } = usePwaInstall()
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    if (isStandaloneMode()) return
-
-    const dismissedKey = 'pwa-install-dismissed'
-    if (sessionStorage.getItem(dismissedKey) === '1') {
+    if (sessionStorage.getItem('pwa-install-dismissed') === '1') {
       setDismissed(true)
-      return
     }
-
-    const handler = (event: Event) => {
-      event.preventDefault()
-      setDeferredPrompt(event as BeforeInstallPromptEvent)
-    }
-
-    window.addEventListener('beforeinstallprompt', handler)
-
-    if (isIosDevice() && !isStandaloneMode()) {
-      setShowIosHint(true)
-    }
-
-    return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
   const dismiss = () => {
     sessionStorage.setItem('pwa-install-dismissed', '1')
     setDismissed(true)
-    setDeferredPrompt(null)
-    setShowIosHint(false)
   }
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return
-
-    await deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    setDeferredPrompt(null)
+    const outcome = await install()
     if (outcome === 'accepted') dismiss()
   }
 
-  if (dismissed || isStandaloneMode()) return null
-  if (!deferredPrompt && !showIosHint) return null
+  if (dismissed || !canInstall) return null
 
   return (
     <div className="pwa-install-anchor fixed inset-x-4 z-[55] md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
@@ -79,7 +37,7 @@ export function PwaInstallPrompt() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-slate-900">Install Billing Studio</p>
             <p className="mt-1 text-xs leading-relaxed text-slate-500">
-              {showIosHint
+              {isIos
                 ? 'Tap Share in Safari, then choose "Add to Home Screen" to open like an app.'
                 : 'Add to your home screen and use it like a native app — without the browser bar.'}
             </p>
@@ -94,7 +52,7 @@ export function PwaInstallPrompt() {
           </button>
         </div>
 
-        {deferredPrompt ? (
+        {canPrompt ? (
           <Button onClick={handleInstall} className="mt-3 h-10 w-full gap-2">
             <Download className="h-4 w-4" />
             Install app

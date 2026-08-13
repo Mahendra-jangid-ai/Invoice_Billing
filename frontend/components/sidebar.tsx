@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, FileText, Users, Package, Settings, Building2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SidebarMobileInstall } from '@/components/sidebar-mobile-install'
 
 const groups = [
   {
@@ -107,6 +108,8 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
           </div>
         ))}
       </nav>
+
+      <SidebarMobileInstall onClose={onClose} />
 
       {/* ── Footer ── */}
       <div className="border-t border-slate-100 px-5 py-4">
