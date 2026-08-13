@@ -1,14 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useBilling } from '@/lib/context'
-import { isOnboardingComplete } from '@/lib/onboarding'
+import { hasPendingOnboarding } from '@/lib/pending-onboarding'
 import { Loader2 } from 'lucide-react'
 
 const AUTH_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password']
-const OPEN_WHEN_INCOMPLETE = ['/onboarding']
 
 function isAuthPath(pathname: string): boolean {
   return AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
@@ -18,10 +17,17 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const { company, loading: billingLoading } = useBilling()
+  const { loading: billingLoading } = useBilling()
 
-  const checking = authLoading || (Boolean(user) && billingLoading)
-  const complete = isOnboardingComplete(company)
+  const [pendingOnboarding, setPendingOnboarding] = useState(false)
+  const [pendingChecked, setPendingChecked] = useState(false)
+
+  useEffect(() => {
+    setPendingOnboarding(hasPendingOnboarding())
+    setPendingChecked(true)
+  }, [pathname, user])
+
+  const checking = authLoading || (Boolean(user) && billingLoading) || (Boolean(user) && !pendingChecked)
   const onOnboarding = pathname === '/onboarding'
   const onAuth = isAuthPath(pathname)
 
@@ -29,15 +35,16 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
     if (checking) return
     if (!user || onAuth) return
 
-    if (!complete && !OPEN_WHEN_INCOMPLETE.includes(pathname)) {
+    // Only fresh signups (session flag) see onboarding — login never does
+    if (pendingOnboarding && !onOnboarding) {
       router.replace('/onboarding')
       return
     }
 
-    if (complete && onOnboarding) {
+    if (!pendingOnboarding && onOnboarding) {
       router.replace('/dashboard')
     }
-  }, [checking, user, complete, pathname, onOnboarding, onAuth, router])
+  }, [checking, user, pendingOnboarding, pathname, onOnboarding, onAuth, router])
 
   if (checking && user && !onAuth && !onOnboarding) {
     return (

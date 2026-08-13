@@ -15,8 +15,10 @@ import {
   LogOut,
   Settings,
   User,
+  Building2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { UserAvatar } from '@/components/user-avatar'
 
 // ── Lazy-load the sidebar (it's heavy with icons + nav) ─────────────────────
 const Sidebar = dynamic(
@@ -100,9 +102,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const { label, breadcrumbs } = getPageMeta(pathname)
   const isInstalledPwa = useIsInstalledPwa()
-  const initials = user?.name
-    ? user.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
-    : 'U'
 
   return (
     <div
@@ -206,22 +205,26 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 className={cn(
                   'flex items-center transition',
                   isInstalledPwa
-                    ? 'h-10 w-10 justify-center rounded-xl bg-[#2563EB] text-xs font-bold text-white shadow-sm active:scale-95 md:gap-2.5 md:h-auto md:w-auto md:rounded-xl md:border md:border-slate-200 md:bg-white md:px-3 md:py-1.5 md:text-slate-700 md:shadow-sm md:hover:bg-slate-50'
+                    ? 'h-10 w-10 justify-center rounded-xl p-0 shadow-sm active:scale-95 md:gap-2.5 md:h-auto md:w-auto md:rounded-xl md:border md:border-slate-200 md:bg-white md:px-3 md:py-1.5 md:text-slate-700 md:shadow-sm md:hover:bg-slate-50'
                     : 'gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:bg-slate-50',
                 )}
               >
+                <UserAvatar
+                  name={user?.name}
+                  avatarUrl={user?.avatarUrl}
+                  avatarPreset={user?.avatarPreset}
+                  size="xs"
+                  className={isInstalledPwa ? 'md:hidden' : undefined}
+                />
                 {isInstalledPwa ? (
-                  <>
-                    <span className="md:hidden">{initials}</span>
-                    <div className="hidden md:flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
-                      {initials}
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
-                    {initials}
-                  </div>
-                )}
+                  <UserAvatar
+                    name={user?.name}
+                    avatarUrl={user?.avatarUrl}
+                    avatarPreset={user?.avatarPreset}
+                    size="xs"
+                    className="hidden md:flex"
+                  />
+                ) : null}
                 <span className="hidden sm:block text-sm font-medium text-slate-700 max-w-[120px] truncate">
                   {user?.name || 'Profile'}
                 </span>
@@ -233,9 +236,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   {/* User info */}
                   <div className="mb-2 rounded-xl bg-slate-50 px-3 py-2.5">
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2563EB] text-sm font-bold text-white flex-shrink-0">
-                        {initials}
-                      </div>
+                      <UserAvatar
+                        name={user?.name}
+                        avatarUrl={user?.avatarUrl}
+                        avatarPreset={user?.avatarPreset}
+                        size="sm"
+                      />
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-slate-900 truncate">
                           {user?.name || 'Your Account'}
@@ -249,11 +255,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
                   <div className="space-y-0.5">
                     <Link
-                      href="/company-settings"
+                      href="/setting"
                       className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 transition"
                     >
                       <User className="h-4 w-4 text-slate-400" />
-                      Account settings
+                      Profile & settings
+                    </Link>
+                    <Link
+                      href="/company-settings"
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 transition"
+                    >
+                      <Building2 className="h-4 w-4 text-slate-400" />
+                      Company profile
                     </Link>
                     <button
                       type="button"

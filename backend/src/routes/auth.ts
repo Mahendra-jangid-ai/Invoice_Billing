@@ -11,7 +11,7 @@ import {
   requireAuth,
   authMiddleware,
 } from '../lib/auth.js'
-import { createSession, deleteSession, getSession } from '../lib/session.js'
+import { createSession, deleteSession, getSession, refreshSessionCookie } from '../lib/session.js'
 import {
   createSessionRecord,
   enforceSessionLimit,
@@ -29,10 +29,27 @@ import {
   ChangePasswordSchema,
   ForgotPasswordSchema,
   ResetPasswordSchema,
+  UpdateProfileSchema,
   ResourceIdSchema,
 } from '../lib/schemas/api-schemas.js'
 
 const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000
+
+function formatUserProfile(userDoc: {
+  userId: string
+  email: string
+  name: string
+  avatarUrl?: string
+  avatarPreset?: string
+}) {
+  return {
+    userId: userDoc.userId,
+    email: userDoc.email,
+    name: userDoc.name,
+    avatarUrl: userDoc.avatarUrl || '',
+    avatarPreset: userDoc.avatarPreset || 'initials',
+  }
+}
 
 export function registerAuthRoutes(app: Express): void {
   app.post('/api/auth/login', async (req: Request, res: Response) => {
@@ -73,7 +90,13 @@ export function registerAuthRoutes(app: Express): void {
       await enforceSessionLimit(userDoc.userId)
 
       logSecurityEvent('LOGIN_SUCCESS', { userId: userDoc.userId, email: parsed.email, ip })
-      res.json({ userId: userDoc.userId, email: userDoc.email, name: userDoc.name })
+      res.json(formatUserProfile({
+        userId: String(userDoc.userId),
+        email: String(userDoc.email),
+        name: String(userDoc.name),
+        avatarUrl: typeof userDoc.avatarUrl === 'string' ? userDoc.avatarUrl : '',
+        avatarPreset: typeof userDoc.avatarPreset === 'string' ? userDoc.avatarPreset : 'initials',
+      }))
     } catch (error) {
       handleApiError(res, error, 'Login failed. Please try again.')
     }
@@ -108,6 +131,8 @@ export function registerAuthRoutes(app: Express): void {
         passwordHash,
         role: 'user',
         emailVerified: false,
+        avatarUrl: '',
+        avatarPreset: 'initials',
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -120,7 +145,13 @@ export function registerAuthRoutes(app: Express): void {
       await enforceSessionLimit(userId)
 
       logSecurityEvent('SIGNUP_SUCCESS', { userId, email: parsed.email, ip })
-      res.status(201).json({ userId, email: parsed.email, name: parsed.name })
+      res.status(201).json(formatUserProfile({
+        userId,
+        email: parsed.email,
+        name: parsed.name,
+        avatarUrl: '',
+        avatarPreset: 'initials',
+      }))
     } catch (error) {
       if (isMongoDuplicateKey(error)) {
         sendError(res, 409, 'An account with this email already exists', 'CONFLICT')
@@ -154,15 +185,23 @@ export function registerAuthRoutes(app: Express): void {
     if (!user) return
 
     try {
-      const activeSession = await getActiveSessionRecord(user.sessionId)
+      const db = await getDatabase()
+      const [activeSession, userDoc] = await Promise.all([
+        getActiveSessionRecord(user.sessionId),
+        db.collection('users').findOne({ userId: user.userId }),
+      ])
       if (!activeSession) {
         sendError(res, 401, 'Session expired', 'AUTHENTICATION_REQUIRED')
         return
       }
       res.json({
-        userId: user.userId,
-        email: user.email,
-        name: user.name,
+        ...formatUserProfile({
+          userId: user.userId,
+          email: user.email,
+          name: userDoc?.name || user.name,
+          avatarUrl: userDoc?.avatarUrl,
+          avatarPreset: userDoc?.avatarPreset,
+        }),
         sessionId: user.sessionId,
         deviceName: activeSession.deviceName,
         browser: activeSession.browser,
@@ -171,9 +210,43 @@ export function registerAuthRoutes(app: Express): void {
         createdAt: activeSession.createdAt,
         lastSeenAt: activeSession.lastSeenAt,
         expiresAt: activeSession.expiresAt,
+        accountCreatedAt: userDoc?.createdAt || null,
       })
     } catch (error) {
       handleApiError(res, error, 'Failed to get user info')
+    }
+  })
+
+  app.patch('/api/auth/profile', authMiddleware, async (req: Request, res: Response) => {
+    const user = req.user!
+    try {
+      const parsed = parseBody(res, req.body, UpdateProfileSchema)
+      if (!parsed) return
+
+      const db = await getDatabase()
+      const updates: Record<string, unknown> = { updatedAt: new Date() }
+      if (parsed.name !== undefined) updates.name = parsed.name
+      if (parsed.avatarUrl !== undefined) updates.avatarUrl = parsed.avatarUrl
+      if (parsed.avatarPreset !== undefined) updates.avatarPreset = parsed.avatarPreset
+
+      await db.collection('users').updateOne({ userId: user.userId }, { $set: updates })
+
+      const userDoc = await db.collection('users').findOne({ userId: user.userId })
+      const nextName = userDoc?.name || user.name
+
+      if (parsed.name !== undefined) {
+        await refreshSessionCookie(res, { ...user, name: nextName })
+      }
+
+      res.json(formatUserProfile({
+        userId: user.userId,
+        email: user.email,
+        name: nextName,
+        avatarUrl: userDoc?.avatarUrl,
+        avatarPreset: userDoc?.avatarPreset,
+      }))
+    } catch (error) {
+      handleApiError(res, error, 'Failed to update profile')
     }
   })
 
@@ -334,6 +407,16 @@ export function registerAuthRoutes(app: Express): void {
       })
     } catch (error) {
       handleApiError(res, error, 'Failed to load sessions')
+    }
+  })
+
+  app.delete('/api/auth/sessions/others', authMiddleware, async (req: Request, res: Response) => {
+    const user = req.user!
+    try {
+      const revoked = await revokeAllUserSessions(user.userId, user.sessionId)
+      res.json({ revoked })
+    } catch (error) {
+      handleApiError(res, error, 'Failed to revoke other sessions')
     }
   })
 

@@ -14,6 +14,7 @@ import { getErrorMessage } from '@/lib/api-client'
 import { useFeedback } from '@/components/confirm-provider'
 import { formatFieldErrors, hasErrors, validateCompanyForm, type FieldErrors } from '@/lib/validation'
 import { isOnboardingComplete } from '@/lib/onboarding'
+import { clearPendingOnboarding } from '@/lib/pending-onboarding'
 import { Building2, CheckCircle2, Landmark, Loader2 } from 'lucide-react'
 
 const STEPS = [
@@ -42,6 +43,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!loading && isOnboardingComplete(company)) {
+      clearPendingOnboarding()
       router.replace('/dashboard')
     }
   }, [company, loading, router])
@@ -111,6 +113,7 @@ export default function OnboardingPage() {
     setSaving(true)
     try {
       await updateCompany(formData)
+      clearPendingOnboarding()
       router.replace('/dashboard')
       router.refresh()
     } catch (err) {

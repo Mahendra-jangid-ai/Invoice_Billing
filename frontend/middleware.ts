@@ -43,9 +43,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Redirect authenticated users away from auth pages
+  // Redirect authenticated users away from auth pages (login → dashboard, not onboarding)
   if (isAuthRoute(pathname) && isAuthenticated) {
-    return NextResponse.redirect(new URL('/onboarding', request.url))
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return NextResponse.next()

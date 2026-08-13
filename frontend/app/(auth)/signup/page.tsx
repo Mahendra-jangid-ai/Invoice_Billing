@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { validateStrongPassword } from '@/lib/utils'
+import { markPendingOnboarding } from '@/lib/pending-onboarding'
 import { useFeedback } from '@/components/confirm-provider'
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react'
 
@@ -44,6 +45,7 @@ export default function SignupPage() {
     const result = await signup(name, email, password)
 
     if (result.success) {
+      markPendingOnboarding()
       router.push('/onboarding')
       router.refresh()
     } else {

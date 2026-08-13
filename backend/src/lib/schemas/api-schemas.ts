@@ -163,6 +163,35 @@ export const ChangePasswordSchema = z.object({
   newPassword: StrongPasswordSchema,
 })
 
+export const UpdateProfileSchema = z
+  .object({
+    name: z
+      .string()
+      .min(2, 'Name must be at least 2 characters')
+      .max(100, 'Name is too long')
+      .transform((value) => value.replace(/\s+/g, ' ').trim())
+      .optional(),
+    avatarUrl: z
+      .string()
+      .max(700_000, 'Image is too large')
+      .optional()
+      .refine(
+        (value) =>
+          value === undefined ||
+          value === '' ||
+          value.startsWith('data:image/png') ||
+          value.startsWith('data:image/jpeg') ||
+          value.startsWith('data:image/webp'),
+        'Avatar must be a PNG, JPEG, or WebP image',
+      ),
+    avatarPreset: z
+      .enum(['initials', 'blue', 'emerald', 'violet', 'amber', 'rose', 'slate', 'custom'])
+      .optional(),
+  })
+  .refine((data) => data.name !== undefined || data.avatarUrl !== undefined || data.avatarPreset !== undefined, {
+    message: 'At least one field is required',
+  })
+
 export const ForgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase().trim(),
 })

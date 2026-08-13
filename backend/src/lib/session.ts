@@ -101,4 +101,18 @@ export async function deleteSession(res: Response): Promise<void> {
   })
 }
 
+export async function refreshSessionCookie(res: Response, payload: SessionPayload): Promise<void> {
+  const token = await encrypt(payload)
+  const maxAge = Math.max(0, payload.expiresAt.getTime() - Date.now())
+
+  res.cookie(SESSION_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    expires: payload.expiresAt,
+    maxAge,
+    path: '/',
+  })
+}
+
 export { SESSION_COOKIE }
