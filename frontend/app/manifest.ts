@@ -1,0 +1,36 @@
+import type { MetadataRoute } from 'next'
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Billing Studio',
+    short_name: 'Billing',
+    description: 'Professional billing and invoicing software',
+    start_url: '/',
+    scope: '/',
+    display: 'standalone',
+    orientation: 'portrait-primary',
+    background_color: '#ffffff',
+    theme_color: '#2563EB',
+    categories: ['business', 'finance', 'productivity'],
+    icons: [
+      {
+        src: '/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icon-maskable-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+  }
+}

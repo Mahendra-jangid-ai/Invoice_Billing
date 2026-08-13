@@ -5,6 +5,7 @@ import './globals.css'
 import { BillingProvider } from '@/lib/context'
 import { AuthProvider } from '@/lib/auth-context'
 import { ConfirmProvider } from '@/components/confirm-provider'
+import { PwaInstallPrompt } from '@/components/pwa-install-prompt'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -13,9 +14,15 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: 'Billing Software',
+  title: 'Billing Studio',
   description: 'Professional billing and invoicing software',
+  applicationName: 'Billing Studio',
   generator: 'v0.app',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Billing Studio',
+  },
   icons: {
     icon: [
       {
@@ -36,10 +43,14 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
   colorScheme: 'light dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
+    { media: '(prefers-color-scheme: light)', color: '#2563EB' },
+    { media: '(prefers-color-scheme: dark)', color: '#1D4ED8' },
   ],
 }
 
@@ -53,7 +64,10 @@ export default function RootLayout({
       <body className={`${poppins.className} antialiased`}>
         <AuthProvider>
           <BillingProvider>
-            <ConfirmProvider>{children}</ConfirmProvider>
+            <ConfirmProvider>
+              {children}
+              <PwaInstallPrompt />
+            </ConfirmProvider>
           </BillingProvider>
         </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
