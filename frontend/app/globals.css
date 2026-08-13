@@ -348,7 +348,7 @@
   @media (max-width: 639px) {
     .form-actions-bar.is-sticky {
       position: sticky;
-      bottom: 0;
+      bottom: calc(4.25rem + env(safe-area-inset-bottom));
       z-index: 20;
       margin-left: -1rem;
       margin-right: -1rem;
@@ -368,21 +368,37 @@
   }
 
   .mobile-page {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-bottom: max(5.5rem, calc(4.5rem + env(safe-area-inset-bottom)));
+  }
+
+  @media (min-width: 768px) {
+    .mobile-page {
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
   }
 
   @media (max-width: 767px) {
     .premium-card {
       border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     }
 
     .hero-card {
       border-radius: 16px;
       padding: 1rem !important;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     }
 
     .stat-card {
-      padding: 1rem;
+      padding: 0.875rem;
+    }
+
+    .space-y-6 > * + * {
+      margin-top: 1rem;
+    }
+
+    .space-y-5 > * + * {
+      margin-top: 0.875rem;
     }
   }
 

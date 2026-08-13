@@ -20,8 +20,8 @@ const withPWA = withPWAInit({
   skipWaiting: false,
   cacheOnFrontEndNav: false,
   reloadOnOnline: true,
+  extendDefaultRuntimeCaching: false,
   workboxOptions: {
-    extendDefaultRuntimeCaching: false,
     runtimeCaching: [
       {
         urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
@@ -32,7 +32,7 @@ const withPWA = withPWAInit({
         },
       },
       {
-        urlPattern: ({ request }) => request.destination === 'image',
+        urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
         handler: 'StaleWhileRevalidate',
         options: {
           cacheName: 'static-images',

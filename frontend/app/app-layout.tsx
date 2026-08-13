@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { BillingErrorBridge } from '@/components/billing-error-bridge'
+import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 import {
   Menu,
   ChevronRight,
@@ -97,7 +98,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     : 'U'
 
   return (
-    <div className="relative min-h-screen bg-[#F6F7FB]">
+    <div className="relative min-h-screen bg-[#F3F4F8] md:bg-[#F6F7FB]">
 
       {/* ── Mobile backdrop ── */}
       <div
@@ -115,18 +116,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="md:pl-72 flex flex-col min-h-screen">
 
         {/* ── Top bar ── */}
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200/80 bg-white/90 px-3 py-2.5 backdrop-blur-xl sm:px-6 lg:px-8 shadow-sm pt-[max(0.5rem,env(safe-area-inset-top))]">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-slate-200/70 bg-white/95 px-3 py-2 backdrop-blur-xl sm:px-6 lg:px-8 md:shadow-sm pt-[max(0.5rem,env(safe-area-inset-top))]">
 
           {/* Left: hamburger + breadcrumb */}
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               type="button"
               onClick={() => setSidebarOpen((o) => !o)}
-              className="md:hidden touch-target inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm active:bg-slate-50 transition"
+              className="md:hidden touch-target inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 active:bg-slate-100 transition"
               aria-label="Toggle menu"
             >
               <Menu className="h-5 w-5" />
             </button>
+
+            <img src="/logo.png" alt="" className="h-7 w-auto object-contain md:hidden" />
 
             <nav className="hidden min-w-0 sm:flex sm:items-center sm:gap-1 sm:text-sm">
               {breadcrumbs.map((crumb, i) => (
@@ -146,7 +149,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
 
-            <p className="truncate text-sm font-semibold text-slate-900 sm:hidden">{label}</p>
+            <p className="hidden truncate text-sm font-semibold text-slate-900 min-[420px]:block sm:hidden">{label}</p>
           </div>
 
           {/* Right: profile */}
@@ -155,9 +158,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setProfileOpen((o) => !o)}
-                className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:bg-slate-50 transition"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2563EB] text-xs font-bold text-white shadow-sm active:scale-95 transition md:gap-2.5 md:w-auto md:rounded-xl md:border md:border-slate-200 md:bg-white md:px-3 md:py-1.5 md:shadow-sm md:hover:bg-slate-50"
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
+                <span className="md:hidden">{initials}</span>
+                <div className="hidden md:flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
                   {initials}
                 </div>
                 <span className="hidden sm:block text-sm font-medium text-slate-700 max-w-[120px] truncate">
@@ -223,13 +227,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* ── Page content ── */}
-        <main className="flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 mobile-page">
+        <main className="flex-1 px-3 py-3 sm:px-6 sm:py-6 lg:px-8 mobile-page">
           <div className="mx-auto max-w-7xl animate-fade-in">
             <BillingErrorBridge />
             {children}
           </div>
         </main>
       </div>
+
+      <MobileBottomNav />
     </div>
   )
 }

@@ -14,6 +14,7 @@ import {
   MobileCardActions,
   MobileCardBody,
   MobileCardList,
+  MobileCardRow,
 } from '@/components/mobile-ui'
 
 // ── Lazy-load layout ──────────────────────────────────────────────────────────
@@ -224,19 +225,15 @@ export default function ItemsPage() {
             <MobileCardList className="p-4">
               {items.map((item) => (
                 <MobileCard key={item.id}>
-                  <MobileCardBody onClick={() => handleEdit(item)}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-slate-900">{item.name}</p>
-                        <p className="mt-0.5 line-clamp-2 text-sm text-slate-500">{item.description || 'No description'}</p>
-                      </div>
-                      <p className="shrink-0 text-base font-bold text-slate-900">
-                        ₹{Number(item.unitprice || 0).toLocaleString('en-IN')}
-                      </p>
-                    </div>
+                  <MobileCardBody onClick={() => handleEdit(item)} showChevron>
+                    <MobileCardRow
+                      title={item.name}
+                      subtitle={item.description || 'No description'}
+                      amount={`₹${Number(item.unitprice || 0).toLocaleString('en-IN')}`}
+                    />
                     {item.hsnsac && (
                       <p className="mt-2 inline-flex rounded-lg bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-600">
-                        {item.hsnsac}
+                        HSN/SAC: {item.hsnsac}
                       </p>
                     )}
                   </MobileCardBody>
@@ -245,7 +242,6 @@ export default function ItemsPage() {
                       icon={Edit}
                       label="Edit"
                       variant="amber"
-                      bordered={false}
                       onClick={() => handleEdit(item)}
                     />
                     <MobileCardAction

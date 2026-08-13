@@ -10,27 +10,27 @@ interface PageHeroProps {
 
 export function PageHero({ label, title, description, actions, footer }: PageHeroProps) {
   return (
-    <div className="hero-card px-5 py-5 sm:px-6 sm:py-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="hero-card px-4 py-4 sm:px-6 sm:py-6">
+      <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
-          {label && <p className="section-label">{label}</p>}
-          <h1 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl tracking-tight leading-snug">
+          {label && <p className="section-label text-[11px]">{label}</p>}
+          <h1 className="mt-0.5 text-lg font-bold text-slate-900 sm:mt-1 sm:text-2xl tracking-tight leading-snug">
             {title}
           </h1>
           {description && (
-            <p className="mt-2 text-sm text-slate-500 leading-relaxed max-w-2xl">
+            <p className="mt-1.5 hidden text-sm text-slate-500 leading-relaxed max-w-2xl sm:block">
               {description}
             </p>
           )}
         </div>
         {actions && (
-          <div className="page-actions flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end lg:shrink-0">
+          <div className="page-actions flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end lg:shrink-0 [&_button]:w-full [&_a]:w-full sm:[&_button]:w-auto sm:[&_a]:w-auto">
             {actions}
           </div>
         )}
       </div>
       {footer && (
-        <div className="mt-4 border-t border-slate-100 pt-4 sm:mt-5">
+        <div className="mt-3 border-t border-slate-100 pt-3 sm:mt-5 sm:pt-4">
           {footer}
         </div>
       )}

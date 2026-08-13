@@ -15,6 +15,7 @@ import {
   MobileCardActions,
   MobileCardBody,
   MobileCardList,
+  MobileCardRow,
 } from '@/components/mobile-ui'
 
 // ── Lazy-load layout ──────────────────────────────────────────────────────────
@@ -240,27 +241,25 @@ export default function CustomersPage() {
             <MobileCardList className="p-4">
               {customers.map((customer) => (
                 <MobileCard key={customer.id}>
-                  <MobileCardBody onClick={() => handleEdit(customer)}>
+                  <MobileCardBody onClick={() => handleEdit(customer)} showChevron>
                     <div className="flex items-start gap-3">
-                      <MobileAvatar label={customer.name?.[0]?.toUpperCase() || '?'} />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-slate-900">{customer.name}</p>
-                        <p className="mt-0.5 truncate text-sm text-slate-500">{customer.email}</p>
-                        <p className="mt-2 text-xs text-slate-400">
-                          {[customer.phone, customer.state].filter(Boolean).join(' • ') || 'No phone/state'}
-                        </p>
-                        {customer.gstnumber && (
-                          <p className="mt-1 font-mono text-xs text-slate-600">GST: {customer.gstnumber}</p>
-                        )}
-                      </div>
+                      <MobileAvatar label={customer.name?.[0]?.toUpperCase() || '?'} tone="blue" />
+                      <MobileCardRow
+                        className="flex-1"
+                        title={customer.name}
+                        subtitle={customer.email}
+                        meta={[customer.phone, customer.state].filter(Boolean).join(' • ') || 'No phone/state'}
+                      />
                     </div>
+                    {customer.gstnumber && (
+                      <p className="mt-2 pl-14 font-mono text-xs text-slate-500">GST: {customer.gstnumber}</p>
+                    )}
                   </MobileCardBody>
                   <MobileCardActions>
                     <MobileCardAction
                       icon={Edit}
                       label="Edit"
                       variant="amber"
-                      bordered={false}
                       onClick={() => handleEdit(customer)}
                     />
                     <MobileCardAction

@@ -10,7 +10,6 @@ import {
   Users2,
   Package2,
   IndianRupee,
-  Eye,
 } from 'lucide-react'
 import { SkeletonDashboard } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
@@ -20,6 +19,9 @@ import {
   MobileCardActions,
   MobileCardBody,
   MobileCardList,
+  MobileCardRow,
+  MobileStatCard,
+  MobileStatGrid,
 } from '@/components/mobile-ui'
 
 const AppLayout = dynamic(
@@ -102,28 +104,44 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-5 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
 
         <PageHero
           label="Welcome back"
-          title="Here's your overview"
+          title="Overview"
           description="A quick snapshot of revenue, invoices, and what needs attention today."
           footer={
-            <div className="flex flex-wrap gap-3">
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-center min-w-[88px]">
-                <p className="text-xs font-medium text-slate-500">Draft</p>
-                <p className="mt-0.5 text-xl font-bold text-slate-800 tabular-nums">{draftCount}</p>
+            <div className="flex gap-2 md:gap-3">
+              <div className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center sm:min-w-[88px] sm:flex-none sm:px-4 sm:py-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">Draft</p>
+                <p className="mt-0.5 text-lg font-bold text-slate-800 tabular-nums sm:text-xl">{draftCount}</p>
               </div>
-              <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-2.5 text-center min-w-[88px]">
-                <p className="text-xs font-medium text-emerald-600">Paid</p>
-                <p className="mt-0.5 text-xl font-bold text-emerald-700 tabular-nums">{paidCount}</p>
+              <div className="flex-1 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-center sm:min-w-[88px] sm:flex-none sm:px-4 sm:py-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-600 sm:text-xs">Paid</p>
+                <p className="mt-0.5 text-lg font-bold text-emerald-700 tabular-nums sm:text-xl">{paidCount}</p>
               </div>
             </div>
           }
         />
 
-        {/* ── Stat cards ── */}
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 stagger">
+        <MobileStatGrid>
+          {stats.map((stat) => {
+            const Icon = stat.icon
+            return (
+              <MobileStatCard
+                key={stat.label}
+                label={stat.label}
+                value={stat.value}
+                sub={stat.sub}
+                icon={Icon}
+                iconClassName={stat.iconBg}
+              />
+            )
+          })}
+        </MobileStatGrid>
+
+        {/* ── Stat cards (desktop) ── */}
+        <div className="hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-4 stagger">
           {stats.map((stat) => {
             const Icon = stat.icon
             return (
@@ -149,21 +167,21 @@ export default function DashboardPage() {
         <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
 
           {/* Quick actions */}
-          <div className="premium-card p-5">
-            <div className="mb-4 flex items-center justify-between gap-4">
+          <div className="premium-card p-4 sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4 sm:gap-4">
               <div>
                 <h2 className="text-sm font-bold text-gray-900">Quick Actions</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Shortcuts to your most-used features</p>
+                <p className="text-xs text-gray-400 mt-0.5 hidden sm:block">Shortcuts to your most-used features</p>
               </div>
               <Link
                 href="/invoices/new"
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-blue-700 transition"
+                className="hidden sm:inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-blue-700 transition"
               >
                 <Plus className="h-4 w-4" />
                 New Invoice
               </Link>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {[
                 { href: '/invoices/new', icon: FileText,  label: 'Create Invoice', sub: 'New billing document', bg: 'bg-blue-50',   fg: 'text-blue-600'   },
                 { href: '/customers',    icon: Users2,    label: 'Add Customer',   sub: 'Manage client base',  bg: 'bg-emerald-50', fg: 'text-emerald-600' },
@@ -174,14 +192,14 @@ export default function DashboardPage() {
                   <Link
                     key={action.href}
                     href={action.href}
-                    className="group flex min-h-[88px] flex-col items-center justify-center gap-2.5 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-4 text-center transition active:border-blue-200 active:bg-blue-50"
+                    className="group flex min-h-[76px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-gray-100 bg-gray-50 px-2 py-3 text-center transition active:border-blue-200 active:bg-blue-50 sm:min-h-[88px] sm:gap-2.5 sm:px-4 sm:py-4"
                   >
-                    <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${action.bg} transition group-hover:scale-105`}>
-                      <Icon className={`h-4.5 w-4.5 ${action.fg} h-[18px] w-[18px]`} />
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-xl sm:h-9 sm:w-9 ${action.bg}`}>
+                      <Icon className={`h-4 w-4 sm:h-[18px] sm:w-[18px] ${action.fg}`} />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">{action.label}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{action.sub}</p>
+                      <p className="text-[11px] font-semibold text-gray-800 sm:text-sm">{action.label}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5 hidden sm:block">{action.sub}</p>
                     </div>
                   </Link>
                 )
@@ -278,32 +296,15 @@ export default function DashboardPage() {
 
                   return (
                     <MobileCard key={invoice.id}>
-                      <MobileCardBody href={`/invoices/${invoice.id}`}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="font-bold text-slate-900">{invoice.invoiceNumber}</p>
-                            <p className="mt-0.5 truncate text-sm text-slate-500">{customer?.name || 'Unknown'}</p>
-                          </div>
-                          <span className={badge.cls}>{badge.label}</span>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between">
-                          <p className="text-xs text-slate-400">
-                            {invoice.date ? new Date(invoice.date).toLocaleDateString('en-IN') : '—'}
-                          </p>
-                          <p className="text-base font-bold text-slate-900">
-                            ₹{total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                          </p>
-                        </div>
-                      </MobileCardBody>
-                      <MobileCardActions>
-                        <MobileCardAction
-                          href={`/invoices/${invoice.id}`}
-                          icon={Eye}
-                          label="View"
-                          variant="primary"
-                          bordered={false}
+                      <MobileCardBody href={`/invoices/${invoice.id}`} showChevron>
+                        <MobileCardRow
+                          title={invoice.invoiceNumber}
+                          subtitle={customer?.name || 'Unknown'}
+                          meta={invoice.date ? new Date(invoice.date).toLocaleDateString('en-IN') : '—'}
+                          amount={`₹${total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                          badge={<span className={badge.cls}>{badge.label}</span>}
                         />
-                      </MobileCardActions>
+                      </MobileCardBody>
                     </MobileCard>
                   )
                 })}

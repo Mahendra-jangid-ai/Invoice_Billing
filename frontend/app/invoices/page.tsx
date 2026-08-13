@@ -20,6 +20,14 @@ import {
 import { InvoiceFilters } from '@/components/invoice-filters'
 import { Button } from '@/components/ui/button'
 import { Plus, Eye, Edit, Trash2, FileText, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import {
+  MobileCard,
+  MobileCardAction,
+  MobileCardActions,
+  MobileCardBody,
+  MobileCardList,
+  MobileCardRow,
+} from '@/components/mobile-ui'
 import { SkeletonInvoicesPage } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
 import { useConfirm, useFeedback } from '@/components/confirm-provider'
@@ -148,10 +156,10 @@ function InvoicesPageContent() {
       <div className="space-y-6 animate-fade-in">
         <PageHero
           label="Billing"
-          title="Invoice Management"
+          title="Invoices"
           description="Filter invoices by search, status, customer, invoice number, or date."
           actions={
-            <Link href="/invoices/new" className="w-full sm:w-auto">
+            <Link href="/invoices/new" className="hidden w-full sm:block sm:w-auto">
               <Button className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 New Invoice
@@ -237,8 +245,7 @@ function InvoicesPageContent() {
               </span>
             </div>
 
-            {/* Mobile card list */}
-            <div className="space-y-3 p-4 md:hidden">
+            <MobileCardList className="!block p-4">
               {invoices.map((invoice: InvoiceListItem) => {
                 const customer = customers.find((c) => String(c.id) === String(invoice.customerId))
                 const customerLabel = invoice.customerName || invoice.billTo?.name || customer?.name || 'Unknown'
@@ -246,55 +253,34 @@ function InvoicesPageContent() {
                 const badge = STATUS_MAP[invoice.status] ?? { label: invoice.status, cls: 'badge badge-gray' }
 
                 return (
-                  <div
-                    key={invoice.id}
-                    className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
-                  >
-                    <Link href={`/invoices/${invoice.id}`} className="block p-4 active:bg-slate-50">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900">{invoice.invoiceNumber}</p>
-                          <p className="mt-0.5 truncate text-sm text-slate-500">{customerLabel}</p>
-                        </div>
-                        <span className={badge.cls}>{badge.label}</span>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between">
-                        <p className="text-xs text-slate-400">
-                          {invoice.date ? new Date(invoice.date).toLocaleDateString('en-IN') : '—'}
-                        </p>
-                        <p className="text-base font-bold text-slate-900">{formatCurrency(total)}</p>
-                      </div>
-                    </Link>
-                    <div className="flex border-t border-slate-100">
-                      <Link
-                        href={`/invoices/${invoice.id}`}
-                        className="flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold text-[#2563EB] active:bg-blue-50"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        View
-                      </Link>
-                      {invoice.status === 'draft' && (
-                        <Link
-                          href={`/invoices/${invoice.id}/edit`}
-                          className="flex flex-1 items-center justify-center gap-1.5 border-l border-slate-100 py-3 text-xs font-semibold text-amber-600 active:bg-amber-50"
-                        >
-                          <Edit className="h-3.5 w-3.5" />
-                          Edit
-                        </Link>
+                  <MobileCard key={invoice.id}>
+                    <MobileCardBody href={`/invoices/${invoice.id}`} showChevron>
+                      <MobileCardRow
+                        title={invoice.invoiceNumber}
+                        subtitle={customerLabel}
+                        meta={invoice.date ? new Date(invoice.date).toLocaleDateString('en-IN') : '—'}
+                        amount={formatCurrency(total)}
+                        badge={<span className={badge.cls}>{badge.label}</span>}
+                      />
+                    </MobileCardBody>
+                    <MobileCardActions>
+                      <MobileCardAction href={`/invoices/${invoice.id}`} icon={Eye} label="View" variant="primary" />
+                      {invoice.status === 'draft' ? (
+                        <MobileCardAction href={`/invoices/${invoice.id}/edit`} icon={Edit} label="Edit" variant="amber" />
+                      ) : (
+                        <span className="flex min-h-11 items-center justify-center text-xs text-slate-300">—</span>
                       )}
-                      <button
-                        type="button"
+                      <MobileCardAction
+                        icon={Trash2}
+                        label="Delete"
+                        variant="danger"
                         onClick={() => handleDelete(invoice.id, invoice.invoiceNumber)}
-                        className="flex flex-1 items-center justify-center gap-1.5 border-l border-slate-100 py-3 text-xs font-semibold text-red-600 active:bg-red-50"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete
-                      </button>
-                    </div>
-                  </div>
+                      />
+                    </MobileCardActions>
+                  </MobileCard>
                 )
               })}
-            </div>
+            </MobileCardList>
 
             {/* Desktop table */}
             <div className="table-scroll hidden md:block">
