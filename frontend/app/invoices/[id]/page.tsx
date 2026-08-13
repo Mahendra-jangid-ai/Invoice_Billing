@@ -8,6 +8,7 @@ import {
   InvoicePreview,
   type InvoicePdfMobileActions,
 } from '@/components/invoice-preview'
+import { MobilePdfViewer } from '@/components/mobile-pdf-viewer'
 import { Button } from '@/components/ui/button'
 import {
   Edit,
@@ -59,6 +60,7 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
   const [fetching, setFetching] = useState(false)
   const [saving, setSaving] = useState(false)
   const [pdfActions, setPdfActions] = useState<InvoicePdfMobileActions | null>(null)
+  const [pdfViewOpen, setPdfViewOpen] = useState(false)
   const autoDownloadDone = useRef(false)
 
   const handlePdfActions = useCallback((actions: InvoicePdfMobileActions) => {
@@ -178,7 +180,7 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
   }
 
   const statusBadge = STATUS_MAP[invoice.status] ?? { label: invoice.status, cls: 'badge badge-gray' }
-  const pdfBusy = !pdfActions || pdfActions.loading
+  const pdfDownloadBusy = !pdfActions || pdfActions.loading || !pdfActions.ready
 
   return (
     <AppLayout>
@@ -242,6 +244,8 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
             invoice={invoice}
             mobileActions="external"
             forceMobileLayout
+            viewOpen={pdfViewOpen}
+            onViewOpenChange={setPdfViewOpen}
             onMobilePdfActions={handlePdfActions}
           />
         </div>
@@ -253,19 +257,19 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
                 type="button"
                 variant="outline"
                 className="h-11 gap-2"
-                disabled={pdfBusy}
-                onClick={() => pdfActions?.handleView()}
+                disabled={!pdfActions?.canView}
+                onClick={() => setPdfViewOpen(true)}
               >
-                {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+                <Eye className="h-4 w-4" />
                 View PDF
               </Button>
               <Button
                 type="button"
                 className="h-11 gap-2"
-                disabled={pdfBusy}
+                disabled={pdfDownloadBusy}
                 onClick={() => pdfActions?.handleDownload()}
               >
-                {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                {pdfDownloadBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                 Download
               </Button>
             </div>
@@ -308,6 +312,15 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
           </div>
         </div>
       </div>
+
+      {pdfActions?.canView && (
+        <MobilePdfViewer
+          pdfDocument={pdfActions.pdfDocument}
+          fileName={pdfActions.fileName}
+          open={pdfViewOpen}
+          onClose={() => setPdfViewOpen(false)}
+        />
+      )}
     </AppLayout>
   )
 }

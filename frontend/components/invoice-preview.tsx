@@ -80,13 +80,18 @@ interface InvoicePreviewProps {
   invoice: Invoice
   mobileActions?: 'panel' | 'external'
   forceMobileLayout?: boolean
+  viewOpen?: boolean
+  onViewOpenChange?: (open: boolean) => void
   onMobilePdfActions?: (actions: InvoicePdfMobileActions) => void
 }
 
 export interface InvoicePdfMobileActions {
   loading: boolean
   ready: boolean
+  canView: boolean
   error?: string | null
+  fileName: string
+  pdfDocument: ReactElement<DocumentProps>
   handleView: () => void
   handleDownload: () => void
 }
@@ -669,11 +674,7 @@ function DesktopPdfActions({
   const fileName = `${invoiceNumber || 'invoice'}.pdf`
 
   const handleOpen = () => {
-    if (instance.blob || instance.url) {
-      setViewerOpen(true)
-      return
-    }
-    if (instance.url) window.open(instance.url, '_blank', 'noopener,noreferrer')
+    setViewerOpen(true)
   }
 
   const handleDownload = () => {
@@ -701,16 +702,13 @@ function DesktopPdfActions({
     return <p className={`text-sm text-slate-500 ${className}`}>Could not generate PDF. Please try again.</p>
   }
 
-  if (!instance.url) return null
-
   return (
     <>
     <div className={`flex flex-wrap items-center justify-center gap-2 ${className}`}>
       <button
         type="button"
         onClick={handleOpen}
-        disabled={!instance.blob && !instance.url}
-        className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white hover:bg-[#1D4ED8] disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white hover:bg-[#1D4ED8]"
       >
         <ExternalLink className="h-4 w-4" />
         Open
@@ -718,15 +716,14 @@ function DesktopPdfActions({
       <button
         type="button"
         onClick={handleDownload}
-        className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F9FAFB]"
+        disabled={!instance.blob}
+        className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F9FAFB] disabled:opacity-50"
       >
         <Download className="h-4 w-4" />
         Download
       </button>
     </div>
     <MobilePdfViewer
-      blob={instance.blob}
-      url={instance.url}
       pdfDocument={pdfDocument}
       fileName={fileName}
       open={viewerOpen}
@@ -750,6 +747,8 @@ function MobileInvoicePdfPanel({
   customerName,
   totalAmount,
   showActions = true,
+  viewOpen,
+  onViewOpenChange,
   onActionsReady,
 }: {
   pdfDocument: ReactElement<DocumentProps>
@@ -759,11 +758,16 @@ function MobileInvoicePdfPanel({
   customerName?: string
   totalAmount?: number
   showActions?: boolean
+  viewOpen?: boolean
+  onViewOpenChange?: (open: boolean) => void
   onActionsReady?: (actions: InvoicePdfMobileActions) => void
 }) {
   const [instance, updateInstance] = usePDF()
   const [downloadState, setDownloadState] = useState<'idle' | 'done'>('idle')
-  const [viewerOpen, setViewerOpen] = useState(false)
+  const [internalViewerOpen, setInternalViewerOpen] = useState(false)
+  const viewerControlledOnPage = onViewOpenChange !== undefined && !showActions
+  const viewerOpen = viewerControlledOnPage ? Boolean(viewOpen) : internalViewerOpen
+  const setViewerOpen = viewerControlledOnPage ? onViewOpenChange! : setInternalViewerOpen
   usePdfErrorPopup(instance.error)
 
   useEffect(() => {
@@ -780,10 +784,8 @@ function MobileInvoicePdfPanel({
     : '—'
 
   const handleView = useCallback(() => {
-    if (instance.loading || instance.error) return
-    if (!instance.blob && !instance.url) return
     setViewerOpen(true)
-  }, [instance.blob, instance.url, instance.loading, instance.error])
+  }, [setViewerOpen])
 
   const handleDownload = useCallback(() => {
     if (!instance.blob) return
@@ -803,19 +805,23 @@ function MobileInvoicePdfPanel({
     if (!onActionsReady) return
     onActionsReady({
       loading: instance.loading,
-      ready: Boolean(instance.blob || instance.url) && !instance.loading && !instance.error,
+      ready: Boolean(instance.blob) && !instance.loading && !instance.error,
+      canView: true,
       error: instance.error,
+      fileName,
+      pdfDocument,
       handleView,
       handleDownload,
     })
   }, [
     instance.loading,
-    instance.url,
     instance.blob,
     instance.error,
     onActionsReady,
     handleView,
     handleDownload,
+    fileName,
+    pdfDocument,
   ])
 
   return (
@@ -919,14 +925,14 @@ function MobileInvoicePdfPanel({
         </div>
       ) : null}
     </div>
-    <MobilePdfViewer
-      blob={instance.blob}
-      url={instance.url}
-      pdfDocument={pdfDocument}
-      fileName={fileName}
-      open={viewerOpen}
-      onClose={() => setViewerOpen(false)}
-    />
+    {!viewerControlledOnPage && (
+      <MobilePdfViewer
+        pdfDocument={pdfDocument}
+        fileName={fileName}
+        open={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+      />
+    )}
     </>
   )
 }
@@ -935,6 +941,8 @@ export function InvoicePreview({
   invoice,
   mobileActions = 'panel',
   forceMobileLayout = false,
+  viewOpen,
+  onViewOpenChange,
   onMobilePdfActions,
 }: InvoicePreviewProps) {
   const { customers, company } = useBilling()
@@ -1106,6 +1114,8 @@ export function InvoicePreview({
         customerName={billTo.name}
         totalAmount={displayTotal}
         showActions={mobileActions === 'panel'}
+        viewOpen={viewOpen}
+        onViewOpenChange={onViewOpenChange}
         onActionsReady={mobileActions === 'external' ? onMobilePdfActions : undefined}
       />
     )
