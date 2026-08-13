@@ -1,7 +1,33 @@
 'use client'
 
-import { Document, Font, Image, Page, PDFViewer, StyleSheet, Text, View } from '@react-pdf/renderer'
+import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import {
+  Document,
+  Font,
+  Image,
+  Page,
+  PDFViewer,
+  StyleSheet,
+  Text,
+  View,
+  usePDF,
+  type DocumentProps,
+} from '@react-pdf/renderer'
+import { ExternalLink, FileText, Loader2 } from 'lucide-react'
 import { useBilling, Invoice } from '@/lib/context'
+
+function useMobilePdfFallback() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    const narrowScreen = window.matchMedia('(max-width: 768px)').matches
+    const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+    setIsMobile(mobileUa || (touchDevice && narrowScreen))
+  }, [])
+
+  return isMobile
+}
 
 Font.register({
   family: 'Roboto',
@@ -578,6 +604,52 @@ function InvoicePdfDocument({
   )
 }
 
+function MobilePdfPreview({
+  document,
+  invoiceNumber,
+}: {
+  document: ReactElement<DocumentProps>
+  invoiceNumber?: string
+}) {
+  const [instance, updateInstance] = usePDF()
+
+  useEffect(() => {
+    updateInstance(document)
+  }, [document, updateInstance])
+
+  return (
+    <div className="w-full rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm soft-card">
+      <div className="mb-3 text-sm font-semibold text-[#374151]">PDF Preview</div>
+      <div className="flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-6 text-center">
+        {instance.loading ? (
+          <>
+            <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
+            <p className="text-sm text-[#6B7280]">Preparing invoice PDF…</p>
+          </>
+        ) : instance.error ? (
+          <p className="text-sm text-red-600">{instance.error}</p>
+        ) : instance.url ? (
+          <>
+            <FileText className="h-12 w-12 text-[#9CA3AF]" />
+            <p className="max-w-xs text-sm text-[#6B7280]">
+              Tap below to open {invoiceNumber || 'this invoice'} in your browser&apos;s PDF viewer.
+            </p>
+            <a
+              href={instance.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1D4ED8]"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open Invoice
+            </a>
+          </>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   const { customers, company } = useBilling()
 
@@ -681,35 +753,69 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
 
   const contactLine = [contactPerson, companyPhone].filter(Boolean).join(' • ')
 
+  const pdfDocument = useMemo(
+    () => (
+      <InvoicePdfDocument
+        invoice={invoice}
+        company={company}
+        companyName={companyName}
+        companyAddress={companyAddress}
+        companyGst={companyGst}
+        companyState={companyState}
+        companyStateCode={companyStateCode}
+        contactLine={contactLine}
+        billTo={billTo}
+        shipTo={shipTo}
+        itemsList={itemsList}
+        subtotal={subtotal}
+        cgstPercentage={cgstPercentage}
+        sgstPercentage={sgstPercentage}
+        totalCgst={totalCgst}
+        totalSgst={totalSgst}
+        totalTax={totalTax}
+        rawTotal={rawTotal}
+        roundedTotal={roundedTotal}
+        roundOff={roundOff}
+        getAmountInWords={getAmountInWords}
+      />
+    ),
+    [
+      invoice,
+      company,
+      companyName,
+      companyAddress,
+      companyGst,
+      companyState,
+      companyStateCode,
+      contactLine,
+      billTo,
+      shipTo,
+      itemsList,
+      subtotal,
+      cgstPercentage,
+      sgstPercentage,
+      totalCgst,
+      totalSgst,
+      totalTax,
+      rawTotal,
+      roundedTotal,
+      roundOff,
+    ],
+  )
+
+  const isMobile = useMobilePdfFallback()
+
+  if (isMobile) {
+    return <MobilePdfPreview document={pdfDocument} invoiceNumber={invoice.invoiceNumber} />
+  }
+
   return (
     <div className="w-full rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm soft-card">
       <div className="mb-3 text-sm font-semibold text-[#374151]">PDF Preview</div>
       <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white p-2">
-          <PDFViewer style={{ width: '100%', height: '1000px', backgroundColor: '#ffffff' }}>
-            <InvoicePdfDocument
-            invoice={invoice}
-            company={company}
-            companyName={companyName}
-            companyAddress={companyAddress}
-            companyGst={companyGst}
-            companyState={companyState}
-            companyStateCode={companyStateCode}
-            contactLine={contactLine}
-            billTo={billTo}
-            shipTo={shipTo}
-            itemsList={itemsList}
-            subtotal={subtotal}
-            cgstPercentage={cgstPercentage}
-            sgstPercentage={sgstPercentage}
-            totalCgst={totalCgst}
-            totalSgst={totalSgst}
-            totalTax={totalTax}
-            rawTotal={rawTotal}
-            roundedTotal={roundedTotal}
-            roundOff={roundOff}
-            getAmountInWords={getAmountInWords}
-            />
-          </PDFViewer>
+        <PDFViewer style={{ width: '100%', height: '1000px', backgroundColor: '#ffffff' }}>
+          {pdfDocument}
+        </PDFViewer>
       </div>
     </div>
   )
