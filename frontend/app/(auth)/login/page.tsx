@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { getSafeRedirectPath } from '@/lib/utils'
+import { markPendingOnboarding } from '@/lib/pending-onboarding'
 import { useFeedback } from '@/components/confirm-provider'
 import { GoogleSignInButton } from '@/components/google-sign-in-button'
 import { AuthDivider } from '@/components/auth-divider'
@@ -73,7 +74,10 @@ function LoginPageContent() {
     setGoogleLoading(true)
     const result = await loginWithGoogle(credential)
     if (result.success) {
-      if (result.emailVerified === false) {
+      if (result.isNewUser) {
+        markPendingOnboarding()
+        router.replace('/onboarding')
+      } else if (result.emailVerified === false) {
         router.replace('/verify-email')
       } else {
         router.replace(from)
