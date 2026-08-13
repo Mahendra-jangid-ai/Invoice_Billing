@@ -13,7 +13,7 @@ import {
   usePDF,
   type DocumentProps,
 } from '@react-pdf/renderer'
-import { Download, ExternalLink, FileText, Loader2 } from 'lucide-react'
+import { Download, ExternalLink, Eye, Loader2, X, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { useBilling, Invoice } from '@/lib/context'
 
 function useMobilePdfFallback() {
@@ -622,6 +622,15 @@ function PdfActionButtons({
     updateInstance(pdfDocument)
   }, [pdfDocument, updateInstance])
 
+  useEffect(() => {
+    if (!showViewer) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [showViewer])
+
   const fileName = `${invoiceNumber || 'invoice'}.pdf`
 
   const handleOpen = () => {
@@ -646,6 +655,29 @@ function PdfActionButtons({
   }
 
   if (instance.loading) {
+    if (openMode === 'inline') {
+      return (
+        <div className={`w-full space-y-3 ${className}`}>
+          {[0, 1].map((key) => (
+            <div
+              key={key}
+              className="flex animate-pulse items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4"
+            >
+              <div className="h-12 w-12 rounded-2xl bg-slate-200" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 w-28 rounded-full bg-slate-200" />
+                <div className="h-3 w-40 rounded-full bg-slate-100" />
+              </div>
+            </div>
+          ))}
+          <p className="flex items-center justify-center gap-2 text-xs text-slate-400">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Preparing your invoice…
+          </p>
+        </div>
+      )
+    }
+
     return (
       <div className={`inline-flex items-center gap-2 text-sm text-[#6B7280] ${className}`}>
         <Loader2 className="h-4 w-4 animate-spin text-[#2563EB]" />
@@ -660,67 +692,201 @@ function PdfActionButtons({
 
   if (!instance.url) return null
 
-  return (
-    <div className={`w-full ${className}`}>
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {!showViewer && (
-          <button
-            type="button"
-            onClick={handleOpen}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white hover:bg-[#1D4ED8]"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Open
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={handleDownload}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F9FAFB]"
-        >
-          <Download className="h-4 w-4" />
-          Download
-        </button>
-      </div>
+  if (openMode === 'inline') {
+    return (
+      <MobilePdfActions
+        fileName={fileName}
+        pdfUrl={instance.url}
+        onOpen={handleOpen}
+        onDownload={handleDownload}
+        viewerOpen={showViewer}
+        onCloseViewer={() => setShowViewer(false)}
+        className={className}
+      />
+    )
+  }
 
-      {showViewer && (
-        <div className="mt-4 w-full overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2">
-            <span className="text-xs font-medium text-[#374151]">{fileName}</span>
-            <button
-              type="button"
-              onClick={() => setShowViewer(false)}
-              className="text-xs font-medium text-[#2563EB]"
-            >
-              Close
-            </button>
-          </div>
-          <iframe
-            src={instance.url}
-            title={fileName}
-            className="h-[70vh] w-full bg-white"
-          />
-        </div>
-      )}
+  return (
+    <div className={`flex flex-wrap items-center justify-center gap-2 ${className}`}>
+      <button
+        type="button"
+        onClick={handleOpen}
+        className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white hover:bg-[#1D4ED8]"
+      >
+        <ExternalLink className="h-4 w-4" />
+        Open
+      </button>
+      <button
+        type="button"
+        onClick={handleDownload}
+        className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F9FAFB]"
+      >
+        <Download className="h-4 w-4" />
+        Download
+      </button>
     </div>
   )
 }
 
+function MobilePdfActions({
+  fileName,
+  pdfUrl,
+  onOpen,
+  onDownload,
+  viewerOpen,
+  onCloseViewer,
+  className = '',
+}: {
+  fileName: string
+  pdfUrl: string
+  onOpen: () => void
+  onDownload: () => void
+  viewerOpen: boolean
+  onCloseViewer: () => void
+  className?: string
+}) {
+  const [downloadState, setDownloadState] = useState<'idle' | 'done'>('idle')
+
+  const handleDownload = () => {
+    onDownload()
+    setDownloadState('done')
+    window.setTimeout(() => setDownloadState('idle'), 2500)
+  }
+
+  return (
+    <>
+      <div className={`w-full space-y-3 ${className}`}>
+        <button
+          type="button"
+          onClick={onOpen}
+          className="group flex w-full items-center gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-white p-4 text-left shadow-sm transition active:scale-[0.98]"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2563EB] text-white shadow-md shadow-blue-200">
+            <Eye className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-900">View Invoice</p>
+            <p className="mt-0.5 text-xs text-slate-500">Full-screen preview, no download</p>
+          </div>
+          <ChevronRight className="h-5 w-5 shrink-0 text-slate-300 transition group-active:translate-x-0.5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={handleDownload}
+          className="group flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition active:scale-[0.98]"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+            {downloadState === 'done' ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+            ) : (
+              <Download className="h-5 w-5" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-900">
+              {downloadState === 'done' ? 'Download started' : 'Download PDF'}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {downloadState === 'done' ? 'Check your downloads folder' : 'Save a copy to your phone'}
+            </p>
+          </div>
+          <ChevronRight className="h-5 w-5 shrink-0 text-slate-300" />
+        </button>
+      </div>
+
+      {viewerOpen && (
+        <div className="fixed inset-0 z-[60] flex flex-col bg-slate-900 animate-fade-in">
+          <div className="flex items-center gap-3 border-b border-white/10 bg-slate-900/95 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md">
+            <button
+              type="button"
+              onClick={onCloseViewer}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white transition active:bg-white/20"
+              aria-label="Close preview"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-white">{fileName}</p>
+              <p className="text-xs text-slate-400">Pinch to zoom • Swipe to scroll</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleDownload}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white transition active:bg-white/20"
+              aria-label="Download PDF"
+            >
+              <Download className="h-5 w-5" />
+            </button>
+          </div>
+          <iframe
+            src={pdfUrl}
+            title={fileName}
+            className="h-full w-full flex-1 bg-white"
+          />
+        </div>
+      )}
+    </>
+  )
+}
+
+const STATUS_STYLES = {
+  draft: { label: 'Draft', cls: 'badge badge-gray' },
+  finalized: { label: 'Finalized', cls: 'badge badge-blue' },
+  paid: { label: 'Paid', cls: 'badge badge-green' },
+} as const
+
 function MobilePdfPreview({
   pdfDocument,
   invoiceNumber,
+  date,
+  status,
+  customerName,
+  totalAmount,
 }: {
   pdfDocument: ReactElement<DocumentProps>
   invoiceNumber?: string
+  date?: string
+  status?: 'draft' | 'finalized' | 'paid'
+  customerName?: string
+  totalAmount?: number
 }) {
+  const statusMeta = status ? STATUS_STYLES[status] : null
+  const formattedDate = date ? new Date(date).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }) : '—'
+  const formattedTotal = typeof totalAmount === 'number'
+    ? `₹${totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+    : '—'
+
   return (
-    <div className="w-full rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm soft-card">
-      <div className="mb-3 text-sm font-semibold text-[#374151]">PDF Preview</div>
-      <div className="flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-6 text-center">
-        <FileText className="h-12 w-12 text-[#9CA3AF]" />
-        <p className="max-w-xs text-sm text-[#6B7280]">
-          Open to view the invoice here, or download only when you need a saved copy.
-        </p>
+    <div className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 py-5 text-white">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-blue-100">Invoice</p>
+            <h3 className="mt-1 truncate text-lg font-bold">{invoiceNumber || 'Invoice'}</h3>
+            <p className="mt-1 truncate text-sm text-blue-100">{customerName || 'Customer'}</p>
+          </div>
+          {statusMeta && <span className={`${statusMeta.cls} shrink-0`}>{statusMeta.label}</span>}
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="rounded-xl bg-white/10 px-3 py-2.5 backdrop-blur-sm">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-blue-100">Date</p>
+            <p className="mt-0.5 text-sm font-semibold">{formattedDate}</p>
+          </div>
+          <div className="rounded-xl bg-white/10 px-3 py-2.5 backdrop-blur-sm">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-blue-100">Amount</p>
+            <p className="mt-0.5 text-sm font-semibold">{formattedTotal}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Quick actions</p>
         <PdfActionButtons
           pdfDocument={pdfDocument}
           invoiceNumber={invoiceNumber}
@@ -884,10 +1050,22 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
     ],
   )
 
+  const cashDiscountAmount = invoice.cashDiscount?.discountAmount || 0
+  const displayTotal = Math.round(rawTotal - cashDiscountAmount)
+
   const isMobile = useMobilePdfFallback()
 
   if (isMobile) {
-    return <MobilePdfPreview pdfDocument={pdfDocument} invoiceNumber={invoice.invoiceNumber} />
+    return (
+      <MobilePdfPreview
+        pdfDocument={pdfDocument}
+        invoiceNumber={invoice.invoiceNumber}
+        date={invoice.date}
+        status={invoice.status}
+        customerName={billTo.name}
+        totalAmount={displayTotal}
+      />
+    )
   }
 
   return (
