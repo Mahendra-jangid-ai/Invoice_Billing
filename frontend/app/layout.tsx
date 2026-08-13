@@ -6,6 +6,7 @@ import { BillingProvider } from '@/lib/context'
 import { AuthProvider } from '@/lib/auth-context'
 import { ConfirmProvider } from '@/components/confirm-provider'
 import { PwaInstallPrompt } from '@/components/pwa-install-prompt'
+import { PwaShellProvider } from '@/lib/use-installed-pwa'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -64,8 +65,10 @@ export default function RootLayout({
         <AuthProvider>
           <BillingProvider>
             <ConfirmProvider>
-              {children}
-              <PwaInstallPrompt />
+              <PwaShellProvider>
+                {children}
+                <PwaInstallPrompt />
+              </PwaShellProvider>
             </ConfirmProvider>
           </BillingProvider>
         </AuthProvider>

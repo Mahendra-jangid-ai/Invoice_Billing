@@ -11,6 +11,7 @@ import {
   Plus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useIsInstalledPwa } from '@/lib/use-installed-pwa'
 
 const MAIN_TABS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Home', match: (p: string) => p === '/dashboard' },
@@ -28,8 +29,9 @@ function shouldHideBottomNav(pathname: string) {
 
 export function MobileBottomNav() {
   const pathname = usePathname()
+  const isInstalledPwa = useIsInstalledPwa()
 
-  if (shouldHideBottomNav(pathname)) return null
+  if (!isInstalledPwa || shouldHideBottomNav(pathname)) return null
 
   const moreActive = pathname === '/setting' || pathname === '/company-settings' || pathname === '/settings'
 

@@ -159,7 +159,7 @@ function InvoicesPageContent() {
           title="Invoices"
           description="Filter invoices by search, status, customer, invoice number, or date."
           actions={
-            <Link href="/invoices/new" className="hidden w-full sm:block sm:w-auto">
+            <Link href="/invoices/new" className="browser-shell-only inline-flex w-full sm:w-auto">
               <Button className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 New Invoice
@@ -283,7 +283,7 @@ function InvoicesPageContent() {
             </MobileCardList>
 
             {/* Desktop table */}
-            <div className="table-scroll hidden md:block">
+            <div className="table-scroll browser-table-shell">
               <table className="min-w-full">
                 <thead className="bg-slate-50">
                   <tr>

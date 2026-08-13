@@ -273,7 +273,7 @@ export default function CustomersPage() {
               ))}
             </MobileCardList>
 
-            <div className="table-scroll hidden md:block">
+            <div className="table-scroll browser-table-shell">
               <table className="min-w-full">
                 <thead className="bg-slate-50">
                   <tr>

@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { BillingErrorBridge } from '@/components/billing-error-bridge'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
+import { useIsInstalledPwa } from '@/lib/use-installed-pwa'
 import {
   Menu,
   ChevronRight,
@@ -14,6 +15,7 @@ import {
   Settings,
   User,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 // ── Lazy-load the sidebar (it's heavy with icons + nav) ─────────────────────
 const Sidebar = dynamic(
@@ -93,12 +95,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [profileOpen])
 
   const { label, breadcrumbs } = getPageMeta(pathname)
+  const isInstalledPwa = useIsInstalledPwa()
   const initials = user?.name
     ? user.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
     : 'U'
 
   return (
-    <div className="relative min-h-screen bg-[#F3F4F8] md:bg-[#F6F7FB]">
+    <div
+      className={cn(
+        'relative min-h-screen',
+        isInstalledPwa ? 'bg-[#F3F4F8] md:bg-[#F6F7FB]' : 'bg-[#F6F7FB]',
+      )}
+    >
 
       {/* ── Mobile backdrop ── */}
       <div
@@ -116,20 +124,34 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="md:pl-72 flex flex-col min-h-screen">
 
         {/* ── Top bar ── */}
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-slate-200/70 bg-white/95 px-3 py-2 backdrop-blur-xl sm:px-6 lg:px-8 md:shadow-sm pt-[max(0.5rem,env(safe-area-inset-top))]">
+        <header
+          className={cn(
+            'sticky top-0 z-20 flex items-center justify-between gap-2 border-b bg-white/95 px-3 backdrop-blur-xl sm:px-6 lg:px-8 pt-[max(0.5rem,env(safe-area-inset-top))]',
+            isInstalledPwa
+              ? 'border-slate-200/70 py-2 md:shadow-sm'
+              : 'border-slate-200/80 py-2.5 shadow-sm',
+          )}
+        >
 
           {/* Left: hamburger + breadcrumb */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1 md:gap-2.5">
             <button
               type="button"
               onClick={() => setSidebarOpen((o) => !o)}
-              className="md:hidden touch-target inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 active:bg-slate-100 transition"
+              className={cn(
+                'md:hidden touch-target inline-flex items-center justify-center rounded-xl text-slate-600 transition active:bg-slate-50',
+                isInstalledPwa
+                  ? 'h-10 w-10'
+                  : 'h-11 w-11 border border-slate-200 bg-white shadow-sm',
+              )}
               aria-label="Toggle menu"
             >
               <Menu className="h-5 w-5" />
             </button>
 
-            <img src="/logo.png" alt="" className="h-7 w-auto object-contain md:hidden" />
+            {isInstalledPwa ? (
+              <img src="/logo.png" alt="" className="h-7 w-auto object-contain md:hidden" />
+            ) : null}
 
             <nav className="hidden min-w-0 sm:flex sm:items-center sm:gap-1 sm:text-sm">
               {breadcrumbs.map((crumb, i) => (
@@ -149,7 +171,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
 
-            <p className="hidden truncate text-sm font-semibold text-slate-900 min-[420px]:block sm:hidden">{label}</p>
+            <p
+              className={cn(
+                'truncate text-sm font-semibold text-slate-900 sm:hidden',
+                isInstalledPwa ? 'hidden min-[420px]:block' : 'block',
+              )}
+            >
+              {label}
+            </p>
           </div>
 
           {/* Right: profile */}
@@ -158,9 +187,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setProfileOpen((o) => !o)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2563EB] text-xs font-bold text-white shadow-sm active:scale-95 transition md:gap-2.5 md:w-auto md:rounded-xl md:border md:border-slate-200 md:bg-white md:px-3 md:py-1.5 md:shadow-sm md:hover:bg-slate-50"
+                className={cn(
+                  'flex items-center transition',
+                  isInstalledPwa
+                    ? 'h-10 w-10 justify-center rounded-xl bg-[#2563EB] text-xs font-bold text-white shadow-sm active:scale-95 md:gap-2.5 md:w-auto md:rounded-xl md:border md:border-slate-200 md:bg-white md:px-3 md:py-1.5 md:shadow-sm md:hover:bg-slate-50'
+                    : 'gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:bg-slate-50',
+                )}
               >
-                <span className="md:hidden">{initials}</span>
+                {isInstalledPwa ? (
+                  <span className="md:hidden">{initials}</span>
+                ) : (
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
+                    {initials}
+                  </div>
+                )}
                 <div className="hidden md:flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
                   {initials}
                 </div>
@@ -227,7 +267,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* ── Page content ── */}
-        <main className="flex-1 px-3 py-3 sm:px-6 sm:py-6 lg:px-8 mobile-page">
+        <main
+          className={cn(
+            'flex-1 px-3 sm:px-6 lg:px-8 mobile-page',
+            isInstalledPwa ? 'py-3 sm:py-6' : 'py-4 sm:py-6',
+          )}
+        >
           <div className="mx-auto max-w-7xl animate-fade-in">
             <BillingErrorBridge />
             {children}

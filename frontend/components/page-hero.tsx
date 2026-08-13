@@ -18,7 +18,7 @@ export function PageHero({ label, title, description, actions, footer }: PageHer
             {title}
           </h1>
           {description && (
-            <p className="mt-1.5 hidden text-sm text-slate-500 leading-relaxed max-w-2xl sm:block">
+            <p className="hero-description mt-1.5 text-sm text-slate-500 leading-relaxed max-w-2xl sm:mt-2">
               {description}
             </p>
           )}

@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useBilling } from '@/lib/context'
+import { useIsInstalledPwa } from '@/lib/use-installed-pwa'
 import {
   Plus,
   ArrowRight,
@@ -37,6 +38,7 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 
 export default function DashboardPage() {
   const { invoices, customers, items, company, loading } = useBilling()
+  const isInstalledPwa = useIsInstalledPwa()
 
   if (loading) {
     return (
@@ -108,7 +110,7 @@ export default function DashboardPage() {
 
         <PageHero
           label="Welcome back"
-          title="Overview"
+          title={isInstalledPwa ? 'Overview' : "Here's your overview"}
           description="A quick snapshot of revenue, invoices, and what needs attention today."
           footer={
             <div className="flex gap-2 md:gap-3">
@@ -140,8 +142,8 @@ export default function DashboardPage() {
           })}
         </MobileStatGrid>
 
-        {/* ── Stat cards (desktop) ── */}
-        <div className="hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-4 stagger">
+        {/* ── Stat cards (browser mobile + desktop) ── */}
+        <div className="browser-shell-only browser-shell-md-up hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-4 stagger">
           {stats.map((stat) => {
             const Icon = stat.icon
             return (
@@ -175,13 +177,13 @@ export default function DashboardPage() {
               </div>
               <Link
                 href="/invoices/new"
-                className="hidden sm:inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-blue-700 transition"
+                className={`min-h-11 items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-blue-700 transition ${isInstalledPwa ? 'hidden sm:inline-flex' : 'inline-flex'}`}
               >
                 <Plus className="h-4 w-4" />
                 New Invoice
               </Link>
             </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className={`grid grid-cols-3 gap-2 sm:gap-3 ${isInstalledPwa ? '' : 'sm:grid-cols-3'}`}>
               {[
                 { href: '/invoices/new', icon: FileText,  label: 'Create Invoice', sub: 'New billing document', bg: 'bg-blue-50',   fg: 'text-blue-600'   },
                 { href: '/customers',    icon: Users2,    label: 'Add Customer',   sub: 'Manage client base',  bg: 'bg-emerald-50', fg: 'text-emerald-600' },
@@ -310,7 +312,7 @@ export default function DashboardPage() {
                 })}
               </MobileCardList>
 
-              <div className="table-scroll hidden md:block">
+              <div className="table-scroll browser-table-shell">
               <table className="min-w-full">
                 <thead>
                   <tr>
