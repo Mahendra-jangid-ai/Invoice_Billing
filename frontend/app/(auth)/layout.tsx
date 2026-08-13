@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { AuthGoogleShell } from '@/components/auth-google-shell'
 
 export const metadata: Metadata = {
   title: 'Billing Studio — Sign In',
@@ -13,7 +14,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <img src="/logo.png" alt="Billing Studio logo" className="mx-auto mb-3 h-14 w-auto object-contain" />
           <p className="text-sm text-slate-500">Modern invoicing for your business</p>
         </div>
-        {children}
+        <AuthGoogleShell>{children}</AuthGoogleShell>
       </div>
     </div>
   )

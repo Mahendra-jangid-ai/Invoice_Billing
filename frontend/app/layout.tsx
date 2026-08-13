@@ -10,6 +10,7 @@ import { PwaShellProvider } from '@/lib/use-installed-pwa'
 import { BottomChromeSync } from '@/components/bottom-chrome-sync'
 import { PwaShellScript } from '@/components/pwa-shell-script'
 import { OnboardingGate } from '@/components/onboarding-gate'
+import { GoogleAuthProvider } from '@/components/google-auth-provider'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -56,6 +57,7 @@ export default function RootLayout({
       <body className={`${poppins.className} antialiased`}>
         <PwaShellScript />
         <AuthProvider>
+          <GoogleAuthProvider>
           <BillingProvider>
             <OnboardingGate>
             <ConfirmProvider>
@@ -67,6 +69,7 @@ export default function RootLayout({
             </ConfirmProvider>
             </OnboardingGate>
           </BillingProvider>
+          </GoogleAuthProvider>
         </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

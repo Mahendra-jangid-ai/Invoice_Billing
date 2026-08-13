@@ -10,6 +10,7 @@ export interface SessionPayload {
   email: string
   name: string
   expiresAt: Date
+  emailVerified: boolean
 }
 
 function getSecretKey(): Uint8Array {
@@ -27,6 +28,7 @@ export async function encrypt(payload: SessionPayload): Promise<string> {
     email: payload.email,
     name: payload.name,
     expiresAt: payload.expiresAt.toISOString(),
+    emailVerified: payload.emailVerified,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -59,6 +61,7 @@ export async function decrypt(token: string | undefined): Promise<SessionPayload
       email: payload.email,
       name: payload.name,
       expiresAt: new Date(payload.expiresAt),
+      emailVerified: payload.emailVerified !== false,
     }
   } catch {
     return null
@@ -70,10 +73,11 @@ export async function createSession(
   userId: string,
   email: string,
   name: string,
+  emailVerified = true,
 ): Promise<{ sessionId: string; expiresAt: Date }> {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
   const sessionId = globalThis.crypto.randomUUID()
-  const token = await encrypt({ sessionId, userId, email, name, expiresAt })
+  const token = await encrypt({ sessionId, userId, email, name, expiresAt, emailVerified })
 
   res.cookie(SESSION_COOKIE, token, {
     httpOnly: true,

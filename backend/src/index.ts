@@ -1,7 +1,9 @@
+import path from 'path'
+import { fileURLToPath } from 'url'
+import dotenv from 'dotenv'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import dotenv from 'dotenv'
 import { registerAuthRoutes } from './routes/auth.js'
 import { registerCustomerRoutes } from './routes/customers.js'
 import { registerItemRoutes } from './routes/items.js'
@@ -13,7 +15,8 @@ import { ensureIndexes, getDatabase, getMongoClient } from './lib/mongodb.js'
 import { corsOrigin } from './lib/cors.js'
 import { globalApiRateLimit } from './lib/api-middleware.js'
 
-dotenv.config()
+const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+dotenv.config({ path: path.join(backendRoot, '.env') })
 
 if (!process.env.SESSION_SECRET) {
   console.error('SESSION_SECRET environment variable is required')

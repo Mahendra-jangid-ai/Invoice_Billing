@@ -8,6 +8,7 @@ export interface SessionPayload {
   email: string
   name: string
   expiresAt: Date
+  emailVerified: boolean
 }
 
 function getSecretKey(): Uint8Array {
@@ -41,6 +42,7 @@ export async function decrypt(token: string | undefined): Promise<SessionPayload
       email: payload.email,
       name: payload.name,
       expiresAt: new Date(payload.expiresAt),
+      emailVerified: payload.emailVerified !== false,
     }
   } catch {
     return null

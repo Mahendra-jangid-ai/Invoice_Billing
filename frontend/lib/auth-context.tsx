@@ -12,19 +12,45 @@ export interface AuthUser {
   name: string
   avatarUrl?: string
   avatarPreset?: string
+  emailVerified?: boolean
 }
 
 interface AuthContextType {
   user: AuthUser | null
   isAuthenticated: boolean
   loading: boolean
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  login: (email: string, password: string) => Promise<{ success: boolean; emailVerified?: boolean; error?: string }>
   logout: () => Promise<void>
-  signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  signup: (name: string, email: string, password: string) => Promise<{ success: boolean; emailVerified?: boolean; error?: string }>
+  loginWithGoogle: (credential: string) => Promise<{ success: boolean; isNewUser?: boolean; emailVerified?: boolean; error?: string }>
+  verifyEmail: (code: string) => Promise<{ success: boolean; error?: string }>
+  resendVerificationEmail: (force?: boolean) => Promise<{ success: boolean; error?: string }>
   refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+type AuthProfile = {
+  userId: string
+  email: string
+  name: string
+  sessionId?: string
+  avatarUrl?: string
+  avatarPreset?: string
+  emailVerified?: boolean
+}
+
+function toAuthUser(data: AuthProfile): AuthUser {
+  return {
+    sessionId: data.sessionId,
+    userId: data.userId,
+    email: data.email,
+    name: data.name,
+    avatarUrl: data.avatarUrl || '',
+    avatarPreset: data.avatarPreset || 'character-1',
+    emailVerified: Boolean(data.emailVerified),
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -47,22 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function fetchCurrentUser() {
       try {
-        const data = await apiFetch<{
-          userId: string
-          email: string
-          name: string
-          sessionId: string
-          avatarUrl?: string
-          avatarPreset?: string
-        }>('/api/auth/me')
-        setUser({
-          sessionId: data.sessionId,
-          userId: data.userId,
-          email: data.email,
-          name: data.name,
-          avatarUrl: data.avatarUrl || '',
-          avatarPreset: data.avatarPreset || 'character-1',
-        })
+        const data = await apiFetch<AuthProfile & { sessionId: string }>('/api/auth/me')
+        setUser(toAuthUser(data))
       } catch {
         setUser(null)
       } finally {
@@ -74,25 +86,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const data = await apiFetch<{
-        userId: string
-        email: string
-        name: string
-        avatarUrl?: string
-        avatarPreset?: string
-      }>('/api/auth/login', {
+      const data = await apiFetch<AuthProfile>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       })
-      setUser({
-        userId: data.userId,
-        email: data.email,
-        name: data.name,
-        avatarUrl: data.avatarUrl || '',
-        avatarPreset: data.avatarPreset || 'character-1',
-      })
-      clearPendingOnboarding()
-      return { success: true }
+      setUser(toAuthUser(data))
+      if (data.emailVerified) {
+        clearPendingOnboarding()
+      }
+      return { success: true, emailVerified: Boolean(data.emailVerified) }
     } catch (error) {
       return { success: false, error: getErrorMessage(error, 'Login failed') }
     }
@@ -111,47 +113,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = useCallback(async (name: string, email: string, password: string) => {
     try {
-      const data = await apiFetch<{
-        userId: string
-        email: string
-        name: string
-        avatarUrl?: string
-        avatarPreset?: string
-      }>('/api/auth/signup', {
+      const data = await apiFetch<AuthProfile>('/api/auth/signup', {
         method: 'POST',
         body: JSON.stringify({ name, email, password }),
       })
-      setUser({
-        userId: data.userId,
-        email: data.email,
-        name: data.name,
-        avatarUrl: data.avatarUrl || '',
-        avatarPreset: data.avatarPreset || 'character-1',
-      })
-      return { success: true }
+      setUser(toAuthUser(data))
+      return { success: true, emailVerified: Boolean(data.emailVerified) }
     } catch (error) {
       return { success: false, error: getErrorMessage(error, 'Sign up failed') }
     }
   }, [])
 
+  const loginWithGoogle = useCallback(async (credential: string) => {
+    try {
+      const data = await apiFetch<AuthProfile & { isNewUser?: boolean }>('/api/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ credential }),
+      })
+      setUser(toAuthUser(data))
+      if (!data.isNewUser) {
+        clearPendingOnboarding()
+      }
+      return {
+        success: true,
+        isNewUser: Boolean(data.isNewUser),
+        emailVerified: Boolean(data.emailVerified),
+      }
+    } catch (error) {
+      return { success: false, error: getErrorMessage(error, 'Google sign-in failed') }
+    }
+  }, [])
+
+  const verifyEmail = useCallback(async (code: string) => {
+    try {
+      const data = await apiFetch<AuthProfile>('/api/auth/verify-email/confirm', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      })
+      setUser(toAuthUser(data))
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: getErrorMessage(error, 'Verification failed') }
+    }
+  }, [])
+
+  const resendVerificationEmail = useCallback(async (force = false) => {
+    try {
+      await apiFetch('/api/auth/verify-email/send', {
+        method: 'POST',
+        body: JSON.stringify({ force }),
+      })
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: getErrorMessage(error, 'Could not send verification code') }
+    }
+  }, [])
+
   const refreshUser = useCallback(async () => {
     try {
-      const data = await apiFetch<{
-        userId: string
-        email: string
-        name: string
-        sessionId: string
-        avatarUrl?: string
-        avatarPreset?: string
-      }>('/api/auth/me')
-      setUser({
-        sessionId: data.sessionId,
-        userId: data.userId,
-        email: data.email,
-        name: data.name,
-        avatarUrl: data.avatarUrl || '',
-        avatarPreset: data.avatarPreset || 'character-1',
-      })
+      const data = await apiFetch<AuthProfile & { sessionId: string }>('/api/auth/me')
+      setUser(toAuthUser(data))
     } catch {
       setUser(null)
     }
@@ -166,6 +187,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         signup,
+        loginWithGoogle,
+        verifyEmail,
+        resendVerificationEmail,
         refreshUser,
       }}
     >

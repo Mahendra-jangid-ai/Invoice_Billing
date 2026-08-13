@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { getSafeRedirectPath } from '@/lib/utils'
 import { useFeedback } from '@/components/confirm-provider'
+import { GoogleSignInButton } from '@/components/google-sign-in-button'
+import { AuthDivider } from '@/components/auth-divider'
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react'
 
 export default function LoginPage() {
@@ -25,13 +27,14 @@ export default function LoginPage() {
 function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login } = useAuth()
+  const { login, loginWithGoogle } = useAuth()
   const { error: showError, info } = useFeedback()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   const from = getSafeRedirectPath(searchParams.get('from'))
 
@@ -51,7 +54,11 @@ function LoginPageContent() {
     const result = await login(email, password)
 
     if (result.success) {
-      router.push(from)
+      if (result.emailVerified === false) {
+        router.replace('/verify-email')
+      } else {
+        router.replace(from)
+      }
       router.refresh()
     } else {
       showError({
@@ -62,12 +69,54 @@ function LoginPageContent() {
     }
   }
 
+  const handleGoogleSignIn = async (credential: string) => {
+    setGoogleLoading(true)
+    const result = await loginWithGoogle(credential)
+    if (result.success) {
+      if (result.emailVerified === false) {
+        router.replace('/verify-email')
+      } else {
+        router.replace(from)
+      }
+      router.refresh()
+    } else {
+      showError({
+        title: 'Google sign-in failed',
+        description: result.error || 'Could not sign in with Google',
+      })
+      setGoogleLoading(false)
+    }
+  }
+
+  const busy = loading || googleLoading
+
   return (
     <div className="overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-lg shadow-slate-200/50 sm:p-8">
       <div className="mb-6 text-center sm:mb-8">
         <h2 className="text-2xl font-semibold text-[#111827] sm:text-3xl">Welcome back</h2>
-        <p className="mt-2 text-sm text-[#475569]">Sign in to your account and get back to invoicing fast.</p>
+        <p className="mt-2 text-sm text-[#475569]">
+          Sign in with Google or use the email and password you registered with.
+        </p>
       </div>
+
+      <GoogleSignInButton
+        mode="login"
+        disabled={busy}
+        onSuccess={handleGoogleSignIn}
+        onUnavailable={() =>
+          showError({
+            title: 'Google sign-in unavailable',
+            description: 'Set GOOGLE_CLIENT_ID in backend .env to enable Google sign-in.',
+          })
+        }
+        onError={() =>
+          showError({
+            title: 'Google sign-in cancelled',
+            description: 'Please try again or use your email and password.',
+          })
+        }
+      />
+      <AuthDivider label="or sign in with email" />
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="space-y-3">
@@ -124,7 +173,7 @@ function LoginPageContent() {
           <button
             id="login-submit"
             type="submit"
-            disabled={loading}
+            disabled={busy}
             className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#2563EB] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#2563EB]/20 transition duration-200 active:scale-[0.98] hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (

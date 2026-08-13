@@ -64,6 +64,7 @@ export async function ensureIndexes(): Promise<void> {
   await Promise.all([
     db.collection('users').createIndex({ email: 1 }, { unique: true }),
     db.collection('users').createIndex({ userId: 1 }, { unique: true }),
+    db.collection('users').createIndex({ googleId: 1 }, { unique: true, sparse: true }),
     db.collection('auth_sessions').createIndex({ sessionId: 1 }, { unique: true }),
     db.collection('auth_sessions').createIndex({ userId: 1 }),
     db.collection('auth_sessions').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),

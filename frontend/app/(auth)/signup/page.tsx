@@ -5,13 +5,15 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { validateStrongPassword } from '@/lib/utils'
-import { markPendingOnboarding } from '@/lib/pending-onboarding'
+import { markPendingOnboarding, markPendingSignupVerify } from '@/lib/pending-onboarding'
 import { useFeedback } from '@/components/confirm-provider'
+import { GoogleSignInButton } from '@/components/google-sign-in-button'
+import { AuthDivider } from '@/components/auth-divider'
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react'
 
 export default function SignupPage() {
   const router = useRouter()
-  const { signup } = useAuth()
+  const { signup, loginWithGoogle } = useAuth()
   const { error: showError, warning } = useFeedback()
 
   const [name, setName] = useState('')
@@ -20,6 +22,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,8 +48,8 @@ export default function SignupPage() {
     const result = await signup(name, email, password)
 
     if (result.success) {
-      markPendingOnboarding()
-      router.push('/onboarding')
+      markPendingSignupVerify()
+      router.replace('/verify-email')
       router.refresh()
     } else {
       showError({
@@ -70,14 +73,56 @@ export default function SignupPage() {
     if (score === 3) return { label: 'Good', color: 'bg-[#2563EB]', width: '75%' }
     return { label: 'Strong', color: 'bg-[#1D4ED8]', width: '100%' }
   }
+  const handleGoogleSignUp = async (credential: string) => {
+    setGoogleLoading(true)
+    const result = await loginWithGoogle(credential)
+    if (result.success) {
+      if (result.isNewUser) {
+        markPendingOnboarding()
+        router.replace('/onboarding')
+      } else {
+        router.replace('/dashboard')
+      }
+      router.refresh()
+    } else {
+      showError({
+        title: 'Google sign-up failed',
+        description: result.error || 'Could not sign up with Google',
+      })
+      setGoogleLoading(false)
+    }
+  }
+
+  const busy = loading || googleLoading
   const strength = passwordStrength()
 
   return (
     <div className="overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-lg shadow-slate-200/50 sm:p-8">
       <div className="mb-6 text-center sm:mb-8">
         <h2 className="text-2xl font-semibold text-[#111827] sm:text-3xl">Create your account</h2>
-        <p className="mt-2 text-sm text-[#475569]">Create your profile and begin sending invoices instantly.</p>
+        <p className="mt-2 text-sm text-[#475569]">
+          Sign up with Google or register using your own email address.
+        </p>
       </div>
+
+      <GoogleSignInButton
+        mode="signup"
+        disabled={busy}
+        onSuccess={handleGoogleSignUp}
+        onUnavailable={() =>
+          showError({
+            title: 'Google sign-up unavailable',
+            description: 'Set GOOGLE_CLIENT_ID in backend .env to enable Google sign-up.',
+          })
+        }
+        onError={() =>
+          showError({
+            title: 'Google sign-up cancelled',
+            description: 'Please try again or create an account with email.',
+          })
+        }
+      />
+      <AuthDivider label="or sign up with email" />
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="space-y-3">
@@ -181,7 +226,7 @@ export default function SignupPage() {
           <button
             id="signup-submit"
             type="submit"
-            disabled={loading}
+            disabled={busy}
             className="flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#2563EB] py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#2563EB]/20 transition duration-200 active:scale-[0.98] hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (

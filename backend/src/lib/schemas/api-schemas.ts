@@ -158,6 +158,17 @@ export const SignupSchema = z.object({
   password: StrongPasswordSchema,
 })
 
+export const VerifyEmailOtpSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Enter the 6-digit verification code'),
+})
+
+export const ResendEmailOtpSchema = z.object({
+  force: z.boolean().optional().default(false),
+})
+
 export const ChangePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: StrongPasswordSchema,
@@ -181,8 +192,9 @@ export const UpdateProfileSchema = z
           value === '' ||
           value.startsWith('data:image/png') ||
           value.startsWith('data:image/jpeg') ||
-          value.startsWith('data:image/webp'),
-        'Avatar must be a PNG, JPEG, or WebP image',
+          value.startsWith('data:image/webp') ||
+          value.startsWith('https://'),
+        'Avatar must be a valid image',
       ),
     avatarPreset: z
       .enum([
@@ -216,4 +228,8 @@ export const ForgotPasswordSchema = z.object({
 export const ResetPasswordSchema = z.object({
   token: z.string().min(1, 'Token is required'),
   password: StrongPasswordSchema,
+})
+
+export const GoogleAuthSchema = z.object({
+  credential: z.string().min(1, 'Google credential is required'),
 })

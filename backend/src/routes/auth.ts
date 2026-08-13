@@ -30,26 +30,21 @@ import {
   ForgotPasswordSchema,
   ResetPasswordSchema,
   UpdateProfileSchema,
+  GoogleAuthSchema,
+  VerifyEmailOtpSchema,
+  ResendEmailOtpSchema,
   ResourceIdSchema,
 } from '../lib/schemas/api-schemas.js'
+import { verifyGoogleIdToken, isGoogleAuthConfigured } from '../lib/google-auth.js'
+import {
+  establishUserSession,
+  findOrCreateGoogleUser,
+  formatUserProfile,
+} from '../lib/auth-users.js'
+import { isDisposableEmail } from '../lib/disposable-email.js'
+import { createAndSendEmailOtp, verifyEmailOtp } from '../lib/email-otp.js'
 
 const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000
-
-function formatUserProfile(userDoc: {
-  userId: string
-  email: string
-  name: string
-  avatarUrl?: string
-  avatarPreset?: string
-}) {
-  return {
-    userId: userDoc.userId,
-    email: userDoc.email,
-    name: userDoc.name,
-    avatarUrl: userDoc.avatarUrl || '',
-    avatarPreset: userDoc.avatarPreset || 'character-1',
-  }
-}
 
 export function registerAuthRoutes(app: Express): void {
   app.post('/api/auth/login', async (req: Request, res: Response) => {
@@ -82,20 +77,32 @@ export function registerAuthRoutes(app: Express): void {
         return
       }
 
-      const { sessionId, expiresAt } = await createSession(res, userDoc.userId, userDoc.email, userDoc.name)
-      await createSessionRecord(sessionId, userDoc.userId, userDoc.email, userDoc.name, {
-        userAgent: req.headers['user-agent'] || 'Unknown device',
-        ipAddress: ip,
-      }, expiresAt)
-      await enforceSessionLimit(userDoc.userId)
+      if (!userDoc.passwordHash) {
+        sendError(
+          res,
+          401,
+          'This email uses Google sign-in. Please continue with Google.',
+          'GOOGLE_AUTH_REQUIRED',
+        )
+        return
+      }
 
-      logSecurityEvent('LOGIN_SUCCESS', { userId: userDoc.userId, email: parsed.email, ip })
+      await establishUserSession(req, res, {
+        userId: String(userDoc.userId),
+        email: String(userDoc.email),
+        name: String(userDoc.name),
+        emailVerified: userDoc.emailVerified as boolean | undefined,
+        googleId: userDoc.googleId as string | undefined,
+      })
+
       res.json(formatUserProfile({
         userId: String(userDoc.userId),
         email: String(userDoc.email),
         name: String(userDoc.name),
         avatarUrl: typeof userDoc.avatarUrl === 'string' ? userDoc.avatarUrl : '',
-        avatarPreset: typeof userDoc.avatarPreset === 'string' ? userDoc.avatarPreset : 'initials',
+        avatarPreset: typeof userDoc.avatarPreset === 'string' ? userDoc.avatarPreset : 'character-1',
+        emailVerified: userDoc.emailVerified as boolean | undefined,
+        googleId: userDoc.googleId as string | undefined,
       }))
     } catch (error) {
       handleApiError(res, error, 'Login failed. Please try again.')
@@ -113,6 +120,16 @@ export function registerAuthRoutes(app: Express): void {
     try {
       const parsed = parseBody(res, req.body, SignupSchema)
       if (!parsed) return
+
+      if (isDisposableEmail(parsed.email)) {
+        sendError(
+          res,
+          400,
+          'Please use a real email address. Temporary or disposable emails are not allowed.',
+          'VALIDATION_ERROR',
+        )
+        return
+      }
 
       const db = await getDatabase()
       const existing = await db.collection('users').findOne({ email: parsed.email })
@@ -137,7 +154,7 @@ export function registerAuthRoutes(app: Express): void {
         updatedAt: new Date(),
       })
 
-      const { sessionId, expiresAt } = await createSession(res, userId, parsed.email, parsed.name)
+      const { sessionId, expiresAt } = await createSession(res, userId, parsed.email, parsed.name, false)
       await createSessionRecord(sessionId, userId, parsed.email, parsed.name, {
         userAgent: req.headers['user-agent'] || 'Unknown device',
         ipAddress: ip,
@@ -145,12 +162,15 @@ export function registerAuthRoutes(app: Express): void {
       await enforceSessionLimit(userId)
 
       logSecurityEvent('SIGNUP_SUCCESS', { userId, email: parsed.email, ip })
+      await createAndSendEmailOtp(userId)
+
       res.status(201).json(formatUserProfile({
         userId,
         email: parsed.email,
         name: parsed.name,
         avatarUrl: '',
         avatarPreset: 'character-1',
+        emailVerified: false,
       }))
     } catch (error) {
       if (isMongoDuplicateKey(error)) {
@@ -158,6 +178,55 @@ export function registerAuthRoutes(app: Express): void {
         return
       }
       handleApiError(res, error, 'Failed to create account. Please try again.')
+    }
+  })
+
+  app.get('/api/auth/google/enabled', (_req, res) => {
+    res.json({ enabled: isGoogleAuthConfigured() })
+  })
+
+  app.get('/api/auth/google/config', (_req, res) => {
+    const clientId = process.env.GOOGLE_CLIENT_ID || ''
+    res.json({
+      enabled: isGoogleAuthConfigured(),
+      clientId: isGoogleAuthConfigured() ? clientId : '',
+    })
+  })
+
+  app.post('/api/auth/google', async (req: Request, res: Response) => {
+    const ip = getClientIp(req)
+    const rateLimit = checkRateLimit(`google-auth:${ip}`, 15, 15 * 60 * 1000)
+    if (!rateLimit.allowed) {
+      sendError(res, 429, 'Too many requests. Please try again later.', 'RATE_LIMITED')
+      return
+    }
+
+    if (!isGoogleAuthConfigured()) {
+      sendError(res, 503, 'Google sign-in is not configured on the server', 'SERVICE_UNAVAILABLE')
+      return
+    }
+
+    try {
+      const parsed = parseBody(res, req.body, GoogleAuthSchema)
+      if (!parsed) return
+
+      const profile = await verifyGoogleIdToken(parsed.credential)
+      const { user, isNewUser } = await findOrCreateGoogleUser(profile)
+      await establishUserSession(req, res, {
+        ...user,
+        emailVerified: true,
+        googleId: user.googleId,
+      }, isNewUser ? 'SIGNUP_SUCCESS' : 'LOGIN_SUCCESS')
+
+      res.json({
+        ...formatUserProfile({
+          ...user,
+          emailVerified: true,
+        }),
+        isNewUser,
+      })
+    } catch (error) {
+      handleApiError(res, error, 'Google sign-in failed. Please try again.')
     }
   })
 
@@ -201,6 +270,8 @@ export function registerAuthRoutes(app: Express): void {
           name: userDoc?.name || user.name,
           avatarUrl: userDoc?.avatarUrl,
           avatarPreset: userDoc?.avatarPreset,
+          emailVerified: userDoc?.emailVerified as boolean | undefined,
+          googleId: userDoc?.googleId as string | undefined,
         }),
         sessionId: user.sessionId,
         deviceName: activeSession.deviceName,
@@ -244,6 +315,8 @@ export function registerAuthRoutes(app: Express): void {
         name: nextName,
         avatarUrl: userDoc?.avatarUrl,
         avatarPreset: userDoc?.avatarPreset,
+        emailVerified: userDoc?.emailVerified as boolean | undefined,
+        googleId: userDoc?.googleId as string | undefined,
       }))
     } catch (error) {
       handleApiError(res, error, 'Failed to update profile')
@@ -269,6 +342,16 @@ export function registerAuthRoutes(app: Express): void {
       const userDoc = await db.collection('users').findOne({ userId: user.userId })
       if (!userDoc) {
         sendError(res, 404, 'User not found', 'NOT_FOUND')
+        return
+      }
+
+      if (!userDoc.passwordHash) {
+        sendError(
+          res,
+          400,
+          'Your account uses Google sign-in. Set a password from forgot-password if you want email login.',
+          'VALIDATION_ERROR',
+        )
         return
       }
 
@@ -387,6 +470,93 @@ export function registerAuthRoutes(app: Express): void {
       res.json({ message: 'Password reset successfully. You can now log in.' })
     } catch (error) {
       handleApiError(res, error, 'Failed to reset password. Please try again.')
+    }
+  })
+
+  app.post('/api/auth/verify-email/send', authMiddleware, async (req: Request, res: Response) => {
+    const user = req.user!
+    const rateLimit = checkRateLimit(`verify-email-send:${user.userId}`, 3, 15 * 60 * 1000)
+    if (!rateLimit.allowed) {
+      sendError(res, 429, 'Too many requests. Please try again later.', 'RATE_LIMITED')
+      return
+    }
+
+    try {
+      const parsed = parseBody(res, req.body ?? {}, ResendEmailOtpSchema)
+      if (!parsed) return
+
+      const db = await getDatabase()
+      const userDoc = await db.collection('users').findOne({ userId: user.userId })
+      if (!userDoc) {
+        sendError(res, 404, 'User not found', 'NOT_FOUND')
+        return
+      }
+
+      if (userDoc.emailVerified) {
+        res.json({ message: 'Email is already verified', emailVerified: true })
+        return
+      }
+
+      if (userDoc.googleId && !userDoc.passwordHash) {
+        await db.collection('users').updateOne(
+          { userId: user.userId },
+          { $set: { emailVerified: true, updatedAt: new Date() } },
+        )
+        res.json({ message: 'Email verified via Google', emailVerified: true })
+        return
+      }
+
+      const { sent, throttled } = await createAndSendEmailOtp(user.userId, { force: parsed.force })
+      if (!sent) {
+        sendError(res, 503, 'Could not send verification email. Please try again later.', 'SERVICE_UNAVAILABLE')
+        return
+      }
+
+      res.json({
+        message: throttled ? 'Verification code already sent recently' : 'Verification code sent',
+        emailVerified: false,
+        throttled: Boolean(throttled),
+      })
+    } catch (error) {
+      handleApiError(res, error, 'Failed to send verification code')
+    }
+  })
+
+  app.post('/api/auth/verify-email/confirm', authMiddleware, async (req: Request, res: Response) => {
+    const user = req.user!
+    const rateLimit = checkRateLimit(`verify-email-confirm:${user.userId}`, 10, 15 * 60 * 1000)
+    if (!rateLimit.allowed) {
+      sendError(res, 429, 'Too many attempts. Please try again later.', 'RATE_LIMITED')
+      return
+    }
+
+    try {
+      const parsed = parseBody(res, req.body, VerifyEmailOtpSchema)
+      if (!parsed) return
+
+      const result = await verifyEmailOtp(user.userId, parsed.code)
+      if (!result.ok) {
+        sendError(res, 400, result.error, 'VALIDATION_ERROR')
+        return
+      }
+
+      const db = await getDatabase()
+      const userDoc = await db.collection('users').findOne({ userId: user.userId })
+      const session = await getSession(req)
+      if (session) {
+        await refreshSessionCookie(res, { ...session, emailVerified: true })
+      }
+
+      res.json(formatUserProfile({
+        userId: user.userId,
+        email: user.email,
+        name: userDoc?.name || user.name,
+        avatarUrl: userDoc?.avatarUrl,
+        avatarPreset: userDoc?.avatarPreset,
+        emailVerified: true,
+      }))
+    } catch (error) {
+      handleApiError(res, error, 'Failed to verify email')
     }
   })
 

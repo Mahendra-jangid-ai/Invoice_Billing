@@ -1,50 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { decrypt, SESSION_COOKIE } from '@/lib/session'
 
-// Routes that require authentication
-const PROTECTED_ROUTES = [
-  '/',
-  '/dashboard',
-  '/invoices',
-  '/customers',
-  '/items',
-  '/settings',
-  '/setting',
-  '/company-settings',
-  '/onboarding',
-]
-// Auth routes — redirect to dashboard if already authenticated
-const AUTH_ROUTES = ['/login', '/signup', '/forgot-password', '/reset-password']
+const AUTH_PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/reset-password']
 
-function isProtectedRoute(pathname: string): boolean {
-  return PROTECTED_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(route + '/')
+const SKIP_AUTH_PATHS = ['/manifest.webmanifest']
+
+function isAuthPublicRoute(pathname: string): boolean {
+  return AUTH_PUBLIC_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
   )
 }
 
-function isAuthRoute(pathname: string): boolean {
-  return AUTH_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(route + '/')
-  )
+function shouldSkipAuth(pathname: string): boolean {
+  if (pathname.startsWith('/api/')) return true
+  return SKIP_AUTH_PATHS.some((route) => pathname === route || pathname.startsWith(`${route}/`))
+}
+
+function requiresAuthentication(pathname: string): boolean {
+  if (shouldSkipAuth(pathname)) return false
+  if (isAuthPublicRoute(pathname)) return false
+  return true
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Get the session cookie
+  if (!requiresAuthentication(pathname)) {
+    const sessionToken = request.cookies.get(SESSION_COOKIE)?.value
+    const session = await decrypt(sessionToken)
+    const isAuthenticated = !!(session && session.userId)
+
+    if (isAuthenticated && isAuthPublicRoute(pathname)) {
+      const destination = session.emailVerified ? '/dashboard' : '/verify-email'
+      return NextResponse.redirect(new URL(destination, request.url))
+    }
+
+    return NextResponse.next()
+  }
+
   const sessionToken = request.cookies.get(SESSION_COOKIE)?.value
   const session = await decrypt(sessionToken)
   const isAuthenticated = !!(session && session.userId)
 
-  // Redirect unauthenticated users away from protected routes
-  if (isProtectedRoute(pathname) && !isAuthenticated) {
+  if (!isAuthenticated) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('from', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Redirect authenticated users away from auth pages (login → dashboard, not onboarding)
-  if (isAuthRoute(pathname) && isAuthenticated) {
+  const emailVerified = session!.emailVerified
+
+  if (!emailVerified && pathname !== '/verify-email') {
+    return NextResponse.redirect(new URL('/verify-email', request.url))
+  }
+
+  if (emailVerified && pathname === '/verify-email') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -53,14 +63,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico
-     * - public files (icons, images)
-     * - API routes (auth is handled per-route in API handlers)
-     */
     '/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)',
   ],
 }

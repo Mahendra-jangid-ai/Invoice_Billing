@@ -5,11 +5,13 @@ import { ZodError, type ZodSchema } from 'zod'
 export type ApiErrorCode =
   | 'VALIDATION_ERROR'
   | 'AUTHENTICATION_REQUIRED'
+  | 'GOOGLE_AUTH_REQUIRED'
   | 'NOT_FOUND'
   | 'CONFLICT'
   | 'RATE_LIMITED'
   | 'INVALID_JSON'
   | 'DATABASE_UNAVAILABLE'
+  | 'SERVICE_UNAVAILABLE'
   | 'INTERNAL_ERROR'
 
 export interface ApiErrorBody {

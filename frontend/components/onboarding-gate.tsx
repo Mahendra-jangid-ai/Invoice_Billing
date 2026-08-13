@@ -7,7 +7,7 @@ import { useBilling } from '@/lib/context'
 import { hasPendingOnboarding } from '@/lib/pending-onboarding'
 import { Loader2 } from 'lucide-react'
 
-const AUTH_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password']
+const AUTH_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email']
 
 function isAuthPath(pathname: string): boolean {
   return AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
@@ -35,7 +35,6 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
     if (checking) return
     if (!user || onAuth) return
 
-    // Only fresh signups (session flag) see onboarding — login never does
     if (pendingOnboarding && !onOnboarding) {
       router.replace('/onboarding')
       return
