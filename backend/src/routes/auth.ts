@@ -47,7 +47,7 @@ function formatUserProfile(userDoc: {
     email: userDoc.email,
     name: userDoc.name,
     avatarUrl: userDoc.avatarUrl || '',
-    avatarPreset: userDoc.avatarPreset || 'initials',
+    avatarPreset: userDoc.avatarPreset || 'character-1',
   }
 }
 
@@ -132,7 +132,7 @@ export function registerAuthRoutes(app: Express): void {
         role: 'user',
         emailVerified: false,
         avatarUrl: '',
-        avatarPreset: 'initials',
+        avatarPreset: 'character-1',
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -150,7 +150,7 @@ export function registerAuthRoutes(app: Express): void {
         email: parsed.email,
         name: parsed.name,
         avatarUrl: '',
-        avatarPreset: 'initials',
+        avatarPreset: 'character-1',
       }))
     } catch (error) {
       if (isMongoDuplicateKey(error)) {

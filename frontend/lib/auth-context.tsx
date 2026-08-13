@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.email,
           name: data.name,
           avatarUrl: data.avatarUrl || '',
-          avatarPreset: data.avatarPreset || 'initials',
+          avatarPreset: data.avatarPreset || 'character-1',
         })
       } catch {
         setUser(null)
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: data.email,
         name: data.name,
         avatarUrl: data.avatarUrl || '',
-        avatarPreset: data.avatarPreset || 'initials',
+        avatarPreset: data.avatarPreset || 'character-1',
       })
       clearPendingOnboarding()
       return { success: true }
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: data.email,
         name: data.name,
         avatarUrl: data.avatarUrl || '',
-        avatarPreset: data.avatarPreset || 'initials',
+        avatarPreset: data.avatarPreset || 'character-1',
       })
       return { success: true }
     } catch (error) {
@@ -150,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: data.email,
         name: data.name,
         avatarUrl: data.avatarUrl || '',
-        avatarPreset: data.avatarPreset || 'initials',
+        avatarPreset: data.avatarPreset || 'character-1',
       })
     } catch {
       setUser(null)

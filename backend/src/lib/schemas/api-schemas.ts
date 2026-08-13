@@ -185,7 +185,24 @@ export const UpdateProfileSchema = z
         'Avatar must be a PNG, JPEG, or WebP image',
       ),
     avatarPreset: z
-      .enum(['initials', 'blue', 'emerald', 'violet', 'amber', 'rose', 'slate', 'custom'])
+      .enum([
+        'character-1',
+        'character-2',
+        'character-3',
+        'character-4',
+        'character-5',
+        'character-6',
+        'emoji-1',
+        'emoji-2',
+        'custom',
+        'initials',
+        'blue',
+        'emerald',
+        'violet',
+        'amber',
+        'rose',
+        'slate',
+      ])
       .optional(),
   })
   .refine((data) => data.name !== undefined || data.avatarUrl !== undefined || data.avatarPreset !== undefined, {

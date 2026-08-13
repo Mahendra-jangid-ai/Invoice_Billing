@@ -92,7 +92,7 @@ export default function SettingsPage() {
   const [profileName, setProfileName] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState('')
-  const [avatarPreset, setAvatarPreset] = useState<string>('initials')
+  const [avatarPreset, setAvatarPreset] = useState<string>('character-1')
   const [savingAvatar, setSavingAvatar] = useState(false)
 
   const [currentPassword, setCurrentPassword] = useState('')
@@ -127,7 +127,7 @@ export default function SettingsPage() {
       setMe(data)
       setProfileName(data.name || '')
       setAvatarUrl(data.avatarUrl || '')
-      setAvatarPreset(data.avatarPreset || 'initials')
+      setAvatarPreset(data.avatarPreset || 'character-1')
     } catch (err) {
       showError({
         title: 'Load failed',

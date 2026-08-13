@@ -1,18 +1,13 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import {
-  getAvatarPresetClass,
-  getProfileInitials,
-  isCustomAvatar,
-  type AvatarPresetId,
-} from '@/lib/user-avatar'
+import { getAvatarImageSrc, getProfileInitials, type AvatarPresetId } from '@/lib/user-avatar'
 
 const SIZE_MAP = {
-  xs: 'h-7 w-7 text-[10px] rounded-lg',
-  sm: 'h-9 w-9 text-xs rounded-lg',
-  md: 'h-14 w-14 text-lg rounded-2xl',
-  lg: 'h-20 w-20 text-2xl rounded-2xl',
+  xs: 'h-7 w-7 rounded-full',
+  sm: 'h-9 w-9 rounded-full',
+  md: 'h-14 w-14 rounded-full',
+  lg: 'h-20 w-20 rounded-full',
 } as const
 
 interface UserAvatarProps {
@@ -26,19 +21,19 @@ interface UserAvatarProps {
 export function UserAvatar({
   name,
   avatarUrl,
-  avatarPreset = 'initials',
+  avatarPreset = 'character-1',
   size = 'sm',
   className,
 }: UserAvatarProps) {
-  const initials = getProfileInitials(name)
   const sizeClass = SIZE_MAP[size]
+  const src = getAvatarImageSrc(avatarPreset, name, avatarUrl)
 
-  if (isCustomAvatar(avatarPreset, avatarUrl)) {
+  if (src) {
     return (
       <img
-        src={avatarUrl}
+        src={src}
         alt=""
-        className={cn(sizeClass, 'shrink-0 object-cover', className)}
+        className={cn(sizeClass, 'shrink-0 object-cover bg-slate-100 ring-1 ring-slate-200/80', className)}
       />
     )
   }
@@ -46,14 +41,13 @@ export function UserAvatar({
   return (
     <div
       className={cn(
-        'flex shrink-0 items-center justify-center font-bold text-white shadow-sm',
+        'flex shrink-0 items-center justify-center bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-xs font-bold text-white ring-1 ring-slate-200/80',
         sizeClass,
-        getAvatarPresetClass(avatarPreset),
         className,
       )}
       aria-hidden
     >
-      {initials}
+      {getProfileInitials(name)}
     </div>
   )
 }
