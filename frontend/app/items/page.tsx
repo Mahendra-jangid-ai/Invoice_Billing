@@ -16,6 +16,7 @@ import {
   MobileCardList,
   MobileCardRow,
 } from '@/components/mobile-ui'
+import { InrAmount } from '@/components/inr-amount'
 
 // ── Lazy-load layout ──────────────────────────────────────────────────────────
 const AppLayout = dynamic(
@@ -284,8 +285,8 @@ export default function ItemsPage() {
                           </span>
                         ) : '—'}
                       </td>
-                      <td className="px-6 py-4 text-right font-bold text-slate-900">
-                        ₹{Number(item.unitprice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      <td className="px-6 py-4 text-right">
+                        <InrAmount value={Number(item.unitprice || 0)} className="font-bold" />
                       </td>
                       <td className="px-6 py-4 text-slate-500 max-w-[200px] truncate">
                         {item.description || '—'}

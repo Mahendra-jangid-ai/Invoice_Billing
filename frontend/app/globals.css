@@ -367,6 +367,11 @@
     min-width: 44px;
   }
 
+  .inr-amount {
+    color: #10b981;
+    font-variant-numeric: tabular-nums;
+  }
+
   :root {
     --mobile-nav-h: 4rem;
     --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);

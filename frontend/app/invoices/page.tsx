@@ -31,6 +31,8 @@ import {
 import { SkeletonInvoicesPage } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
 import { useConfirm, useFeedback } from '@/components/confirm-provider'
+import { formatInr } from '@/lib/format-inr'
+import { InrAmount } from '@/components/inr-amount'
 
 const AppLayout = dynamic(
   () => import('@/app/app-layout').then((m) => ({ default: m.AppLayout })),
@@ -44,7 +46,7 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
 }
 
 function formatCurrency(amount: number): string {
-  return `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+  return formatInr(amount, { maximumFractionDigits: 2 })
 }
 
 export default function InvoicesPage() {
@@ -185,7 +187,7 @@ function InvoicesPageContent() {
               {facets && (
                 <div className="inline-flex items-center gap-1.5 rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700">
                   <span>Filtered value</span>
-                  <span className="font-semibold">{formatCurrency(facets.filteredAmount)}</span>
+                  <span className="font-semibold inr-amount">{formatCurrency(facets.filteredAmount)}</span>
                 </div>
               )}
             </div>
@@ -318,7 +320,7 @@ function InvoicesPageContent() {
                           <span className="font-medium text-slate-800">{customerLabel}</span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <span className="font-bold text-slate-900">{formatCurrency(total)}</span>
+                          <InrAmount value={total} className="font-bold" />
                         </td>
                         <td className="px-6 py-4">
                           <span className={badge.cls}>{badge.label}</span>
@@ -360,7 +362,7 @@ function InvoicesPageContent() {
             {pagination && pagination.totalPages > 1 && (
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-4 sm:px-6">
                 <p className="text-xs text-slate-500">
-                  {formatCurrency(facets?.filteredAmount ?? 0)} total on this filter
+                  <span className="inr-amount font-semibold">{formatCurrency(facets?.filteredAmount ?? 0)}</span> total on this filter
                 </p>
                 <div className="flex items-center gap-2">
                   <Button

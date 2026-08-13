@@ -21,6 +21,8 @@ import { InvoiceHtmlViewer } from '@/components/invoice-html-viewer'
 import { useCompactInvoiceView } from '@/lib/invoice-view-mode'
 import { buildInvoiceDisplayData, formatInvoiceCurrency, type InvoiceDisplayData } from '@/lib/invoice-display-data'
 import { displayValue } from '@/lib/onboarding'
+import { formatInr, INR_TEXT_CLASS } from '@/lib/format-inr'
+import { cn } from '@/lib/utils'
 
 function usePdfErrorPopup(error: string | null | undefined) {
   const { error: showError } = useFeedback()
@@ -718,7 +720,7 @@ function MobileInvoicePdfPanel({
     ? new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
     : '—'
   const formattedTotal = typeof totalAmount === 'number'
-    ? `₹${totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+    ? formatInr(totalAmount, { maximumFractionDigits: 0 })
     : '—'
 
   const handleView = useCallback(() => {
@@ -780,7 +782,7 @@ function MobileInvoicePdfPanel({
           </div>
           <div className="rounded-xl bg-white/10 px-3 py-2.5 backdrop-blur-sm">
             <p className="text-[10px] font-medium uppercase tracking-wide text-blue-100">Amount</p>
-            <p className="mt-0.5 text-sm font-semibold">{formattedTotal}</p>
+            <p className={cn('mt-0.5 text-sm font-semibold', INR_TEXT_CLASS)}>{formattedTotal}</p>
           </div>
         </div>
       </div>

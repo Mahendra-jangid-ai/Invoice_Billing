@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { LucideIcon } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { isInrDisplay, INR_TEXT_CLASS } from '@/lib/format-inr'
 
 export function MobileCardList({
   children,
@@ -101,7 +102,14 @@ export function MobileCardRow({
         {meta && <p className="mt-2 text-xs text-slate-400">{meta}</p>}
       </div>
       {amount && (
-        <p className="shrink-0 text-base font-bold tabular-nums text-slate-900">{amount}</p>
+        <p
+          className={cn(
+            'shrink-0 text-base font-bold tabular-nums',
+            isInrDisplay(amount) ? INR_TEXT_CLASS : 'text-slate-900',
+          )}
+        >
+          {amount}
+        </p>
       )}
     </div>
   )
@@ -233,7 +241,14 @@ export function MobileStatCard({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-          <p className="mt-1 text-lg font-bold tabular-nums text-slate-900">{value}</p>
+          <p
+            className={cn(
+              'mt-1 text-lg font-bold tabular-nums',
+              isInrDisplay(value) ? INR_TEXT_CLASS : 'text-slate-900',
+            )}
+          >
+            {value}
+          </p>
           {sub && <p className="mt-0.5 text-[11px] text-slate-400">{sub}</p>}
         </div>
         <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50', iconClassName)}>

@@ -14,6 +14,9 @@ import {
 } from 'lucide-react'
 import { SkeletonDashboard } from '@/components/ui/skeleton'
 import { PageHero } from '@/components/page-hero'
+import { isInrDisplay, INR_TEXT_CLASS } from '@/lib/format-inr'
+import { InrAmount } from '@/components/inr-amount'
+import { cn } from '@/lib/utils'
 import {
   MobileCard,
   MobileCardAction,
@@ -151,7 +154,12 @@ export default function DashboardPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="section-label">{stat.label}</p>
-                    <p className="mt-2 text-2xl font-bold text-gray-900 tabular-nums truncate">
+                    <p
+                      className={cn(
+                        'mt-2 text-2xl font-bold tabular-nums truncate',
+                        isInrDisplay(stat.value) ? INR_TEXT_CLASS : 'text-gray-900',
+                      )}
+                    >
                       {stat.value}
                     </p>
                     <p className="mt-1 text-xs text-gray-400">{stat.sub}</p>
@@ -353,8 +361,8 @@ export default function DashboardPage() {
                         <td className="px-5 py-3 font-medium text-gray-900">
                           {customer?.name || 'Unknown'}
                         </td>
-                        <td className="px-5 py-3 text-right font-semibold text-gray-900 tabular-nums">
-                          ₹{total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                        <td className="px-5 py-3 text-right tabular-nums">
+                          <InrAmount value={total} />
                         </td>
                         <td className="px-5 py-3">
                           <span className={badge.cls}>{badge.label}</span>
