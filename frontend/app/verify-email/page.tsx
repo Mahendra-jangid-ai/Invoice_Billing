@@ -125,7 +125,9 @@ export default function VerifyEmailPage() {
     if (result.success) {
       success({
         title: 'Code sent',
-        description: 'A new verification code has been sent to your email.',
+        description: result.devConsole
+          ? 'Email could not be delivered in test mode. Check the backend terminal for the OTP code.'
+          : 'A new verification code has been sent to your email.',
       })
       setCooldown(RESEND_COOLDOWN_SEC)
       setDigits(['', '', '', '', '', ''])
@@ -231,6 +233,13 @@ export default function VerifyEmailPage() {
 
           <p className="mt-6 text-center text-xs text-[#6B7280]">
             Check your spam folder if you don&apos;t see the email. Codes expire after 10 minutes.
+            {process.env.NODE_ENV === 'development' && (
+              <>
+                {' '}
+                In local development, OTP may also appear in the backend terminal when Resend test mode
+                blocks delivery to other inboxes.
+              </>
+            )}
           </p>
         </div>
       </div>

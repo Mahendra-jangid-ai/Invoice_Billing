@@ -24,7 +24,9 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; emailVerified?: boolean; error?: string }>
   loginWithGoogle: (credential: string) => Promise<{ success: boolean; isNewUser?: boolean; emailVerified?: boolean; error?: string }>
   verifyEmail: (code: string) => Promise<{ success: boolean; error?: string }>
-  resendVerificationEmail: (force?: boolean) => Promise<{ success: boolean; error?: string }>
+  resendVerificationEmail: (
+    force?: boolean,
+  ) => Promise<{ success: boolean; error?: string; devConsole?: boolean }>
   refreshUser: () => Promise<void>
 }
 
@@ -159,11 +161,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resendVerificationEmail = useCallback(async (force = false) => {
     try {
-      await apiFetch('/api/auth/verify-email/send', {
+      const data = await apiFetch<{ devConsole?: boolean }>('/api/auth/verify-email/send', {
         method: 'POST',
         body: JSON.stringify({ force }),
       })
-      return { success: true }
+      return { success: true, devConsole: Boolean(data.devConsole) }
     } catch (error) {
       return { success: false, error: getErrorMessage(error, 'Could not send verification code') }
     }

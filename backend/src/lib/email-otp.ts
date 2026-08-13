@@ -13,15 +13,30 @@ export function generateOtpCode(): string {
 export async function createAndSendEmailOtp(
   userId: string,
   options?: { force?: boolean },
-): Promise<{ sent: boolean; throttled?: boolean }> {
+): Promise<{ sent: boolean; throttled?: boolean; error?: string; channel?: 'resend' | 'console' }> {
   const db = await getDatabase()
   const user = await db.collection('users').findOne({ userId })
-  if (!user || user.emailVerified) {
-    return { sent: false }
+  if (!user) {
+    return { sent: false, error: 'User not found' }
+  }
+  if (user.emailVerified) {
+    return { sent: false, error: 'Email is already verified' }
   }
 
-  const sentAt = user.emailOtpSentAt instanceof Date ? user.emailOtpSentAt.getTime() : 0
-  const expiresAt = user.emailOtpExpiresAt instanceof Date ? user.emailOtpExpiresAt : null
+  const sentAtRaw = user.emailOtpSentAt
+  const sentAt =
+    sentAtRaw instanceof Date
+      ? sentAtRaw.getTime()
+      : typeof sentAtRaw === 'string'
+        ? new Date(sentAtRaw).getTime()
+        : 0
+  const expiresAtRaw = user.emailOtpExpiresAt
+  const expiresAt =
+    expiresAtRaw instanceof Date
+      ? expiresAtRaw
+      : typeof expiresAtRaw === 'string'
+        ? new Date(expiresAtRaw)
+        : null
   const otpStillValid = Boolean(expiresAt && expiresAt.getTime() > Date.now())
 
   if (
@@ -51,17 +66,17 @@ export async function createAndSendEmailOtp(
     },
   )
 
-  try {
-    await sendOtpEmail(String(user.email), code, String(user.name))
-    return { sent: true }
-  } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.info(`[DEV] OTP for ${user.email}: ${code}`)
-      return { sent: true }
-    }
-    console.error('Failed to send OTP:', error instanceof Error ? error.message : error)
-    return { sent: false }
+  const delivery = await sendOtpEmail(String(user.email), code, String(user.name))
+  if (!delivery.ok) {
+    console.error('Failed to send OTP:', delivery.error)
+    return { sent: false, error: delivery.error }
   }
+
+  if (delivery.channel === 'console') {
+    console.info(`[DEV] Verification email for ${user.email} logged to server console`)
+  }
+
+  return { sent: true, channel: delivery.channel }
 }
 
 export async function verifyEmailOtp(
@@ -84,7 +99,13 @@ export async function verifyEmailOtp(
     return { ok: false, error: 'Too many failed attempts. Please request a new code.' }
   }
 
-  const expiresAt = user.emailOtpExpiresAt instanceof Date ? user.emailOtpExpiresAt : null
+  const expiresAtRaw = user.emailOtpExpiresAt
+  const expiresAt =
+    expiresAtRaw instanceof Date
+      ? expiresAtRaw
+      : typeof expiresAtRaw === 'string'
+        ? new Date(expiresAtRaw)
+        : null
   if (!expiresAt || expiresAt.getTime() < Date.now()) {
     return { ok: false, error: 'Verification code has expired. Please request a new one.' }
   }

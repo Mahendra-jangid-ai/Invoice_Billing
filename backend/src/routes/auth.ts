@@ -475,7 +475,7 @@ export function registerAuthRoutes(app: Express): void {
 
   app.post('/api/auth/verify-email/send', authMiddleware, async (req: Request, res: Response) => {
     const user = req.user!
-    const rateLimit = checkRateLimit(`verify-email-send:${user.userId}`, 3, 15 * 60 * 1000)
+    const rateLimit = checkRateLimit(`verify-email-send:${user.userId}`, 8, 15 * 60 * 1000)
     if (!rateLimit.allowed) {
       sendError(res, 429, 'Too many requests. Please try again later.', 'RATE_LIMITED')
       return
@@ -506,16 +506,28 @@ export function registerAuthRoutes(app: Express): void {
         return
       }
 
-      const { sent, throttled } = await createAndSendEmailOtp(user.userId, { force: parsed.force })
+      const { sent, throttled, error, channel } = await createAndSendEmailOtp(user.userId, {
+        force: parsed.force,
+      })
       if (!sent) {
-        sendError(res, 503, 'Could not send verification email. Please try again later.', 'SERVICE_UNAVAILABLE')
+        sendError(
+          res,
+          503,
+          error || 'Could not send verification email. Please try again later.',
+          'SERVICE_UNAVAILABLE',
+        )
         return
       }
 
       res.json({
-        message: throttled ? 'Verification code already sent recently' : 'Verification code sent',
+        message: throttled
+          ? 'Verification code already sent recently'
+          : channel === 'console'
+            ? 'Verification code logged to server console (development mode)'
+            : 'Verification code sent',
         emailVerified: false,
         throttled: Boolean(throttled),
+        devConsole: channel === 'console',
       })
     } catch (error) {
       handleApiError(res, error, 'Failed to send verification code')
