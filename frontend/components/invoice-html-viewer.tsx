@@ -8,61 +8,84 @@ import {
   buildInvoiceDisplayData,
   formatInvoiceCurrency,
   formatInvoiceCurrencyPlain,
+  type InvoiceDisplayData,
 } from '@/lib/invoice-display-data'
+
+const COL = {
+  sr: '5.2%',
+  desc: '29.5%',
+  sac: '6.9%',
+  unit: '5.9%',
+  qty: '5.9%',
+  rate: '10.5%',
+  taxable: '10.5%',
+  cgst: '7.5%',
+  sgst: '7.5%',
+  total: '10.5%',
+} as const
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-2 border-b border-slate-200 py-1.5 text-[10px]">
-      <span className="w-[42%] text-slate-500">{label}</span>
-      <span className="w-[55%] text-right font-semibold text-slate-900">{value}</span>
+    <div className="mb-1.5 flex justify-between gap-1">
+      <span className="w-[48%] text-[7.5px] leading-tight text-slate-500">{label}</span>
+      <span className="w-[48%] text-right text-[8.5px] font-bold leading-tight text-slate-900">{value}</span>
     </div>
   )
 }
 
-function InvoiceHtmlContent({ data }: { data: ReturnType<typeof buildInvoiceDisplayData> }) {
+function InvoiceHtmlContent({ data }: { data: InvoiceDisplayData }) {
   const { invoice, company, companyName, companyAddress, companyGst, companyState, companyStateCode, contactLine } =
     data
 
   const invoiceDate = invoice.date ? new Date(invoice.date).toLocaleDateString('en-GB') : '-'
 
   return (
-    <article className="mx-auto w-full max-w-[820px] bg-white p-3 text-slate-900 sm:p-4">
-      {/* Header — matches PDF */}
-      <div className="flex items-start justify-between gap-3 border-b border-slate-900 pb-3">
+    <article
+      className="mx-auto w-full bg-white text-slate-900 shadow-sm"
+      style={{
+        maxWidth: '210mm',
+        padding: '10px',
+        fontFamily: 'Roboto, system-ui, sans-serif',
+      }}
+    >
+      {/* Header */}
+      <div className="mb-1 flex items-start justify-between border-b border-slate-900 pb-1">
         <div className="w-[35%]">
           {company.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={company.logoUrl} alt="" className="max-h-20 max-w-[160px] object-contain" />
           ) : (
-            <div className="inline-block rounded-md bg-slate-900 px-3 py-2 text-sm font-bold uppercase text-white">
+            <div className="inline-block rounded-md bg-slate-900 px-3 py-2 text-xl font-bold uppercase text-white">
               {companyName}
             </div>
           )}
         </div>
-        <div className="w-[65%] text-right text-[10px] leading-relaxed text-slate-600">
-          {company.logoUrl && <p className="text-sm font-bold uppercase text-slate-900">{companyName}</p>}
-          <p className="mt-1">{companyAddress}</p>
-          <p className="mt-1 font-bold text-slate-900">GSTIN NO. : {companyGst}</p>
-          {contactLine ? <p className="mt-1">{contactLine}</p> : null}
+        <div className="w-[65%] text-right">
+          {company.logoUrl ? (
+            <p className="mb-0.5 text-base font-bold uppercase text-slate-900">{companyName}</p>
+          ) : null}
+          <p className="text-[9px] leading-snug text-slate-600">{companyAddress}</p>
+          <p className="mt-0.5 text-[10px] font-bold text-slate-900">GSTIN NO. : {companyGst}</p>
+          {contactLine ? <p className="mt-0.5 text-[9px] text-slate-600">{contactLine}</p> : null}
         </div>
       </div>
 
       {/* Banner */}
-      <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-900 px-3 py-2 text-white">
-        <span className="text-[11px] font-bold uppercase tracking-wide">Tax Invoice</span>
-        <span className="text-[9px] opacity-85">Original for Recipient</span>
+      <div className="mb-2.5 flex items-center justify-between rounded-[10px] bg-slate-900 px-2.5 py-1.5 text-white">
+        <span className="text-[10.5px] font-bold uppercase">Tax Invoice</span>
+        <span className="text-[7.5px] opacity-85">Original for Recipient</span>
       </div>
 
-      {/* Supplier + Invoice meta */}
-      <div className="mt-3 grid gap-2 md:grid-cols-2">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-[10px]">
-          <p className="mb-2 text-[10px] font-bold uppercase text-slate-900">Supplier</p>
-          <p>{companyName}</p>
-          <p className="mt-1">{companyAddress}</p>
-          <p className="mt-1">GSTIN: {companyGst}</p>
-          {contactLine ? <p className="mt-1">{contactLine}</p> : null}
+      {/* Supplier + meta */}
+      <div className="mb-3 flex gap-2">
+        <div className="w-1/2 rounded-[10px] border border-slate-200 bg-slate-50 p-2.5">
+          <p className="mb-1.5 text-[10px] font-bold uppercase text-slate-900">Supplier</p>
+          <p className="text-[8px] leading-snug text-slate-600">{companyName}</p>
+          <p className="text-[8px] leading-snug text-slate-600">{companyAddress}</p>
+          <p className="text-[8px] leading-snug text-slate-600">GSTIN: {companyGst}</p>
+          {contactLine ? <p className="text-[8px] leading-snug text-slate-600">{contactLine}</p> : null}
         </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-3">
+        <div className="w-1/2 rounded-[10px] border border-slate-200 bg-white p-2.5">
           <MetaRow label="Invoice No" value={invoice.invoiceNumber || '-'} />
           <MetaRow label="Invoice Date" value={invoiceDate} />
           <MetaRow label="WO No." value={invoice.woNumber || '-'} />
@@ -74,36 +97,53 @@ function InvoiceHtmlContent({ data }: { data: ReturnType<typeof buildInvoiceDisp
         </div>
       </div>
 
-      {/* Bill To / Ship To */}
-      <div className="mt-3 grid gap-2 md:grid-cols-2">
-        <div className="rounded-lg border border-slate-200 p-3 text-[10px]">
-          <p className="mb-2 font-bold uppercase text-slate-900">Bill To</p>
-          <p className="font-semibold text-slate-900">{data.billTo.name || '-'}</p>
-          <p className="mt-1 text-slate-600">{data.billTo.address || '-'}</p>
-          <p className="mt-1 text-slate-600">GSTIN: {data.billTo.gstin || '-'}</p>
-          <p className="text-slate-600">
+      {/* Bill / Ship */}
+      <div className="mb-3.5 flex gap-2.5">
+        <div className="w-1/2 rounded-[10px] border border-slate-200 bg-white p-2.5">
+          <p className="mb-1.5 text-[9.5px] font-bold uppercase text-slate-900">Bill To</p>
+          <p className="text-[10px] font-bold text-slate-900">{data.billTo.name || '-'}</p>
+          <p className="text-[9px] text-slate-600">{data.billTo.address || '-'}</p>
+          <p className="text-[9px] text-slate-600">GSTIN: {data.billTo.gstin || '-'}</p>
+          <p className="text-[9px] text-slate-600">
             State: {data.billTo.state || '-'} ({data.billTo.code || '-'})
           </p>
         </div>
-        <div className="rounded-lg border border-slate-200 p-3 text-[10px]">
-          <p className="mb-2 font-bold uppercase text-slate-900">Ship To</p>
-          <p className="font-semibold text-slate-900">{data.shipTo.name || data.billTo.name || '-'}</p>
-          <p className="mt-1 text-slate-600">{data.shipTo.address || data.billTo.address || '-'}</p>
-          <p className="mt-1 text-slate-600">GSTIN: {data.shipTo.gstin || data.billTo.gstin || '-'}</p>
-          <p className="text-slate-600">
+        <div className="w-1/2 rounded-[10px] border border-slate-200 bg-white p-2.5">
+          <p className="mb-1.5 text-[9.5px] font-bold uppercase text-slate-900">Ship To</p>
+          <p className="text-[10px] font-bold text-slate-900">{data.shipTo.name || data.billTo.name || '-'}</p>
+          <p className="text-[9px] text-slate-600">{data.shipTo.address || data.billTo.address || '-'}</p>
+          <p className="text-[9px] text-slate-600">GSTIN: {data.shipTo.gstin || data.billTo.gstin || '-'}</p>
+          <p className="text-[9px] text-slate-600">
             State: {data.shipTo.state || data.billTo.state || '-'} ({data.shipTo.code || data.billTo.code || '-'})
           </p>
         </div>
       </div>
 
-      {/* Items table — same columns as PDF */}
-      <div className="mt-3 overflow-x-auto rounded-lg border border-slate-300">
-        <table className="min-w-[640px] w-full border-collapse text-[9px]">
+      {/* Items table */}
+      <div className="mb-2.5 overflow-x-auto rounded-[10px] border border-slate-300">
+        <table className="w-full min-w-[560px] table-fixed border-collapse">
           <thead>
             <tr className="bg-slate-900 text-white">
-              {['Sr.', 'Description', 'SAC', 'Unit', 'Qty', 'Rate', 'Taxable', 'CGST', 'SGST', 'Total'].map((h) => (
-                <th key={h} className="border-r border-slate-700 px-1.5 py-2 text-center font-bold last:border-r-0">
-                  {h}
+              {(
+                [
+                  ['Sr.', COL.sr],
+                  ['Description', COL.desc],
+                  ['SAC', COL.sac],
+                  ['Unit', COL.unit],
+                  ['Qty', COL.qty],
+                  ['Rate', COL.rate],
+                  ['Taxable', COL.taxable],
+                  ['CGST', COL.cgst],
+                  ['SGST', COL.sgst],
+                  ['Total', COL.total],
+                ] as const
+              ).map(([label, width]) => (
+                <th
+                  key={label}
+                  style={{ width }}
+                  className="border-r border-slate-700 px-0.5 py-1 text-center text-[7px] font-bold last:border-r-0"
+                >
+                  {label}
                 </th>
               ))}
             </tr>
@@ -111,24 +151,26 @@ function InvoiceHtmlContent({ data }: { data: ReturnType<typeof buildInvoiceDisp
           <tbody>
             {data.lineItems.map((item, index) => (
               <tr key={item.index} className={index % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
-                <td className="border-r border-slate-200 px-1.5 py-1.5 text-center">{item.index}</td>
-                <td className="border-r border-slate-200 px-1.5 py-1.5">{item.description}</td>
-                <td className="border-r border-slate-200 px-1.5 py-1.5 text-center">{item.sacCode}</td>
-                <td className="border-r border-slate-200 px-1.5 py-1.5 text-center">{item.unit}</td>
-                <td className="border-r border-slate-200 px-1.5 py-1.5 text-center">{item.qty}</td>
-                <td className="border-r border-slate-200 px-1.5 py-1.5 text-right whitespace-nowrap">
+                <td className="border-b border-r border-slate-200 px-0.5 py-1 text-center text-[7.5px]">{item.index}</td>
+                <td className="border-b border-r border-slate-200 px-0.5 py-1 text-[7.5px]">{item.description}</td>
+                <td className="border-b border-r border-slate-200 px-0.5 py-1 text-center text-[7.5px]">{item.sacCode}</td>
+                <td className="border-b border-r border-slate-200 px-0.5 py-1 text-center text-[7.5px]">{item.unit}</td>
+                <td className="border-b border-r border-slate-200 px-0.5 py-1 text-center text-[7.5px]">{item.qty}</td>
+                <td className="border-b border-r border-slate-200 px-0.5 py-1 text-right text-[7.5px] whitespace-nowrap">
                   {item.rate ? formatInvoiceCurrency(item.rate) : '-'}
                 </td>
-                <td className="border-r border-slate-200 px-1.5 py-1.5 text-right whitespace-nowrap">
+                <td className="border-b border-r border-slate-200 px-0.5 py-1 text-right text-[7.5px] whitespace-nowrap">
                   {formatInvoiceCurrency(item.lineAmount)}
                 </td>
-                <td className="border-r border-slate-200 px-1.5 py-1.5 text-right whitespace-nowrap">
+                <td className="border-b border-r border-slate-200 px-0.5 py-1 text-right text-[7.5px] whitespace-nowrap">
                   {formatInvoiceCurrency(item.lineCgst)}
                 </td>
-                <td className="border-r border-slate-200 px-1.5 py-1.5 text-right whitespace-nowrap">
+                <td className="border-b border-r border-slate-200 px-0.5 py-1 text-right text-[7.5px] whitespace-nowrap">
                   {formatInvoiceCurrency(item.lineSgst)}
                 </td>
-                <td className="px-1.5 py-1.5 text-right whitespace-nowrap">{formatInvoiceCurrency(item.lineTotal)}</td>
+                <td className="border-b border-slate-200 px-0.5 py-1 text-right text-[7.5px] whitespace-nowrap">
+                  {formatInvoiceCurrency(item.lineTotal)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -136,50 +178,52 @@ function InvoiceHtmlContent({ data }: { data: ReturnType<typeof buildInvoiceDisp
       </div>
 
       {/* Summary */}
-      <div className="mt-3 rounded-lg border border-slate-300 p-3 text-[10px]">
-        <div className="flex justify-between py-1">
+      <div className="mb-2.5 rounded-[10px] border border-slate-300 bg-white p-2.5">
+        <div className="mb-1 flex justify-between text-[8.5px]">
           <span className="text-slate-600">Taxable Value</span>
-          <span className="font-semibold">{formatInvoiceCurrencyPlain(data.subtotal)}</span>
+          <span className="font-bold text-slate-900">{formatInvoiceCurrencyPlain(data.subtotal)}</span>
         </div>
-        <div className="flex justify-between py-1">
+        <div className="mb-1 flex justify-between text-[8.5px]">
           <span className="text-slate-600">Total CGST ({data.cgstPercentage}%)</span>
-          <span className="font-semibold">{formatInvoiceCurrencyPlain(data.totalCgst)}</span>
+          <span className="font-bold text-slate-900">{formatInvoiceCurrencyPlain(data.totalCgst)}</span>
         </div>
-        <div className="flex justify-between py-1">
+        <div className="mb-1 flex justify-between text-[8.5px]">
           <span className="text-slate-600">Total SGST ({data.sgstPercentage}%)</span>
-          <span className="font-semibold">{formatInvoiceCurrencyPlain(data.totalSgst)}</span>
+          <span className="font-bold text-slate-900">{formatInvoiceCurrencyPlain(data.totalSgst)}</span>
         </div>
-        <div className="flex justify-between py-1">
+        <div className="mb-1 flex justify-between text-[8.5px]">
           <span className="text-slate-600">Cash Discount</span>
-          <span className="font-semibold">-{formatInvoiceCurrencyPlain(data.cashDiscountAmount)}</span>
+          <span className="font-bold text-slate-900">-{formatInvoiceCurrencyPlain(data.cashDiscountAmount)}</span>
         </div>
-        <div className="mt-2 flex justify-between border-t border-slate-200 pt-2 text-[11px] font-bold">
-          <span>Total Amount Payable</span>
-          <span>{formatInvoiceCurrencyPlain(data.roundedNetTotal)}</span>
+        <div className="mt-2 flex items-center justify-between border-t border-slate-200 pt-2">
+          <span className="text-[9.5px] font-bold text-slate-900">Total Amount Payable</span>
+          <span className="text-[11px] font-bold text-slate-900">{formatInvoiceCurrencyPlain(data.roundedNetTotal)}</span>
         </div>
       </div>
 
       {/* Amount in words */}
-      <div className="mt-3 rounded-lg border border-slate-300 bg-slate-50 p-3 text-[10px]">
-        <p className="font-bold text-blue-900">Amount in Words</p>
-        <p className="mt-1 text-slate-900">INR {data.amountInWords}</p>
+      <div className="mb-2.5 rounded-[10px] border border-slate-300 bg-slate-50 p-2.5">
+        <p className="text-[9px] font-bold text-blue-900">Amount in Words</p>
+        <p className="mt-1 text-[9px] text-slate-900">INR {data.amountInWords}</p>
       </div>
 
       {/* Footer */}
-      <div className="mt-3 grid gap-2 md:grid-cols-2">
-        <div className="rounded-lg border border-slate-300 bg-slate-50 p-3 text-[10px] text-slate-600">
-          <p className="mb-2 font-bold text-slate-900">Bank Details</p>
-          <p>Bank Name: {company.bankName || 'Axis Bank'}</p>
-          <p>A/C Name: {company.bankAccountName || `${companyName} Bank A/c No.`}</p>
-          <p>A/C No: {company.bankAccountNumber || '923020047215171'}</p>
-          <p>IFSC: {company.bankIfsc || 'UTIB0001584'}</p>
-          <p>Branch: {company.bankBranch || 'OLD NAGARDAS ROAD'}</p>
+      <div className="flex gap-2">
+        <div className="flex-1 rounded-[10px] border border-slate-300 bg-slate-50 p-2">
+          <p className="mb-1.5 text-[8.5px] font-bold text-slate-900">Bank Details</p>
+          <p className="text-[9px] text-slate-600">Bank Name: {company.bankName || 'Axis Bank'}</p>
+          <p className="text-[9px] text-slate-600">A/C Name: {company.bankAccountName || `${companyName} Bank A/c No.`}</p>
+          <p className="text-[9px] text-slate-600">A/C No: {company.bankAccountNumber || '923020047215171'}</p>
+          <p className="text-[9px] text-slate-600">IFSC: {company.bankIfsc || 'UTIB0001584'}</p>
+          <p className="text-[9px] text-slate-600">Branch: {company.bankBranch || 'OLD NAGARDAS ROAD'}</p>
         </div>
-        <div className="rounded-lg border border-slate-300 bg-slate-50 p-3 text-[10px] text-slate-600">
-          <p className="mb-2 font-bold text-slate-900">Terms & Signature</p>
-          <p>Payment due within 15 days of invoice date. Late payment may attract interest.</p>
-          <div className="mt-6 border-t border-slate-300 pt-2">
-            <p className="font-bold text-slate-900">Authorised Signature</p>
+        <div className="flex-1 rounded-[10px] border border-slate-300 bg-slate-50 p-2">
+          <p className="mb-1.5 text-[8.5px] font-bold text-slate-900">Terms & Signature</p>
+          <p className="text-[9px] text-slate-600">
+            Payment due within 15 days of invoice date. Late payment may attract interest.
+          </p>
+          <div className="mt-4 border-t border-slate-300 pt-1.5">
+            <p className="text-[9px] font-bold text-slate-900">Authorised Signature</p>
           </div>
         </div>
       </div>
@@ -217,23 +261,31 @@ export function InvoiceHtmlViewer({
   const title = invoice.invoiceNumber || 'Invoice'
 
   return createPortal(
-    <div className="fixed inset-0 z-[200] flex flex-col bg-white" style={{ height: '100dvh' }}>
-      <header className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
-        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">{title}</p>
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 active:bg-slate-200"
-          aria-label="Close"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </header>
+    <>
+      {/* Roboto — same font family as PDF */}
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      />
+      <div className="fixed inset-0 z-[200] flex flex-col bg-slate-200" style={{ height: '100dvh' }}>
+        <header className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
+          <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">{title}</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 active:bg-slate-200"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-100 p-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-3">
-        <InvoiceHtmlContent data={displayData} />
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <InvoiceHtmlContent data={displayData} />
+        </div>
       </div>
-    </div>,
+    </>,
     document.body,
   )
 }

@@ -17,6 +17,7 @@ import { Download, ExternalLink, Eye, Loader2, ChevronRight, CheckCircle2 } from
 import { useBilling, Invoice } from '@/lib/context'
 import { useFeedback } from '@/components/confirm-provider'
 import { MobilePdfViewer } from '@/components/mobile-pdf-viewer'
+import { InvoiceHtmlViewer } from '@/components/invoice-html-viewer'
 import { useCompactInvoiceView } from '@/lib/invoice-view-mode'
 import { buildInvoiceDisplayData, formatInvoiceCurrency, type InvoiceDisplayData } from '@/lib/invoice-display-data'
 
@@ -659,7 +660,6 @@ function DesktopPdfActions({
     </div>
     <MobilePdfViewer
       pdfDocument={pdfDocument}
-      pdfBlob={instance.blob}
       fileName={fileName}
       open={viewerOpen}
       onClose={() => setViewerOpen(false)}
@@ -675,6 +675,7 @@ const STATUS_STYLES = {
 } as const
 
 function MobileInvoicePdfPanel({
+  invoice,
   pdfDocument,
   invoiceNumber,
   date,
@@ -686,6 +687,7 @@ function MobileInvoicePdfPanel({
   onViewOpenChange,
   onActionsReady,
 }: {
+  invoice: Invoice
   pdfDocument: ReactElement<DocumentProps>
   invoiceNumber?: string
   date?: string
@@ -869,10 +871,8 @@ function MobileInvoicePdfPanel({
         </div>
       )}
     </div>
-    <MobilePdfViewer
-      pdfDocument={pdfDocument}
-      pdfBlob={instance.blob}
-      fileName={fileName}
+    <InvoiceHtmlViewer
+      invoice={invoice}
       open={viewerOpen}
       onClose={() => setViewerOpen(false)}
     />
@@ -906,6 +906,7 @@ export function InvoicePreview({
   if (compactView) {
     return (
       <MobileInvoicePdfPanel
+        invoice={invoice}
         pdfDocument={pdfDocument}
         invoiceNumber={invoice.invoiceNumber}
         date={invoice.date}

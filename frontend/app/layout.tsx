@@ -51,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" data-pwa-shell="false" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.className} antialiased`}>
         <PwaShellScript />
         <AuthProvider>
