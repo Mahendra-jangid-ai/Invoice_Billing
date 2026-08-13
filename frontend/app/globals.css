@@ -367,23 +367,52 @@
     min-width: 44px;
   }
 
-  .mobile-page {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  :root {
+    --mobile-nav-h: 4rem;
+    --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --mobile-bottom-chrome: calc(var(--mobile-nav-h) + var(--mobile-safe-bottom));
   }
 
-  html[data-pwa-shell='true'] .mobile-page {
-    padding-bottom: max(5.5rem, calc(4.5rem + env(safe-area-inset-bottom)));
+  .mobile-page {
+    padding-bottom: max(1rem, var(--mobile-safe-bottom));
+  }
+
+  html[data-pwa-shell='true'][data-bottom-nav='visible'] .mobile-page {
+    padding-bottom: calc(var(--mobile-bottom-chrome) + 1.5rem);
+  }
+
+  html[data-pwa-shell='true'][data-bottom-nav='hidden'] .mobile-page {
+    padding-bottom: max(1rem, var(--mobile-safe-bottom));
   }
 
   @media (min-width: 768px) {
     .mobile-page,
     html[data-pwa-shell='true'] .mobile-page {
-      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+      padding-bottom: max(1rem, var(--mobile-safe-bottom));
     }
   }
 
-  html[data-pwa-shell='true'] .form-actions-bar.is-sticky {
-    bottom: calc(4.25rem + env(safe-area-inset-bottom));
+  html[data-pwa-shell='true'][data-bottom-nav='visible'] .form-actions-bar.is-sticky {
+    bottom: calc(var(--mobile-bottom-chrome) + 0.25rem);
+  }
+
+  html[data-pwa-shell='true'][data-bottom-nav='hidden'] .form-actions-bar.is-sticky {
+    bottom: 0;
+  }
+
+  .mobile-sticky-footer {
+    bottom: 0;
+    padding-bottom: max(0.75rem, var(--mobile-safe-bottom));
+  }
+
+  .invoice-detail-mobile {
+    padding-bottom: calc(11rem + var(--mobile-safe-bottom));
+  }
+
+  @media (min-width: 768px) {
+    .invoice-detail-mobile {
+      padding-bottom: 0;
+    }
   }
 
   html:not([data-pwa-shell='true']) .pwa-shell-only {
@@ -419,6 +448,20 @@
   @media (min-width: 640px) {
     html[data-pwa-shell='true'] .hero-description {
       display: block;
+    }
+  }
+
+  html[data-bottom-nav='visible'] .pwa-install-anchor {
+    bottom: calc(var(--mobile-bottom-chrome) + 1.5rem);
+  }
+
+  html[data-bottom-nav='hidden'] .pwa-install-anchor {
+    bottom: calc(1.25rem + var(--mobile-safe-bottom));
+  }
+
+  @media (min-width: 768px) {
+    .pwa-install-anchor {
+      bottom: 1.5rem;
     }
   }
 

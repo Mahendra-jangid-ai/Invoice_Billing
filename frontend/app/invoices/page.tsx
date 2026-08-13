@@ -19,7 +19,7 @@ import {
 } from '@/lib/invoice-search'
 import { InvoiceFilters } from '@/components/invoice-filters'
 import { Button } from '@/components/ui/button'
-import { Plus, Eye, Edit, Trash2, FileText, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Plus, Eye, Edit, Trash2, FileText, ChevronLeft, ChevronRight, Loader2, Download } from 'lucide-react'
 import {
   MobileCard,
   MobileCardAction,
@@ -245,7 +245,7 @@ function InvoicesPageContent() {
               </span>
             </div>
 
-            <MobileCardList className="!block p-4">
+            <MobileCardList className="p-4">
               {invoices.map((invoice: InvoiceListItem) => {
                 const customer = customers.find((c) => String(c.id) === String(invoice.customerId))
                 const customerLabel = invoice.customerName || invoice.billTo?.name || customer?.name || 'Unknown'
@@ -265,11 +265,15 @@ function InvoicesPageContent() {
                     </MobileCardBody>
                     <MobileCardActions>
                       <MobileCardAction href={`/invoices/${invoice.id}`} icon={Eye} label="View" variant="primary" />
-                      {invoice.status === 'draft' ? (
+                      {invoice.status === 'draft' && (
                         <MobileCardAction href={`/invoices/${invoice.id}/edit`} icon={Edit} label="Edit" variant="amber" />
-                      ) : (
-                        <span className="flex min-h-11 items-center justify-center text-xs text-slate-300">—</span>
                       )}
+                      <MobileCardAction
+                        href={`/invoices/${invoice.id}?pdf=download`}
+                        icon={Download}
+                        label="Download"
+                        variant="muted"
+                      />
                       <MobileCardAction
                         icon={Trash2}
                         label="Delete"

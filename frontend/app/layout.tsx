@@ -7,6 +7,7 @@ import { AuthProvider } from '@/lib/auth-context'
 import { ConfirmProvider } from '@/components/confirm-provider'
 import { PwaInstallPrompt } from '@/components/pwa-install-prompt'
 import { PwaShellProvider } from '@/lib/use-installed-pwa'
+import { BottomChromeSync } from '@/components/bottom-chrome-sync'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -66,6 +67,7 @@ export default function RootLayout({
           <BillingProvider>
             <ConfirmProvider>
               <PwaShellProvider>
+                <BottomChromeSync />
                 {children}
                 <PwaInstallPrompt />
               </PwaShellProvider>

@@ -1,3 +1,4 @@
+import { Children } from 'react'
 import Link from 'next/link'
 import type { LucideIcon } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
@@ -107,7 +108,23 @@ export function MobileCardRow({
 }
 
 export function MobileCardActions({ children }: { children: React.ReactNode }) {
-  return <div className="flex divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/50">{children}</div>
+  const items = Children.toArray(children).filter(Boolean)
+  const gridClass =
+    items.length === 4 ? 'grid-cols-2' : items.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
+
+  return (
+    <div
+      className={cn(
+        'grid border-t border-slate-200 bg-white',
+        gridClass,
+        items.length === 4
+          ? '[&>*:nth-child(odd)]:border-r [&>*:nth-child(-n+2)]:border-b [&>*]:border-slate-100'
+          : '[&>*:not(:last-child)]:border-r [&>*]:border-slate-100',
+      )}
+    >
+      {children}
+    </div>
+  )
 }
 
 const ACTION_VARIANTS = {
@@ -132,23 +149,28 @@ export function MobileCardAction({
   bordered?: boolean
 }) {
   const className = cn(
-    'flex min-h-11 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-colors',
+    'flex min-h-[52px] w-full min-w-0 flex-col items-center justify-center gap-1 px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight transition-colors',
     ACTION_VARIANTS[variant],
+  )
+
+  const inner = (
+    <>
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="truncate">{label}</span>
+    </>
   )
 
   if (href) {
     return (
       <Link href={href} className={className}>
-        <Icon className="h-4 w-4" />
-        {label}
+        {inner}
       </Link>
     )
   }
 
   return (
     <button type="button" onClick={onClick} className={className}>
-      <Icon className="h-4 w-4" />
-      {label}
+      {inner}
     </button>
   )
 }

@@ -70,7 +70,7 @@ export function PwaInstallPrompt() {
   if (!deferredPrompt && !showIosHint) return null
 
   return (
-    <div className="fixed inset-x-4 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-[55] md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
+    <div className="pwa-install-anchor fixed inset-x-4 z-[55] md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
       <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-xl shadow-slate-200/60">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2563EB] text-white">

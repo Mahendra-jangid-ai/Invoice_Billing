@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useIsInstalledPwa } from '@/lib/use-installed-pwa'
+import { shouldHideBottomNav } from '@/lib/mobile-chrome'
 
 const MAIN_TABS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Home', match: (p: string) => p === '/dashboard' },
@@ -20,20 +21,21 @@ const MAIN_TABS = [
   { href: '/items', icon: Package, label: 'Items', match: (p: string) => p === '/items' },
 ] as const
 
-function shouldHideBottomNav(pathname: string) {
-  if (pathname === '/invoices/new') return true
-  if (/^\/invoices\/[^/]+\/edit$/.test(pathname)) return true
-  if (/^\/invoices\/[^/]+$/.test(pathname) && pathname !== '/invoices') return true
-  return false
+function shouldHideBottomNavOnRoute(pathname: string) {
+  return shouldHideBottomNav(pathname)
 }
 
 export function MobileBottomNav() {
   const pathname = usePathname()
   const isInstalledPwa = useIsInstalledPwa()
 
-  if (!isInstalledPwa || shouldHideBottomNav(pathname)) return null
+  if (!isInstalledPwa || shouldHideBottomNavOnRoute(pathname)) return null
 
-  const moreActive = pathname === '/setting' || pathname === '/company-settings' || pathname === '/settings'
+  const moreActive =
+    pathname === '/more' ||
+    pathname === '/setting' ||
+    pathname === '/company-settings' ||
+    pathname === '/settings'
 
   return (
     <>
@@ -79,7 +81,7 @@ export function MobileBottomNav() {
           })}
 
           <Link
-            href="/setting"
+            href="/more"
             className={cn(
               'flex flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 transition-colors',
               moreActive ? 'text-[#2563EB]' : 'text-slate-400 active:text-slate-600',

@@ -45,6 +45,9 @@ function getPageMeta(pathname: string): { label: string; breadcrumbs: { label: s
   if (pathname === '/setting')
     return { label: 'Settings', breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings', href: '/setting' }] }
 
+  if (pathname === '/more')
+    return { label: 'More', breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }, { label: 'More', href: '/more' }] }
+
   if (pathname === '/invoices')
     return { label: 'Invoices', breadcrumbs: [{ label: 'Dashboard', href: '/dashboard' }, { label: 'Invoices', href: '/invoices' }] }
 
@@ -108,17 +111,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       )}
     >
 
-      {/* ── Mobile backdrop ── */}
-      <div
-        className={`fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-sm md:hidden transition-opacity duration-300 ${
-          sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setSidebarOpen(false)}
-        aria-hidden
-      />
+      {/* ── Mobile backdrop (browser only — PWA uses bottom nav) ── */}
+      {!isInstalledPwa && (
+        <div
+          className={`fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-sm md:hidden transition-opacity duration-300 ${
+            sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden
+        />
+      )}
 
-      {/* ── Sidebar ── */}
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* ── Sidebar (desktop always; mobile drawer only in browser) ── */}
+      <Sidebar
+        open={isInstalledPwa ? false : sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       {/* ── Main area ── */}
       <div className="md:pl-72 flex flex-col min-h-screen">
@@ -133,25 +141,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           )}
         >
 
-          {/* Left: hamburger + breadcrumb */}
-          <div className="flex items-center gap-2 min-w-0 flex-1 md:gap-2.5">
-            <button
-              type="button"
-              onClick={() => setSidebarOpen((o) => !o)}
-              className={cn(
-                'md:hidden touch-target inline-flex items-center justify-center rounded-xl text-slate-600 transition active:bg-slate-50',
-                isInstalledPwa
-                  ? 'h-10 w-10'
-                  : 'h-11 w-11 border border-slate-200 bg-white shadow-sm',
-              )}
-              aria-label="Toggle menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-
-            {isInstalledPwa ? (
-              <img src="/logo.png" alt="" className="h-7 w-auto object-contain md:hidden" />
-            ) : null}
+          {/* Left: menu (browser) or logo + title (PWA app) */}
+          <div className="flex items-center gap-2.5 min-w-0 flex-1 md:gap-2.5">
+            {!isInstalledPwa ? (
+              <button
+                type="button"
+                onClick={() => setSidebarOpen((o) => !o)}
+                className="md:hidden touch-target inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition active:bg-slate-50"
+                aria-label="Toggle menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            ) : (
+              <img src="/logo.png" alt="" className="h-7 w-auto shrink-0 object-contain md:hidden" />
+            )}
 
             <nav className="hidden min-w-0 sm:flex sm:items-center sm:gap-1 sm:text-sm">
               {breadcrumbs.map((crumb, i) => (
@@ -173,8 +176,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
             <p
               className={cn(
-                'truncate text-sm font-semibold text-slate-900 sm:hidden',
-                isInstalledPwa ? 'hidden min-[420px]:block' : 'block',
+                'min-w-0 truncate text-sm font-semibold text-slate-900 sm:hidden',
+                !isInstalledPwa && 'block',
+                isInstalledPwa && 'block flex-1',
               )}
             >
               {label}

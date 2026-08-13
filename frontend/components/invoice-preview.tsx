@@ -64,6 +64,16 @@ Font.register({
 
 interface InvoicePreviewProps {
   invoice: Invoice
+  mobileActions?: 'panel' | 'external'
+  onMobilePdfActions?: (actions: InvoicePdfMobileActions) => void
+}
+
+export interface InvoicePdfMobileActions {
+  loading: boolean
+  ready: boolean
+  error?: string | null
+  handleView: () => void
+  handleDownload: () => void
 }
 
 const styles = StyleSheet.create({
@@ -708,6 +718,8 @@ function MobileInvoicePdfPanel({
   status,
   customerName,
   totalAmount,
+  showActions = true,
+  onActionsReady,
 }: {
   pdfDocument: ReactElement<DocumentProps>
   invoiceNumber?: string
@@ -715,6 +727,8 @@ function MobileInvoicePdfPanel({
   status?: 'draft' | 'finalized' | 'paid'
   customerName?: string
   totalAmount?: number
+  showActions?: boolean
+  onActionsReady?: (actions: InvoicePdfMobileActions) => void
 }) {
   const [instance, updateInstance] = usePDF()
   const [downloadState, setDownloadState] = useState<'idle' | 'done'>('idle')
@@ -764,6 +778,17 @@ function MobileInvoicePdfPanel({
     window.setTimeout(() => setDownloadState('idle'), 2500)
   }
 
+  useEffect(() => {
+    if (!onActionsReady) return
+    onActionsReady({
+      loading: instance.loading,
+      ready: Boolean(instance.url && instance.blob),
+      error: instance.error,
+      handleView,
+      handleDownload,
+    })
+  }, [instance.loading, instance.url, instance.blob, instance.error, onActionsReady])
+
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 py-5 text-white">
@@ -788,10 +813,11 @@ function MobileInvoicePdfPanel({
         </div>
       </div>
 
-      <div className="p-4">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Actions</p>
+      {showActions ? (
+        <div className="p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Actions</p>
 
-        {instance.loading ? (
+          {instance.loading ? (
           <div className="space-y-3">
             {[0, 1].map((key) => (
               <div
@@ -861,12 +887,24 @@ function MobileInvoicePdfPanel({
             </button>
           </div>
         ) : null}
-      </div>
+        </div>
+      ) : instance.loading ? (
+        <div className="px-4 pb-4">
+          <p className="flex items-center justify-center gap-2 py-2 text-xs text-slate-400">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Preparing invoice PDF…
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }
 
-export function InvoicePreview({ invoice }: InvoicePreviewProps) {
+export function InvoicePreview({
+  invoice,
+  mobileActions = 'panel',
+  onMobilePdfActions,
+}: InvoicePreviewProps) {
   const { customers, company } = useBilling()
 
   const customer = customers.find(
@@ -1033,6 +1071,8 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
         status={invoice.status}
         customerName={billTo.name}
         totalAmount={displayTotal}
+        showActions={mobileActions === 'panel'}
+        onActionsReady={mobileActions === 'external' ? onMobilePdfActions : undefined}
       />
     )
   }
