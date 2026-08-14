@@ -19,7 +19,7 @@ import { useFeedback } from '@/components/confirm-provider'
 import { MobilePdfViewer } from '@/components/mobile-pdf-viewer'
 import { InvoiceHtmlViewer } from '@/components/invoice-html-viewer'
 import { useCompactInvoiceView } from '@/lib/invoice-view-mode'
-import { buildInvoiceDisplayData, formatInvoiceCurrency, type InvoiceDisplayData } from '@/lib/invoice-display-data'
+import { buildInvoiceDisplayData, formatInvoiceCurrency, formatInvoiceCurrencyPlain, type InvoiceDisplayData } from '@/lib/invoice-display-data'
 import { displayValue } from '@/lib/onboarding'
 import { formatInr, INR_TEXT_CLASS } from '@/lib/format-inr'
 import { cn } from '@/lib/utils'
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
 })
 
-function InvoicePdfDocument({ data }: { data: InvoiceDisplayData }) {
+function DefaultPdfLayout({ data }: { data: InvoiceDisplayData }) {
   const {
     invoice,
     company,
@@ -590,6 +590,470 @@ function InvoicePdfDocument({ data }: { data: InvoiceDisplayData }) {
       </Page>
     </Document>
   )
+}
+
+function ModernPdfLayout({ data }: { data: InvoiceDisplayData }) {
+  const {
+    invoice, company, companyName, companyAddress, companyGst, contactLine,
+    billTo, shipTo, subtotal, cgstPercentage, sgstPercentage,
+    totalCgst, totalSgst, cashDiscountAmount, roundedNetTotal, amountInWords, lineItems
+  } = data
+
+  const dateStr = invoice.date ? new Date(invoice.date).toLocaleDateString('en-GB') : '-'
+
+  const mStyles = StyleSheet.create({
+    page: { flexDirection: 'column', backgroundColor: '#f8fafc', padding: 20, fontFamily: 'Roboto' },
+    banner: { backgroundColor: '#2563eb', padding: 15, flexDirection: 'row', justifyContent: 'space-between', borderRadius: 8, color: '#ffffff', marginBottom: 15 },
+    bannerLeft: { width: '50%' },
+    bannerRight: { width: '50%', alignItems: 'flex-end' },
+    companyName: { fontSize: 18, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 4 },
+    mutedTextWhite: { fontSize: 9, color: '#eff6ff', opacity: 0.9, marginBottom: 2 },
+    invoiceTitle: { fontSize: 24, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 4 },
+    twoColumn: { flexDirection: 'row', justifyContent: 'space-between', gap: 15, marginBottom: 15 },
+    half: { width: '48%' },
+    cardTitle: { fontSize: 9, fontWeight: 'bold', textTransform: 'uppercase', color: '#2563eb', marginBottom: 4 },
+    boldText: { fontSize: 11, fontWeight: 'bold', color: '#0f172a' },
+    mutedText: { fontSize: 9, color: '#64748b', marginTop: 2 },
+    table: { width: '100%', marginBottom: 15 },
+    tableHeaderRow: { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: '#bfdbfe', paddingBottom: 5, marginBottom: 5 },
+    tableHeaderCell: { fontSize: 9, fontWeight: 'bold', color: '#2563eb', textTransform: 'uppercase' },
+    tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingVertical: 5 },
+    tableCell: { fontSize: 9, color: '#1e293b' },
+    summaryContainer: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 15 },
+    summaryBox: { width: '50%', backgroundColor: '#eff6ff', padding: 12, borderRadius: 8 },
+    summaryLine: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+    summaryLabel: { fontSize: 9, color: '#475569' },
+    summaryValue: { fontSize: 9, fontWeight: 'bold', color: '#0f172a' },
+    summaryTotalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#bfdbfe' },
+    summaryTotalLabel: { fontSize: 11, fontWeight: 'bold', color: '#1e3a8a' },
+    summaryTotalValue: { fontSize: 11, fontWeight: 'bold', color: '#1e3a8a' },
+    footer: { borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 10, flexDirection: 'row', justifyContent: 'space-between' },
+    footerTitle: { fontSize: 9, fontWeight: 'bold', color: '#334155', marginBottom: 2 },
+    signatureBox: { borderTopWidth: 1, borderTopColor: '#94a3b8', marginTop: 30, paddingTop: 4, width: 120, alignItems: 'center' },
+  })
+
+  return (
+    <Document>
+      <Page size="A4" style={mStyles.page}>
+        <View style={mStyles.banner}>
+          <View style={mStyles.bannerLeft}>
+            <Text style={mStyles.companyName}>{companyName}</Text>
+            <Text style={mStyles.mutedTextWhite}>{companyAddress}</Text>
+            <Text style={mStyles.mutedTextWhite}>GSTIN: {companyGst}</Text>
+          </View>
+          <View style={mStyles.bannerRight}>
+            <Text style={mStyles.invoiceTitle}>INVOICE</Text>
+            <Text style={mStyles.mutedTextWhite}>No: {invoice.invoiceNumber || '-'}</Text>
+            <Text style={mStyles.mutedTextWhite}>Date: {dateStr}</Text>
+          </View>
+        </View>
+
+        <View style={mStyles.twoColumn}>
+          <View style={mStyles.half}>
+            <Text style={mStyles.cardTitle}>Billed To</Text>
+            <Text style={mStyles.boldText}>{billTo.name || '-'}</Text>
+            <Text style={mStyles.mutedText}>{billTo.address || '-'}</Text>
+            <Text style={mStyles.mutedText}>GSTIN: {billTo.gstin || '-'}</Text>
+          </View>
+          <View style={mStyles.half}>
+            <Text style={mStyles.cardTitle}>Shipped To</Text>
+            <Text style={mStyles.boldText}>{shipTo.name || billTo.name || '-'}</Text>
+            <Text style={mStyles.mutedText}>{shipTo.address || billTo.address || '-'}</Text>
+            <Text style={mStyles.mutedText}>GSTIN: {shipTo.gstin || billTo.gstin || '-'}</Text>
+          </View>
+        </View>
+
+        <View style={mStyles.table}>
+          <View style={mStyles.tableHeaderRow}>
+            <Text style={[mStyles.tableHeaderCell, { width: '40%' }]}>Item</Text>
+            <Text style={[mStyles.tableHeaderCell, { width: '20%', textAlign: 'center' }]}>Qty</Text>
+            <Text style={[mStyles.tableHeaderCell, { width: '20%', textAlign: 'right' }]}>Rate</Text>
+            <Text style={[mStyles.tableHeaderCell, { width: '20%', textAlign: 'right' }]}>Total</Text>
+          </View>
+          {lineItems.map(item => (
+            <View key={item.index} style={mStyles.tableRow}>
+              <View style={{ width: '40%' }}>
+                <Text style={[mStyles.tableCell, { fontWeight: 'bold' }]}>{item.description}</Text>
+                <Text style={{ fontSize: 7, color: '#64748b' }}>SAC: {item.sacCode}</Text>
+              </View>
+              <Text style={[mStyles.tableCell, { width: '20%', textAlign: 'center' }]}>{item.qty} {item.unit}</Text>
+              <Text style={[mStyles.tableCell, { width: '20%', textAlign: 'right' }]}>{item.rate ? formatInvoiceCurrency(item.rate) : '-'}</Text>
+              <Text style={[mStyles.tableCell, { width: '20%', textAlign: 'right', fontWeight: 'bold' }]}>{formatInvoiceCurrency(item.lineTotal)}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={mStyles.summaryContainer}>
+          <View style={mStyles.summaryBox}>
+            <View style={mStyles.summaryLine}>
+              <Text style={mStyles.summaryLabel}>Subtotal</Text>
+              <Text style={mStyles.summaryValue}>{formatInvoiceCurrencyPlain(subtotal)}</Text>
+            </View>
+            <View style={mStyles.summaryLine}>
+              <Text style={mStyles.summaryLabel}>CGST ({cgstPercentage}%)</Text>
+              <Text style={mStyles.summaryValue}>{formatInvoiceCurrencyPlain(totalCgst)}</Text>
+            </View>
+            <View style={mStyles.summaryLine}>
+              <Text style={mStyles.summaryLabel}>SGST ({sgstPercentage}%)</Text>
+              <Text style={mStyles.summaryValue}>{formatInvoiceCurrencyPlain(totalSgst)}</Text>
+            </View>
+            <View style={mStyles.summaryLine}>
+              <Text style={mStyles.summaryLabel}>Discount</Text>
+              <Text style={mStyles.summaryValue}>-{formatInvoiceCurrencyPlain(cashDiscountAmount)}</Text>
+            </View>
+            <View style={mStyles.summaryTotalRow}>
+              <Text style={mStyles.summaryTotalLabel}>Total</Text>
+              <Text style={mStyles.summaryTotalValue}>{formatInvoiceCurrencyPlain(roundedNetTotal)}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={mStyles.footer}>
+          <View style={{ width: '60%' }}>
+            <Text style={mStyles.footerTitle}>Bank Details</Text>
+            <Text style={mStyles.mutedText}>{displayValue(company.bankName)} • A/C: {displayValue(company.bankAccountNumber)}</Text>
+            <Text style={mStyles.mutedText}>IFSC: {displayValue(company.bankIfsc)}</Text>
+            <Text style={[mStyles.footerTitle, { marginTop: 10 }]}>Amount in Words</Text>
+            <Text style={mStyles.mutedText}>INR {amountInWords}</Text>
+          </View>
+          <View style={{ width: '40%', alignItems: 'flex-end' }}>
+            <Text style={mStyles.footerTitle}>Authorised Signatory</Text>
+            <View style={mStyles.signatureBox}>
+              <Text style={{ fontSize: 8, color: '#64748b' }}>Signature</Text>
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
+function ClassicPdfLayout({ data }: { data: InvoiceDisplayData }) {
+  const {
+    invoice, company, companyName, companyAddress, companyGst, contactLine,
+    billTo, shipTo, subtotal, cgstPercentage, sgstPercentage,
+    totalCgst, totalSgst, cashDiscountAmount, roundedNetTotal, amountInWords, lineItems
+  } = data
+
+  const dateStr = invoice.date ? new Date(invoice.date).toLocaleDateString('en-GB') : '-'
+
+  const cStyles = StyleSheet.create({
+    page: { flexDirection: 'column', backgroundColor: '#ffffff', padding: 20, fontFamily: 'Times-Roman' },
+    title: { textAlign: 'center', fontSize: 16, fontWeight: 'bold', textDecoration: 'underline', marginBottom: 10 },
+    borderBox: { borderWidth: 1, borderColor: '#000000', padding: 8, marginBottom: 10 },
+    rowSpaceBetween: { flexDirection: 'row', justifyContent: 'space-between' },
+    companyName: { fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' },
+    textSmall: { fontSize: 10 },
+    textBold: { fontSize: 10, fontWeight: 'bold' },
+    twoColumnBorder: { flexDirection: 'row', borderWidth: 1, borderColor: '#000000', marginBottom: 10 },
+    colHalf: { width: '50%', padding: 8 },
+    borderRight: { borderRightWidth: 1, borderRightColor: '#000000' },
+    table: { borderWidth: 1, borderColor: '#000000', marginBottom: 10 },
+    tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000000' },
+    tableHeaderCell: { fontSize: 10, fontWeight: 'bold', padding: 4, borderRightWidth: 1, borderRightColor: '#000000' },
+    tableCell: { fontSize: 10, padding: 4, borderRightWidth: 1, borderRightColor: '#000000' },
+    bottomSection: { flexDirection: 'row', borderWidth: 1, borderColor: '#000000' },
+    bottomLeft: { width: '65%', padding: 8, borderRightWidth: 1, borderRightColor: '#000000', justifyContent: 'space-between' },
+    bottomRight: { width: '35%', padding: 8 },
+    summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+  })
+
+  return (
+    <Document>
+      <Page size="A4" style={cStyles.page}>
+        <Text style={cStyles.title}>TAX INVOICE</Text>
+        
+        <View style={[cStyles.borderBox, cStyles.rowSpaceBetween]}>
+          <View>
+            <Text style={cStyles.companyName}>{companyName}</Text>
+            <Text style={cStyles.textSmall}>{companyAddress}</Text>
+            <Text style={cStyles.textBold}>GSTIN: {companyGst}</Text>
+            {contactLine ? <Text style={cStyles.textSmall}>{contactLine}</Text> : null}
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={cStyles.textSmall}><Text style={cStyles.textBold}>Invoice No:</Text> {invoice.invoiceNumber || '-'}</Text>
+            <Text style={cStyles.textSmall}><Text style={cStyles.textBold}>Date:</Text> {dateStr}</Text>
+          </View>
+        </View>
+
+        <View style={cStyles.twoColumnBorder}>
+          <View style={[cStyles.colHalf, cStyles.borderRight]}>
+            <Text style={[cStyles.textBold, { textDecoration: 'underline', marginBottom: 4 }]}>Billed To:</Text>
+            <Text style={cStyles.textBold}>{billTo.name || '-'}</Text>
+            <Text style={cStyles.textSmall}>{billTo.address || '-'}</Text>
+            <Text style={cStyles.textSmall}>GSTIN: {billTo.gstin || '-'}</Text>
+          </View>
+          <View style={cStyles.colHalf}>
+            <Text style={[cStyles.textBold, { textDecoration: 'underline', marginBottom: 4 }]}>Shipped To:</Text>
+            <Text style={cStyles.textBold}>{shipTo.name || billTo.name || '-'}</Text>
+            <Text style={cStyles.textSmall}>{shipTo.address || billTo.address || '-'}</Text>
+            <Text style={cStyles.textSmall}>GSTIN: {shipTo.gstin || billTo.gstin || '-'}</Text>
+          </View>
+        </View>
+
+        <View style={cStyles.table}>
+          <View style={cStyles.tableRow}>
+            <Text style={[cStyles.tableHeaderCell, { width: '10%', textAlign: 'center' }]}>S.N.</Text>
+            <Text style={[cStyles.tableHeaderCell, { width: '40%' }]}>Particulars</Text>
+            <Text style={[cStyles.tableHeaderCell, { width: '15%', textAlign: 'center' }]}>Qty</Text>
+            <Text style={[cStyles.tableHeaderCell, { width: '15%', textAlign: 'right' }]}>Rate</Text>
+            <Text style={[cStyles.tableHeaderCell, { width: '20%', textAlign: 'right', borderRightWidth: 0 }]}>Amount</Text>
+          </View>
+          {lineItems.map(item => (
+            <View key={item.index} style={cStyles.tableRow}>
+              <Text style={[cStyles.tableCell, { width: '10%', textAlign: 'center' }]}>{item.index}</Text>
+              <Text style={[cStyles.tableCell, { width: '40%' }]}>{item.description}</Text>
+              <Text style={[cStyles.tableCell, { width: '15%', textAlign: 'center' }]}>{item.qty} {item.unit}</Text>
+              <Text style={[cStyles.tableCell, { width: '15%', textAlign: 'right' }]}>{item.rate ? formatInvoiceCurrency(item.rate) : '-'}</Text>
+              <Text style={[cStyles.tableCell, { width: '20%', textAlign: 'right', borderRightWidth: 0 }]}>{formatInvoiceCurrency(item.lineAmount)}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={cStyles.bottomSection}>
+          <View style={cStyles.bottomLeft}>
+            <View>
+              <Text style={[cStyles.textBold, { textDecoration: 'underline' }]}>Amount in Words:</Text>
+              <Text style={cStyles.textSmall}>INR {amountInWords}</Text>
+            </View>
+            <View style={{ marginTop: 20 }}>
+              <Text style={[cStyles.textBold, { textDecoration: 'underline' }]}>Bank Details:</Text>
+              <Text style={cStyles.textSmall}>Bank: {displayValue(company.bankName)}</Text>
+              <Text style={cStyles.textSmall}>A/C No: {displayValue(company.bankAccountNumber)} | IFSC: {displayValue(company.bankIfsc)}</Text>
+            </View>
+          </View>
+          <View style={cStyles.bottomRight}>
+            <View style={cStyles.summaryRow}><Text style={cStyles.textSmall}>Subtotal:</Text><Text style={cStyles.textSmall}>{formatInvoiceCurrencyPlain(subtotal)}</Text></View>
+            <View style={cStyles.summaryRow}><Text style={cStyles.textSmall}>CGST:</Text><Text style={cStyles.textSmall}>{formatInvoiceCurrencyPlain(totalCgst)}</Text></View>
+            <View style={cStyles.summaryRow}><Text style={cStyles.textSmall}>SGST:</Text><Text style={cStyles.textSmall}>{formatInvoiceCurrencyPlain(totalSgst)}</Text></View>
+            <View style={cStyles.summaryRow}><Text style={cStyles.textSmall}>Discount:</Text><Text style={cStyles.textSmall}>-{formatInvoiceCurrencyPlain(cashDiscountAmount)}</Text></View>
+            <View style={[cStyles.summaryRow, { borderTopWidth: 1, paddingTop: 4, marginTop: 4 }]}><Text style={cStyles.textBold}>Grand Total:</Text><Text style={cStyles.textBold}>{formatInvoiceCurrencyPlain(roundedNetTotal)}</Text></View>
+          </View>
+        </View>
+
+        <View style={{ alignItems: 'flex-end', marginTop: 20 }}>
+          <Text style={cStyles.textBold}>For {companyName}</Text>
+          <Text style={{ marginTop: 40, fontSize: 10 }}>Authorised Signatory</Text>
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
+function DetailedPdfLayout({ data }: { data: InvoiceDisplayData }) {
+  const { invoice, company, companyName, companyAddress, companyGst, contactLine, companyState, companyStateCode } = data
+  const invoiceDate = invoice.date ? new Date(invoice.date).toLocaleDateString('en-GB') : '-'
+
+  const dStyles = StyleSheet.create({
+    page: { flexDirection: 'column', backgroundColor: '#ffffff', padding: 20, fontFamily: 'Roboto' },
+    mainBox: { borderWidth: 2, borderColor: '#000000' },
+    textCenter: { textAlign: 'center' },
+    textBold: { fontWeight: 'bold' },
+    textSm: { fontSize: 8 },
+    textXs: { fontSize: 7 },
+    textLg: { fontSize: 18, fontWeight: 'bold', textTransform: 'uppercase' },
+    headerTitleBox: { padding: 8, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#000000' },
+    invoiceBanner: { backgroundColor: '#e5e7eb', textAlign: 'center', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#000000' },
+    rowSplit: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000000' },
+    colHalf: { width: '50%' },
+    borderRight: { borderRightWidth: 1, borderRightColor: '#000000' },
+    kvRow: { flexDirection: 'row', paddingHorizontal: 4, paddingVertical: 2, borderBottomWidth: 1, borderBottomColor: '#000000' },
+    kvRowNoBorder: { flexDirection: 'row', paddingHorizontal: 4, paddingVertical: 2 },
+    kCol: { width: '35%', fontWeight: 'bold' },
+    vCol: { width: '65%' },
+    partyHeader: { backgroundColor: '#e5e7eb', textAlign: 'center', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#000000', fontWeight: 'bold' },
+    tableHeaderRow: { flexDirection: 'row', backgroundColor: '#e5e7eb', borderBottomWidth: 1, borderBottomColor: '#000000' },
+    tableHeaderCell: { fontWeight: 'bold', textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000000', paddingVertical: 4, paddingHorizontal: 2 },
+    tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000000' },
+    tableCell: { textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000000', paddingVertical: 4, paddingHorizontal: 2 },
+    tableCellLeft: { textAlign: 'left', borderRightWidth: 1, borderRightColor: '#000000', paddingVertical: 4, paddingHorizontal: 2 },
+    tableCellRight: { textAlign: 'right', borderRightWidth: 1, borderRightColor: '#000000', paddingVertical: 4, paddingHorizontal: 2 },
+  })
+
+  return (
+    <Document>
+      <Page size="A4" style={dStyles.page}>
+        <View style={dStyles.mainBox}>
+          {/* Header */}
+          {company.logoUrl ? (
+            <View style={[dStyles.headerTitleBox, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+              <View style={{ width: '30%', alignItems: 'flex-start' }}>
+                <Image src={company.logoUrl} style={{ maxHeight: 60, objectFit: 'contain' }} />
+              </View>
+              <View style={{ width: '70%', alignItems: 'flex-end' }}>
+                <Text style={dStyles.textLg}>{companyName}</Text>
+                <Text style={[dStyles.textSm, { textAlign: 'right' }]}>{companyAddress}</Text>
+                <Text style={[dStyles.textSm, dStyles.textBold, { marginTop: 2 }]}>GSTIN NO. : {companyGst}</Text>
+                {contactLine ? <Text style={[dStyles.textSm, dStyles.textBold, { marginTop: 2 }]}>{contactLine}</Text> : null}
+              </View>
+            </View>
+          ) : (
+            <View style={dStyles.headerTitleBox}>
+              <Text style={dStyles.textLg}>{companyName}</Text>
+              <Text style={[dStyles.textSm, dStyles.textCenter]}>{companyAddress}</Text>
+              <Text style={[dStyles.textSm, dStyles.textBold, dStyles.textCenter, { marginTop: 2 }]}>GSTIN NO. : {companyGst}</Text>
+              {contactLine ? <Text style={[dStyles.textSm, dStyles.textBold, dStyles.textCenter, { marginTop: 2 }]}>{contactLine}</Text> : null}
+            </View>
+          )}
+          
+          <Text style={[dStyles.invoiceBanner, dStyles.textSm, dStyles.textBold]}>Invoice</Text>
+
+          {/* Invoice Meta Grid */}
+          <View style={dStyles.rowSplit}>
+            <View style={[dStyles.colHalf, dStyles.borderRight]}>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, dStyles.kCol]}>Invoice:</Text><Text style={[dStyles.textSm, dStyles.vCol]}>{invoice.invoiceNumber || '-'}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, dStyles.kCol]}>Date:</Text><Text style={[dStyles.textSm, dStyles.vCol]}>{invoiceDate}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, dStyles.kCol]}>Reverse Charge (Y/N):</Text><Text style={[dStyles.textSm, dStyles.vCol]}>{invoice.reverseCharge || 'No'}</Text></View>
+              <View style={[dStyles.kvRowNoBorder, { justifyContent: 'space-between' }]}>
+                <Text style={[dStyles.textSm, dStyles.textBold]}>State: {companyState || '-'}</Text>
+                <Text style={[dStyles.textSm, dStyles.textBold, { borderLeftWidth: 1, borderLeftColor: '#000000', paddingLeft: 4 }]}>Code: {companyStateCode || '-'}</Text>
+              </View>
+            </View>
+            <View style={dStyles.colHalf}>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, dStyles.kCol]}>WO No:</Text><Text style={[dStyles.textSm, dStyles.vCol]}>{invoice.woNumber || '-'}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, dStyles.kCol]}>Description of Service:</Text><Text style={[dStyles.textSm, dStyles.vCol]}>{invoice.descriptionOfService || '-'}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, dStyles.kCol]}>Period of Service:</Text><Text style={[dStyles.textSm, dStyles.vCol]}>{invoice.periodOfService || '-'}</Text></View>
+              <View style={dStyles.kvRowNoBorder}><Text style={[dStyles.textSm, dStyles.kCol]}>Place of Service:</Text><Text style={[dStyles.textSm, dStyles.vCol]}>{invoice.placeOfService || '-'}</Text></View>
+            </View>
+          </View>
+
+          {/* Parties Header */}
+          <View style={dStyles.rowSplit}>
+            <Text style={[dStyles.colHalf, dStyles.borderRight, dStyles.partyHeader, dStyles.textSm]}>Bill to Party</Text>
+            <Text style={[dStyles.colHalf, dStyles.partyHeader, dStyles.textSm]}>Ship to Party (Site Address)</Text>
+          </View>
+
+          {/* Parties Grid */}
+          <View style={dStyles.rowSplit}>
+            <View style={[dStyles.colHalf, dStyles.borderRight]}>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, { width: '20%', fontWeight: 'bold' }]}>Name:</Text><Text style={[dStyles.textSm, dStyles.textBold, { width: '80%' }]}>{data.billTo.name || '-'}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, { width: '20%', fontWeight: 'bold' }]}>Address:</Text><Text style={[dStyles.textSm, { width: '80%' }]}>{data.billTo.address || '-'}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, { width: '20%', fontWeight: 'bold' }]}>GSTIN:</Text><Text style={[dStyles.textSm, dStyles.textBold, { width: '80%' }]}>{data.billTo.gstin || '-'}</Text></View>
+              <View style={[dStyles.kvRowNoBorder, { justifyContent: 'space-between' }]}>
+                <Text style={[dStyles.textSm, dStyles.textBold]}>State: {data.billTo.state || '-'}</Text>
+                <Text style={[dStyles.textSm, dStyles.textBold, { borderLeftWidth: 1, borderLeftColor: '#000000', paddingLeft: 4 }]}>Code: {data.billTo.code || '-'}</Text>
+              </View>
+            </View>
+            <View style={dStyles.colHalf}>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, { width: '20%', fontWeight: 'bold' }]}>Name:</Text><Text style={[dStyles.textSm, dStyles.textBold, { width: '80%' }]}>{data.shipTo.name || data.billTo.name || '-'}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, { width: '20%', fontWeight: 'bold' }]}>Address:</Text><Text style={[dStyles.textSm, { width: '80%' }]}>{data.shipTo.address || data.billTo.address || '-'}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textSm, { width: '20%', fontWeight: 'bold' }]}>GSTIN:</Text><Text style={[dStyles.textSm, dStyles.textBold, { width: '80%' }]}>{data.shipTo.gstin || data.billTo.gstin || '-'}</Text></View>
+              <View style={[dStyles.kvRowNoBorder, { justifyContent: 'space-between' }]}>
+                <Text style={[dStyles.textSm, dStyles.textBold]}>State: {data.shipTo.state || data.billTo.state || '-'}</Text>
+                <Text style={[dStyles.textSm, dStyles.textBold, { borderLeftWidth: 1, borderLeftColor: '#000000', paddingLeft: 4 }]}>Code: {data.shipTo.code || data.billTo.code || '-'}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Table Header Row 1 */}
+          <View style={dStyles.tableHeaderRow}>
+            <Text style={[dStyles.textXs, dStyles.tableHeaderCell, { width: '5%', paddingTop: 10 }]}>Sr. No.</Text>
+            <Text style={[dStyles.textXs, dStyles.tableHeaderCell, { width: '20%', textAlign: 'left', paddingTop: 10 }]}>Product Description</Text>
+            <Text style={[dStyles.textXs, dStyles.tableHeaderCell, { width: '6%', paddingTop: 10 }]}>SAC</Text>
+            <Text style={[dStyles.textXs, dStyles.tableHeaderCell, { width: '6%', paddingTop: 10 }]}>Unit</Text>
+            <Text style={[dStyles.textXs, dStyles.tableHeaderCell, { width: '5%', paddingTop: 10 }]}>Qty</Text>
+            <Text style={[dStyles.textXs, dStyles.tableHeaderCell, { width: '7%', textAlign: 'right', paddingTop: 10 }]}>Rate</Text>
+            <Text style={[dStyles.textXs, dStyles.tableHeaderCell, { width: '9%', textAlign: 'right', paddingTop: 10 }]}>Amount</Text>
+            <Text style={[dStyles.textXs, dStyles.tableHeaderCell, { width: '8%', textAlign: 'right', paddingTop: 10 }]}>Taxable</Text>
+            <View style={{ width: '11%', borderRightWidth: 1, borderRightColor: '#000000', paddingHorizontal: 0 }}>
+              <Text style={[dStyles.textXs, { fontWeight: 'bold', textAlign: 'center', borderBottomWidth: 1, borderBottomColor: '#000000', paddingVertical: 2 }]}>CGST</Text>
+              <View style={{ flexDirection: 'row', flex: 1 }}>
+                <Text style={[dStyles.textXs, { width: '36.3%', fontWeight: 'bold', textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000000', paddingTop: 2 }]}>Rate</Text>
+                <Text style={[dStyles.textXs, { width: '63.7%', fontWeight: 'bold', textAlign: 'right', paddingTop: 2, paddingRight: 2 }]}>Amount</Text>
+              </View>
+            </View>
+            <View style={{ width: '11%', borderRightWidth: 1, borderRightColor: '#000000', paddingHorizontal: 0 }}>
+              <Text style={[dStyles.textXs, { fontWeight: 'bold', textAlign: 'center', borderBottomWidth: 1, borderBottomColor: '#000000', paddingVertical: 2 }]}>SGST</Text>
+              <View style={{ flexDirection: 'row', flex: 1 }}>
+                <Text style={[dStyles.textXs, { width: '36.3%', fontWeight: 'bold', textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000000', paddingTop: 2 }]}>Rate</Text>
+                <Text style={[dStyles.textXs, { width: '63.7%', fontWeight: 'bold', textAlign: 'right', paddingTop: 2, paddingRight: 2 }]}>Amount</Text>
+              </View>
+            </View>
+            <Text style={[dStyles.textXs, dStyles.tableHeaderCell, { width: '12%', textAlign: 'right', borderRightWidth: 0, paddingTop: 10 }]}>Total</Text>
+          </View>
+
+          {/* Table Items */}
+          {data.lineItems.map((item, i) => (
+            <View key={item.index} style={dStyles.tableRow}>
+              <Text style={[dStyles.textXs, dStyles.tableCell, { width: '5%' }]}>{item.index}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCellLeft, { width: '20%' }]}>{item.description}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCell, { width: '6%' }]}>{item.sacCode}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCell, { width: '6%' }]}>{item.unit}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCell, { width: '5%' }]}>{item.qty}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCellRight, { width: '7%' }]}>{item.rate ? formatInvoiceCurrencyPlain(item.rate) : '-'}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCellRight, { width: '9%' }]}>{formatInvoiceCurrencyPlain(item.lineAmount)}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCellRight, { width: '8%' }]}>{formatInvoiceCurrencyPlain(item.lineAmount)}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCell, { width: '4%' }]}>{data.cgstPercentage}%</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCellRight, { width: '7%' }]}>{formatInvoiceCurrencyPlain(item.lineCgst)}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCell, { width: '4%' }]}>{data.sgstPercentage}%</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCellRight, { width: '7%' }]}>{formatInvoiceCurrencyPlain(item.lineSgst)}</Text>
+              <Text style={[dStyles.textXs, dStyles.tableCellRight, { width: '12%', borderRightWidth: 0 }]}>{formatInvoiceCurrencyPlain(item.lineTotal)}</Text>
+            </View>
+          ))}
+          
+          {/* Table Totals Row */}
+          <View style={dStyles.tableRow}>
+            <Text style={[dStyles.textXs, dStyles.tableCell, dStyles.textBold, { width: '58%', textAlign: 'right', paddingRight: 4 }]}>Total</Text>
+            <Text style={[dStyles.textXs, dStyles.tableCell, { width: '8%' }]}></Text>
+            <Text style={[dStyles.textXs, dStyles.tableCell, { width: '4%' }]}></Text>
+            <Text style={[dStyles.textXs, dStyles.tableCellRight, dStyles.textBold, { width: '7%' }]}>{formatInvoiceCurrencyPlain(data.totalCgst)}</Text>
+            <Text style={[dStyles.textXs, dStyles.tableCell, { width: '4%' }]}></Text>
+            <Text style={[dStyles.textXs, dStyles.tableCellRight, dStyles.textBold, { width: '7%' }]}>{formatInvoiceCurrencyPlain(data.totalSgst)}</Text>
+            <Text style={[dStyles.textXs, dStyles.tableCellRight, { width: '12%', borderRightWidth: 0 }]}></Text>
+          </View>
+
+          {/* Amounts Grid */}
+          <View style={dStyles.rowSplit}>
+            <View style={{ width: '66%', borderRightWidth: 1, borderRightColor: '#000000' }}>
+              <Text style={[dStyles.textSm, dStyles.textBold, dStyles.partyHeader]}>Total Invoice amount in words</Text>
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={[dStyles.textSm, dStyles.textBold, dStyles.textCenter]}>{data.amountInWords} Only</Text>
+              </View>
+            </View>
+            <View style={{ width: '34%' }}>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textXs, dStyles.textBold, { width: '60%' }]}>Total Amount before Tax</Text><Text style={[dStyles.textXs, dStyles.textBold, { width: '40%', textAlign: 'right' }]}>{formatInvoiceCurrencyPlain(data.subtotal)}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textXs, dStyles.textBold, { width: '60%' }]}>Add: CGST</Text><Text style={[dStyles.textXs, { width: '40%', textAlign: 'right' }]}>{formatInvoiceCurrencyPlain(data.totalCgst)}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textXs, dStyles.textBold, { width: '60%' }]}>Add: SGST</Text><Text style={[dStyles.textXs, { width: '40%', textAlign: 'right' }]}>{formatInvoiceCurrencyPlain(data.totalSgst)}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textXs, dStyles.textBold, { width: '60%' }]}>Total Tax Amount</Text><Text style={[dStyles.textXs, { width: '40%', textAlign: 'right' }]}>{formatInvoiceCurrencyPlain(data.totalCgst + data.totalSgst)}</Text></View>
+              <View style={dStyles.kvRow}><Text style={[dStyles.textXs, dStyles.textBold, { width: '60%' }]}>Discount</Text><Text style={[dStyles.textXs, { width: '40%', textAlign: 'right' }]}>-{formatInvoiceCurrencyPlain(data.cashDiscountAmount)}</Text></View>
+              <View style={dStyles.kvRowNoBorder}><Text style={[dStyles.textSm, dStyles.textBold, { width: '60%' }]}>Total Amount after Tax:</Text><Text style={[dStyles.textSm, dStyles.textBold, { width: '40%', textAlign: 'right' }]}>{formatInvoiceCurrencyPlain(data.roundedNetTotal)}</Text></View>
+            </View>
+          </View>
+
+          {/* Footer Grid */}
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{ width: '66%', borderRightWidth: 1, borderRightColor: '#000000' }}>
+              <Text style={[dStyles.textSm, dStyles.textBold, dStyles.partyHeader]}>Bank Details</Text>
+              <View style={{ padding: 4 }}>
+                <Text style={[dStyles.textXs, dStyles.textBold, { marginBottom: 2 }]}>Bank Name: {displayValue(company.bankName)}</Text>
+                <Text style={[dStyles.textXs, dStyles.textBold, { marginBottom: 2 }]}>Bank A/c Name: {displayValue(company.bankAccountName)} A/c No. {displayValue(company.bankAccountNumber)}</Text>
+                <View style={{ flexDirection: 'row' }}>
+                  <Text style={[dStyles.textXs, dStyles.textBold, { marginRight: 20 }]}>Bank IFSC code: {displayValue(company.bankIfsc)}</Text>
+                  <Text style={[dStyles.textXs, dStyles.textBold]}>Branch: {displayValue(company.bankBranch)}</Text>
+                </View>
+              </View>
+            </View>
+            <View style={{ width: '12%', borderRightWidth: 1, borderRightColor: '#000000', justifyContent: 'flex-end', padding: 4 }}>
+              <Text style={[dStyles.textXs, dStyles.textCenter]}>Common Seal</Text>
+            </View>
+            <View style={{ width: '22%', padding: 4 }}>
+              <Text style={[dStyles.textXs, dStyles.textBold, dStyles.textCenter]}>For {companyName}</Text>
+              <Text style={[dStyles.textXs, dStyles.textBold, dStyles.textCenter, { marginTop: 40 }]}>Authorised signatory</Text>
+            </View>
+          </View>
+
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
+function InvoicePdfDocument({ data }: { data: InvoiceDisplayData }) {
+  const layout = data.company.invoiceLayout || 'default'
+  if (layout === 'modern') return <ModernPdfLayout data={data} />
+  if (layout === 'classic') return <ClassicPdfLayout data={data} />
+  if (layout === 'detailed') return <DetailedPdfLayout data={data} />
+  return <DefaultPdfLayout data={data} />
 }
 
 function DesktopPdfActions({

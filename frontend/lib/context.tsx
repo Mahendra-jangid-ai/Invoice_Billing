@@ -85,6 +85,7 @@ export interface Company {
   bankBranch?: string
   invoicePrefix?: string
   defaultPaymentTermsDays?: number
+  invoiceLayout?: 'default' | 'modern' | 'classic' | 'detailed'
 }
 
 interface BillingContextType {
@@ -128,6 +129,7 @@ const EMPTY_COMPANY: Company = {
   bankBranch: '',
   invoicePrefix: 'INV',
   defaultPaymentTermsDays: 30,
+  invoiceLayout: 'default',
 }
 
 export function BillingProvider({ children }: { children: React.ReactNode }) {

@@ -132,6 +132,7 @@ export const CompanySchema = z.object({
   bankBranch: z.string().max(200).optional().default(''),
   invoicePrefix: z.string().max(20).optional().default('INV'),
   defaultPaymentTermsDays: z.coerce.number().min(0).optional().default(30),
+  invoiceLayout: z.enum(['default', 'modern', 'classic', 'detailed']).optional().default('default'),
 })
 
 export const WebSettingsSchema = z.object({

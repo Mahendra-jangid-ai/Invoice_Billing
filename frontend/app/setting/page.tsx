@@ -39,6 +39,96 @@ import { clearPwaCaches } from '@/lib/pwa-cache'
 import { isOnboardingComplete } from '@/lib/onboarding'
 import { cn } from '@/lib/utils'
 
+const LAYOUT_PREVIEWS = {
+  default: (
+    <div className="w-full h-24 bg-white border border-slate-200 rounded p-1.5 flex flex-col gap-1 mb-3 pointer-events-none">
+      <div className="flex justify-between border-b border-slate-200 pb-1">
+        <div className="w-6 h-2.5 bg-slate-800 rounded-sm"></div>
+        <div className="flex flex-col gap-0.5 items-end">
+          <div className="w-10 h-1 bg-slate-300 rounded-sm"></div>
+          <div className="w-8 h-1 bg-slate-200 rounded-sm"></div>
+        </div>
+      </div>
+      <div className="h-3 bg-slate-800 rounded-sm w-full mt-0.5"></div>
+      <div className="flex gap-1 mt-0.5">
+        <div className="w-1/2 h-5 border border-slate-200 rounded-sm bg-slate-50"></div>
+        <div className="w-1/2 h-5 border border-slate-200 rounded-sm bg-white"></div>
+      </div>
+      <div className="w-full h-3 border border-slate-200 rounded-sm mt-0.5 bg-slate-100 flex flex-col justify-between">
+        <div className="w-full h-1 bg-slate-800 rounded-t-sm"></div>
+      </div>
+    </div>
+  ),
+  modern: (
+    <div className="w-full h-24 bg-slate-50 border border-slate-200 rounded flex flex-col mb-3 pointer-events-none overflow-hidden">
+      <div className="bg-blue-600 p-1.5 flex justify-between h-8 items-start">
+        <div className="flex flex-col gap-0.5">
+          <div className="w-6 h-2 bg-white rounded-sm"></div>
+          <div className="w-8 h-1 bg-blue-300 rounded-sm mt-1"></div>
+        </div>
+        <div className="w-10 h-2 bg-blue-300 rounded-sm"></div>
+      </div>
+      <div className="px-1.5 py-1">
+        <div className="flex gap-1">
+          <div className="w-1/2 h-4 bg-white rounded-sm shadow-sm border border-slate-100"></div>
+          <div className="w-1/2 h-4 bg-white rounded-sm shadow-sm border border-slate-100"></div>
+        </div>
+        <div className="w-full h-3 bg-white border-b border-blue-100 rounded-sm mt-1 shadow-sm"></div>
+        <div className="flex justify-end mt-1">
+          <div className="w-1/2 h-4 bg-blue-50 rounded-sm"></div>
+        </div>
+      </div>
+    </div>
+  ),
+  classic: (
+    <div className="w-full h-24 bg-white border border-slate-400 rounded p-1.5 flex flex-col gap-0.5 mb-3 pointer-events-none">
+      <div className="w-10 h-1.5 bg-slate-700 mx-auto mb-1"></div>
+      <div className="flex justify-between border border-slate-400 p-1">
+        <div className="flex flex-col gap-0.5">
+          <div className="w-6 h-1.5 bg-slate-700"></div>
+          <div className="w-8 h-1 bg-slate-400"></div>
+        </div>
+        <div className="w-6 h-1 bg-slate-400"></div>
+      </div>
+      <div className="flex border border-slate-400 divide-x divide-slate-400">
+        <div className="w-1/2 h-4 p-0.5"><div className="w-4 h-1 bg-slate-700"></div></div>
+        <div className="w-1/2 h-4 p-0.5"><div className="w-4 h-1 bg-slate-700"></div></div>
+      </div>
+      <div className="w-full h-4 border border-slate-400">
+        <div className="border-b border-slate-400 h-1.5"></div>
+      </div>
+      <div className="flex border border-slate-400 h-4">
+        <div className="w-2/3 border-r border-slate-400 p-0.5"><div className="w-6 h-1 bg-slate-700"></div></div>
+        <div className="w-1/3 p-0.5 flex flex-col gap-px items-end">
+          <div className="w-4 h-[1px] bg-slate-400"></div>
+          <div className="w-4 h-[1px] bg-slate-400"></div>
+        </div>
+      </div>
+    </div>
+  ),
+  detailed: (
+    <div className="w-full h-24 bg-white border border-slate-700 rounded p-0.5 flex flex-col pointer-events-none">
+      <div className="w-full text-center border border-slate-400 bg-slate-100 p-0.5 mb-1"><div className="w-10 h-1.5 bg-slate-500 mx-auto"></div></div>
+      <div className="flex border border-slate-400 mb-1">
+        <div className="w-1/2 border-r border-slate-400 p-0.5"><div className="w-6 h-1 bg-slate-500"></div></div>
+        <div className="w-1/2 p-0.5"><div className="w-8 h-1 bg-slate-500"></div></div>
+      </div>
+      <div className="flex border border-slate-400 divide-x divide-slate-400 mb-1">
+        <div className="w-1/2 p-0.5"><div className="w-10 h-1 bg-slate-400"></div></div>
+        <div className="w-1/2 p-0.5"><div className="w-10 h-1 bg-slate-400"></div></div>
+      </div>
+      <div className="w-full h-3 border border-slate-400 mb-1 bg-slate-50"></div>
+      <div className="flex border border-slate-400 flex-1">
+        <div className="w-2/3 border-r border-slate-400 p-0.5 flex justify-end flex-col"><div className="w-8 h-1 bg-slate-400"></div></div>
+        <div className="w-1/3 p-0.5 flex flex-col justify-end gap-[1px]">
+          <div className="w-full h-[1px] bg-slate-400"></div>
+          <div className="w-full h-[1px] bg-slate-400"></div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 interface SessionSummary {
   sessionId: string
   deviceName: string
@@ -102,6 +192,7 @@ export default function SettingsPage() {
 
   const [invoicePrefix, setInvoicePrefix] = useState('INV')
   const [paymentTermsDays, setPaymentTermsDays] = useState('30')
+  const [invoiceLayout, setInvoiceLayout] = useState<'default' | 'modern' | 'classic' | 'detailed'>('default')
   const [savingInvoiceDefaults, setSavingInvoiceDefaults] = useState(false)
 
   const [sessions, setSessions] = useState<SessionSummary[]>([])
@@ -194,7 +285,8 @@ export default function SettingsPage() {
   useEffect(() => {
     setInvoicePrefix(company.invoicePrefix || 'INV')
     setPaymentTermsDays(String(company.defaultPaymentTermsDays ?? 30))
-  }, [company.invoicePrefix, company.defaultPaymentTermsDays])
+    setInvoiceLayout(company.invoiceLayout || 'default')
+  }, [company.invoicePrefix, company.defaultPaymentTermsDays, company.invoiceLayout])
 
   const saveProfile = async () => {
     const trimmed = profileName.trim()
@@ -284,6 +376,7 @@ export default function SettingsPage() {
         ...company,
         invoicePrefix: prefix,
         defaultPaymentTermsDays: days,
+        invoiceLayout,
       })
       success({ title: 'Invoice defaults saved', description: 'New invoices will use these defaults.' })
     } catch (err) {
@@ -577,6 +670,32 @@ export default function SettingsPage() {
                   className="field-input border-slate-300 max-w-[100px]"
                 />
                 <span className="text-sm text-slate-500">days</span>
+              </div>
+            </SettingsRow>
+            <SettingsRow label="Invoice Layout" hint="Format used for PDF and View">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { id: 'default', name: 'Default', desc: 'Standard business' },
+                  { id: 'modern', name: 'Modern', desc: 'Sleek & colorful' },
+                  { id: 'classic', name: 'Classic', desc: 'Traditional print' },
+                  { id: 'detailed', name: 'Detailed', desc: 'Pro tabular format' },
+                ].map((layout) => (
+                  <button
+                    key={layout.id}
+                    type="button"
+                    onClick={() => setInvoiceLayout(layout.id as any)}
+                    className={cn(
+                      "flex flex-col rounded-xl border p-3 text-left transition-all",
+                      invoiceLayout === layout.id
+                        ? "border-[#2563EB] bg-blue-50 ring-1 ring-[#2563EB]"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                    )}
+                  >
+                    {LAYOUT_PREVIEWS[layout.id as keyof typeof LAYOUT_PREVIEWS]}
+                    <span className={cn("text-sm font-semibold", invoiceLayout === layout.id ? "text-[#2563EB]" : "text-slate-900")}>{layout.name}</span>
+                    <span className="text-xs text-slate-500 mt-0.5">{layout.desc}</span>
+                  </button>
+                ))}
               </div>
             </SettingsRow>
             <div className="pt-2">

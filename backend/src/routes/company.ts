@@ -22,6 +22,7 @@ const EMPTY_COMPANY = {
   bankBranch: '',
   invoicePrefix: 'INV',
   defaultPaymentTermsDays: 30,
+  invoiceLayout: 'default',
 }
 
 export function registerCompanyRoutes(app: Express): void {
@@ -52,6 +53,7 @@ export function registerCompanyRoutes(app: Express): void {
         bankBranch: company.bankBranch || '',
         invoicePrefix: company.invoicePrefix || 'INV',
         defaultPaymentTermsDays: Number(company.defaultPaymentTermsDays) || 30,
+        invoiceLayout: company.invoiceLayout || 'default',
       })
     } catch (error) {
       handleApiError(res, error, 'Failed to fetch company profile')
