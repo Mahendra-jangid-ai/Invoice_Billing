@@ -71,6 +71,11 @@ app.get('/', (_req, res) => {
   })
 })
 
+// Ultra-lightweight keep-alive endpoint for cron jobs (0 DB query, <1ms)
+app.get('/api/ping', (_req, res) => {
+  res.status(200).send('pong')
+})
+
 app.get('/api/health', async (_req, res) => {
   try {
     const db = await getDatabase()
