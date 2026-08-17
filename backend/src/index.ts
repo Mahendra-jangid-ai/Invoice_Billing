@@ -28,6 +28,7 @@ if (process.env.SESSION_SECRET.length < 32) {
 }
 
 const app = express()
+app.disable('x-powered-by')
 app.set('trust proxy', 1)
 const port = Number(process.env.PORT) || 4000
 
@@ -40,10 +41,13 @@ app.use(
 app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('X-XSS-Protection', '1; mode=block')
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()')
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups')
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site')
   if (process.env.NODE_ENV === 'production') {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
   }
   next()
 })

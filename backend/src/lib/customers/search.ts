@@ -28,6 +28,12 @@ export interface CustomerSearchResult {
   }
 }
 
+function cleanSearchTerm(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  const sanitized = value.replace(/[\x00-\x1F\x7F]/g, '').trim().slice(0, 100)
+  return sanitized.length > 0 ? sanitized : undefined
+}
+
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -35,8 +41,9 @@ function escapeRegex(value: string): string {
 export function buildCustomerFilterMatch(query: CustomerListQuery): Filter<Document> {
   const clauses: Filter<Document>[] = []
 
-  if (query.search) {
-    const pattern = escapeRegex(query.search)
+  const search = cleanSearchTerm(query.search)
+  if (search) {
+    const pattern = escapeRegex(search)
     clauses.push({
       $or: [
         { name: { $regex: pattern, $options: 'i' } },
@@ -48,8 +55,9 @@ export function buildCustomerFilterMatch(query: CustomerListQuery): Filter<Docum
     })
   }
 
-  if (query.state) {
-    clauses.push({ state: { $regex: escapeRegex(query.state), $options: 'i' } })
+  const state = cleanSearchTerm(query.state)
+  if (state) {
+    clauses.push({ state: { $regex: escapeRegex(state), $options: 'i' } })
   }
 
   if (query.gst === 'with') {

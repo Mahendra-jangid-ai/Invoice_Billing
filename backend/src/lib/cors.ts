@@ -58,6 +58,6 @@ export function corsOrigin(
     return
   }
 
-  console.warn('[CORS] Blocked origin:', origin)
-  callback(new Error(`CORS blocked for origin: ${origin}`))
+  console.warn('[CORS] Blocked unauthorized origin:', origin)
+  callback(null, false)
 }

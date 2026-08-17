@@ -85,6 +85,12 @@ const TOTAL_AMOUNT_STAGE: Document = {
   },
 }
 
+function cleanSearchTerm(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  const sanitized = value.replace(/[\x00-\x1F\x7F]/g, '').trim().slice(0, 100)
+  return sanitized.length > 0 ? sanitized : undefined
+}
+
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -96,16 +102,19 @@ export function buildInvoiceFilterMatch(query: InvoiceListQuery): Filter<Documen
     match.status = query.status
   }
 
-  if (query.customerName) {
-    match.customerName = { $regex: escapeRegex(query.customerName), $options: 'i' }
+  const customerName = cleanSearchTerm(query.customerName)
+  if (customerName) {
+    match.customerName = { $regex: escapeRegex(customerName), $options: 'i' }
   }
 
-  if (query.invoiceNumber) {
-    match.invoiceNumber = { $regex: escapeRegex(query.invoiceNumber), $options: 'i' }
+  const invoiceNumber = cleanSearchTerm(query.invoiceNumber)
+  if (invoiceNumber) {
+    match.invoiceNumber = { $regex: escapeRegex(invoiceNumber), $options: 'i' }
   }
 
-  if (query.search) {
-    const pattern = escapeRegex(query.search)
+  const search = cleanSearchTerm(query.search)
+  if (search) {
+    const pattern = escapeRegex(search)
     match.$or = [
       { invoiceNumber: { $regex: pattern, $options: 'i' } },
       { customerName: { $regex: pattern, $options: 'i' } },

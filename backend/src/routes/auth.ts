@@ -49,7 +49,7 @@ const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000
 export function registerAuthRoutes(app: Express): void {
   app.post('/api/auth/login', async (req: Request, res: Response) => {
     const ip = getClientIp(req)
-    const rateLimit = checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)
+    const rateLimit = checkRateLimit(`login:${ip}`, 5, 15 * 60 * 1000)
     if (!rateLimit.allowed) {
       sendError(res, 429, 'Too many login attempts. Please try again later.', 'RATE_LIMITED')
       return
@@ -59,7 +59,7 @@ export function registerAuthRoutes(app: Express): void {
       const parsed = parseBody(res, req.body, LoginSchema)
       if (!parsed) return
 
-      const emailRateLimit = checkRateLimit(`login:${ip}:${parsed.email}`, 8, 15 * 60 * 1000)
+      const emailRateLimit = checkRateLimit(`login:account:${parsed.email}`, 5, 15 * 60 * 1000)
       if (!emailRateLimit.allowed) {
         sendError(res, 429, 'Too many login attempts for this account. Please try again later.', 'RATE_LIMITED')
         return
@@ -67,6 +67,17 @@ export function registerAuthRoutes(app: Express): void {
 
       const db = await getDatabase()
       const userDoc = await db.collection('users').findOne({ email: parsed.email })
+
+      if (userDoc && !userDoc.passwordHash && userDoc.googleId) {
+        sendError(
+          res,
+          401,
+          'This email uses Google sign-in. Please continue with Google.',
+          'GOOGLE_AUTH_REQUIRED',
+        )
+        return
+      }
+
       const dummyHash = '$2b$12$C6UzMDM.H6dfI/f/IKcEe.Q8H0Io7k7CzsV1.jT3rzH0K6mX7Eo6'
       const passwordHash = userDoc?.passwordHash || dummyHash
       const isValid = await verifyPassword(parsed.password, passwordHash)
@@ -74,16 +85,6 @@ export function registerAuthRoutes(app: Express): void {
       if (!userDoc || !isValid) {
         logSecurityEvent('LOGIN_FAILED', { email: parsed.email, ip })
         sendError(res, 401, 'Invalid email or password', 'AUTHENTICATION_REQUIRED')
-        return
-      }
-
-      if (!userDoc.passwordHash) {
-        sendError(
-          res,
-          401,
-          'This email uses Google sign-in. Please continue with Google.',
-          'GOOGLE_AUTH_REQUIRED',
-        )
         return
       }
 
@@ -111,9 +112,9 @@ export function registerAuthRoutes(app: Express): void {
 
   app.post('/api/auth/signup', async (req: Request, res: Response) => {
     const ip = getClientIp(req)
-    const rateLimit = checkRateLimit(`signup:${ip}`, 5, 15 * 60 * 1000)
+    const rateLimit = checkRateLimit(`signup:${ip}`, 3, 15 * 60 * 1000)
     if (!rateLimit.allowed) {
-      sendError(res, 429, 'Too many requests. Please try again later.', 'RATE_LIMITED')
+      sendError(res, 429, 'Too many signup attempts. Please try again later.', 'RATE_LIMITED')
       return
     }
 
