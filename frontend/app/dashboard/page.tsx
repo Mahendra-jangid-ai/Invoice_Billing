@@ -62,7 +62,9 @@ export default function DashboardPage() {
         return itemSum + qty * rate
       }, 0)
       const taxPercentage = Number(inv.taxPercentage) || 0
-      return sum + itemsTotal + (itemsTotal * taxPercentage) / 100
+      const discount = Number(inv.cashDiscount?.discountAmount) || 0
+      const totalWithTax = itemsTotal + (itemsTotal * taxPercentage) / 100
+      return sum + Math.max(0, totalWithTax - discount)
     }, 0)
 
   const paidCount  = invoices.filter((i) => i.status === 'paid').length

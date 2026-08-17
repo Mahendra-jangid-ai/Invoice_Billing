@@ -46,6 +46,8 @@ export interface Invoice {
   id: string
   invoiceNumber: string
   date: string
+  dueDate?: string
+  paymentTermsDays?: number
   reverseCharge?: string
   companyState?: string
   companyStateCode?: string
@@ -64,6 +66,14 @@ export interface Invoice {
   cashDiscount?: {
     discountAmount?: number
   }
+  payments?: Array<{
+    id: string
+    amount: number
+    date: string
+    method: string
+    reference?: string
+    note?: string
+  }>
   status: 'draft' | 'finalized' | 'paid'
 }
 

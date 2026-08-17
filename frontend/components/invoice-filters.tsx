@@ -1,6 +1,6 @@
 'use client'
 
-import { RotateCcw, Search } from 'lucide-react'
+import { RotateCcw, Search, X } from 'lucide-react'
 import type { InvoiceSearchFilters, InvoiceStatusFilter } from '@/lib/invoice-search'
 import { Button } from '@/components/ui/button'
 
@@ -39,8 +39,18 @@ export function InvoiceFilters({ filters, onChange, onReset }: InvoiceFiltersPro
               value={filters.search}
               onChange={(e) => update({ search: e.target.value })}
               placeholder="Invoice #, customer..."
-              className={`${fieldClass} pl-10`}
+              className={`${fieldClass} pl-10 ${filters.search ? 'pr-9' : ''}`}
             />
+            {filters.search && (
+              <button
+                type="button"
+                onClick={() => update({ search: '' })}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                title="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
 

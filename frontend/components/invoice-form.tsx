@@ -1,6 +1,4 @@
-'use client'
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useBilling, Invoice, InvoiceLineItem, InvoiceParty } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { FormActions } from '@/components/form-actions'
@@ -26,12 +24,15 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
 
   const [invoiceNumber, setInvoiceNumber] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [dueDate, setDueDate] = useState('')
+  const [paymentTermsDays, setPaymentTermsDays] = useState(30)
   const [reverseCharge, setReverseCharge] = useState('No')
   const [woNumber, setWoNumber] = useState('')
   const [descriptionOfService, setDescriptionOfService] = useState('')
   const [periodOfService, setPeriodOfService] = useState('')
   const [placeOfService, setPlaceOfService] = useState('')
   const [placeOfServiceCode, setPlaceOfServiceCode] = useState('')
+  const descriptionInputRef = useRef<HTMLInputElement>(null)
 
   const [customerId, setCustomerId] = useState('')
   const [billTo, setBillTo] = useState<InvoiceParty>({
@@ -74,10 +75,23 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   const [errors, setErrors] = useState<FieldErrors>({})
   const [submitting, setSubmitting] = useState(false)
 
+  // Smart Due Date Auto-Calculation
+  useEffect(() => {
+    if (date && paymentTermsDays >= 0) {
+      const invoiceDateObj = new Date(date)
+      if (!isNaN(invoiceDateObj.getTime())) {
+        const dueObj = new Date(invoiceDateObj.getTime() + paymentTermsDays * 24 * 60 * 60 * 1000)
+        setDueDate(dueObj.toISOString().split('T')[0])
+      }
+    }
+  }, [date, paymentTermsDays])
+
   useEffect(() => {
     if (initialInvoice) {
       setInvoiceNumber(initialInvoice.invoiceNumber || '')
       setDate(initialInvoice.date || new Date().toISOString().split('T')[0])
+      setDueDate(initialInvoice.dueDate || '')
+      setPaymentTermsDays(initialInvoice.paymentTermsDays ?? 30)
       setReverseCharge(initialInvoice.reverseCharge || 'No')
       setWoNumber(initialInvoice.woNumber || '')
       setDescriptionOfService(initialInvoice.descriptionOfService || '')
@@ -112,6 +126,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       setInvoiceNumber(getNextInvoiceNumber())
       setPlaceOfService(company.state || '')
       setPlaceOfServiceCode(company.code || '')
+      setPaymentTermsDays(company.defaultPaymentTermsDays || 30)
     }
   }, [initialInvoice, getNextInvoiceNumber, company])
 
@@ -202,6 +217,11 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       rate: '',
     })
     setLineItemError(null)
+
+    // Automatically focus back on Description for continuous rapid typing!
+    setTimeout(() => {
+      descriptionInputRef.current?.focus()
+    }, 50)
 
     if (errors.lineItems) {
       setErrors((prev) => {
@@ -308,6 +328,8 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       id: initialInvoice?.id || Date.now().toString(),
       invoiceNumber,
       date,
+      dueDate,
+      paymentTermsDays,
       reverseCharge,
       companyState: company.state || '',
       companyStateCode: company.code || '',
@@ -363,7 +385,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
 
           <div>
             <label className={labelClass}>
-              Date <span className="text-red-500">*</span>
+              Invoice Date <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -371,6 +393,33 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
               onChange={(e) => setDate(e.target.value)}
               className="field-input"
               required
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>Payment Terms</label>
+            <select
+              value={paymentTermsDays}
+              onChange={(e) => setPaymentTermsDays(parseInt(e.target.value, 10) || 0)}
+              className="field-input"
+            >
+              <option value={0}>Due on Receipt (0 days)</option>
+              <option value={7}>Net 7 (7 days)</option>
+              <option value={15}>Net 15 (15 days)</option>
+              <option value={30}>Net 30 (30 days)</option>
+              <option value={45}>Net 45 (45 days)</option>
+              <option value={60}>Net 60 (60 days)</option>
+              <option value={90}>Net 90 (90 days)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className={labelClass}>Due Date</label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="field-input"
             />
           </div>
 
@@ -451,20 +500,38 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
             <p className="text-xs text-slate-400 mt-0.5">Select a customer or enter party details manually.</p>
           </div>
 
-          <div className="w-full sm:w-72">
+          <div className="w-full sm:w-80">
             <label className={labelClass}>Select Customer</label>
-            <select
-              value={customerId}
-              onChange={(e) => handleCustomerSelect(e.target.value)}
-              className="field-input"
-            >
-              <option value="">— Select customer (auto-fill) —</option>
-              {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name} ({customer.gstnumber || 'No GST'})
-                </option>
-              ))}
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={customerId}
+                onChange={(e) => handleCustomerSelect(e.target.value)}
+                className="field-input flex-1"
+              >
+                <option value="">— Select customer (auto-fill) —</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name} {customer.gstnumber ? `(${customer.gstnumber})` : ''}
+                  </option>
+                ))}
+              </select>
+              {customerId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomerId('')
+                    setBillTo({ name: '', address: '', gstin: '', state: '', code: '' })
+                    if (sameAsBillTo) {
+                      setShipTo({ name: '', address: '', gstin: '', state: '', code: '' })
+                    }
+                  }}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition shrink-0"
+                  title="Clear customer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -639,11 +706,18 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                 Description <span className="text-red-500">*</span>
               </label>
               <input
+                ref={descriptionInputRef}
                 type="text"
                 value={currentLineItem.description}
                 onChange={(e) => {
                   setCurrentLineItem((prev) => ({ ...prev, description: e.target.value }))
                   if (lineItemError) setLineItemError(null)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddOrUpdateLineItem()
+                  }
                 }}
                 placeholder={INVOICE_PLACEHOLDERS.lineDescription}
                 className={fieldClassName(lineItemError && !currentLineItem.description.trim() ? lineItemError : undefined)}
@@ -656,6 +730,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                 type="text"
                 value={currentLineItem.sacCode}
                 onChange={(e) => setCurrentLineItem((prev) => ({ ...prev, sacCode: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddOrUpdateLineItem()
+                  }
+                }}
                 placeholder={INVOICE_PLACEHOLDERS.sacCode}
                 className="field-input"
               />
@@ -667,6 +747,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                 type="text"
                 value={currentLineItem.unit}
                 onChange={(e) => setCurrentLineItem((prev) => ({ ...prev, unit: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddOrUpdateLineItem()
+                  }
+                }}
                 placeholder={INVOICE_PLACEHOLDERS.unit}
                 className="field-input"
               />
@@ -685,6 +771,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                   setCurrentLineItem((prev) => ({ ...prev, quantity: e.target.value }))
                   if (lineItemError) setLineItemError(null)
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddOrUpdateLineItem()
+                  }
+                }}
                 className="field-input"
               />
             </div>
@@ -701,6 +793,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                 onChange={(e) => {
                   setCurrentLineItem((prev) => ({ ...prev, rate: e.target.value }))
                   if (lineItemError) setLineItemError(null)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddOrUpdateLineItem()
+                  }
                 }}
                 placeholder="0.00"
                 className="field-input"
@@ -980,18 +1078,31 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
         </div>
       </div>
 
-      <FormActions className="is-sticky">
-        <Button type="submit" disabled={submitting} className="gap-2">
-          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {submitting
-            ? initialInvoice
-              ? 'Updating invoice…'
-              : 'Saving invoice…'
-            : initialInvoice
-              ? 'Update invoice'
-              : 'Save invoice'}
-        </Button>
-      </FormActions>
+      {/* Sticky Bottom UX Summary Bar */}
+      <div className="sticky bottom-0 z-30 -mx-4 -mb-6 border-t border-slate-200/90 bg-white/95 p-4 backdrop-blur-md shadow-lg sm:mx-0 sm:mb-0 sm:rounded-2xl sm:border">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm">
+            <div className="flex items-center gap-1.5 font-medium text-slate-500">
+              <span>Items:</span>
+              <span className="rounded-md bg-slate-100 px-2 py-0.5 font-bold text-slate-800">{lineItems.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5 font-medium text-slate-500">
+              <span>Payable:</span>
+              <span className="text-base font-bold text-slate-900">₹{totalAfterDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </div>
+          </div>
+          <Button type="submit" disabled={submitting} className="w-full sm:w-auto gap-2 px-7">
+            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            {submitting
+              ? initialInvoice
+                ? 'Updating invoice…'
+                : 'Saving invoice…'
+              : initialInvoice
+                ? 'Update invoice'
+                : 'Save invoice'}
+          </Button>
+        </div>
+      </div>
     </form>
   )
 }
