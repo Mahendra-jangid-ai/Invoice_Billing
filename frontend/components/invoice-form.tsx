@@ -276,7 +276,36 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
     })
   }
 
-  const subtotal = lineItems.reduce((sum, item) => {
+  // Helper to extract the item currently typed in the input fields if valid
+  const getPendingFormItem = (): InvoiceLineItem | null => {
+    if (!currentLineItem.description.trim()) return null
+    const qty = Number(currentLineItem.quantity)
+    const rate = Number(currentLineItem.rate)
+    if (isNaN(qty) || qty <= 0) return null
+    if (isNaN(rate) || rate < 0) return null
+    return {
+      itemId: currentLineItem.itemId || '',
+      description: currentLineItem.description.trim(),
+      sacCode: currentLineItem.sacCode.trim() || undefined,
+      unit: currentLineItem.unit.trim() || undefined,
+      quantity: qty,
+      rate: rate,
+    }
+  }
+
+  // Combine saved lineItems list with the current form item for live calculation
+  const pendingFormItem = getPendingFormItem()
+  const liveItemsForCalculation: InvoiceLineItem[] = (() => {
+    if (!pendingFormItem) return lineItems
+    if (editingLineIndex !== null) {
+      const copy = [...lineItems]
+      copy[editingLineIndex] = pendingFormItem
+      return copy
+    }
+    return [...lineItems, pendingFormItem]
+  })()
+
+  const subtotal = liveItemsForCalculation.reduce((sum, item) => {
     const qty = Number(item.quantity) || 0
     const rate = Number(item.rate) || 0
     return sum + qty * rate
@@ -290,6 +319,17 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Automatically include item from the form if user didn't click "+ Add Item" before saving
+    let effectiveLineItems = [...lineItems]
+    const pendingItem = getPendingFormItem()
+    if (pendingItem) {
+      if (editingLineIndex !== null) {
+        effectiveLineItems[editingLineIndex] = pendingItem
+      } else {
+        effectiveLineItems.push(pendingItem)
+      }
+    }
+
     const nextErrors = validateInvoiceForm({
       invoiceNumber,
       date,
@@ -301,7 +341,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       shipToGstin: shipTo.gstin,
       shipToState: shipTo.state,
       placeOfService,
-      lineItems,
+      lineItems: effectiveLineItems,
     })
     setErrors(nextErrors)
     if (hasErrors(nextErrors)) {
@@ -312,7 +352,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       return
     }
 
-    const formattedLineItems: InvoiceLineItem[] = lineItems.map((item) => ({
+    const formattedLineItems: InvoiceLineItem[] = effectiveLineItems.map((item) => ({
       itemId: item.itemId || Date.now().toString(),
       description: item.description || 'Service/Product Item',
       sacCode: item.sacCode || '9954',
@@ -712,6 +752,13 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
                 onChange={(e) => {
                   setCurrentLineItem((prev) => ({ ...prev, description: e.target.value }))
                   if (lineItemError) setLineItemError(null)
+                  if (errors.lineItems) {
+                    setErrors((prev) => {
+                      const next = { ...prev }
+                      delete next.lineItems
+                      return next
+                    })
+                  }
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -1084,7 +1131,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
           <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm">
             <div className="flex items-center gap-1.5 font-medium text-slate-500">
               <span>Items:</span>
-              <span className="rounded-md bg-slate-100 px-2 py-0.5 font-bold text-slate-800">{lineItems.length}</span>
+              <span className="rounded-md bg-slate-100 px-2 py-0.5 font-bold text-slate-800">{liveItemsForCalculation.length}</span>
             </div>
             <div className="flex items-center gap-1.5 font-medium text-slate-500">
               <span>Payable:</span>
