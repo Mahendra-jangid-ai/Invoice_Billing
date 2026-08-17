@@ -14,10 +14,13 @@ import {
   Edit,
   Trash2,
   Loader2,
+  Download,
+  Copy,
+  Check,
+  Share2,
   ArrowLeft,
   CheckCircle2,
   Eye,
-  Download,
 } from 'lucide-react'
 import { AppLayout } from '@/app/app-layout'
 import { PageHero } from '@/components/page-hero'
@@ -64,11 +67,28 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
   const [saving, setSaving] = useState(false)
   const [pdfActions, setPdfActions] = useState<InvoicePdfMobileActions | null>(null)
   const [pdfViewOpen, setPdfViewOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
   const autoDownloadDone = useRef(false)
+  const pdfActionsRef = useRef<InvoicePdfMobileActions | null>(null)
 
   const handlePdfActions = useCallback((actions: InvoicePdfMobileActions) => {
+    pdfActionsRef.current = actions
     setPdfActions(actions)
   }, [])
+
+  const copyInvoiceLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      success({
+        title: 'Link copied',
+        description: 'Invoice link copied to clipboard.',
+      })
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // ignore
+    }
+  }
 
   useEffect(() => {
     paramsPromise.then((params) => setId(params.id))
@@ -221,6 +241,15 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
             description="Invoice details and management"
             actions={
               <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2 sm:w-auto"
+                  onClick={copyInvoiceLink}
+                >
+                  {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  {copied ? 'Copied' : 'Copy Link'}
+                </Button>
                 {invoice.status === 'draft' && (
                   <Link href={`/invoices/${invoice.id}/edit`} className="w-full sm:w-auto">
                     <Button variant="outline" className="w-full gap-2 sm:w-auto">
@@ -259,6 +288,48 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
             }
           />
         )}
+
+        {/* Visual Status Stepper */}
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-3 text-xs sm:text-sm">
+            <div className={cn(
+              "flex flex-1 items-center gap-2 rounded-xl p-2 sm:p-2.5 transition",
+              invoice.status === 'draft' ? "bg-amber-50 font-bold text-amber-900 border border-amber-200" : "text-slate-600 bg-slate-50"
+            )}>
+              <span className={cn(
+                "flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full text-[11px] sm:text-xs font-bold",
+                invoice.status === 'draft' ? "bg-amber-500 text-white" : "bg-emerald-500 text-white"
+              )}>1</span>
+              <span className="truncate">Draft</span>
+            </div>
+
+            <div className="h-0.5 w-3 sm:w-8 bg-slate-200 shrink-0" />
+
+            <div className={cn(
+              "flex flex-1 items-center gap-2 rounded-xl p-2 sm:p-2.5 transition",
+              invoice.status === 'finalized' ? "bg-blue-50 font-bold text-blue-900 border border-blue-200" : invoice.status === 'paid' ? "text-slate-600 bg-slate-50" : "text-slate-400 bg-slate-50/50"
+            )}>
+              <span className={cn(
+                "flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full text-[11px] sm:text-xs font-bold",
+                invoice.status === 'finalized' ? "bg-blue-600 text-white" : invoice.status === 'paid' ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"
+              )}>2</span>
+              <span className="truncate">Finalized</span>
+            </div>
+
+            <div className="h-0.5 w-3 sm:w-8 bg-slate-200 shrink-0" />
+
+            <div className={cn(
+              "flex flex-1 items-center gap-2 rounded-xl p-2 sm:p-2.5 transition",
+              invoice.status === 'paid' ? "bg-emerald-50 font-bold text-emerald-900 border border-emerald-200" : "text-slate-400 bg-slate-50/50"
+            )}>
+              <span className={cn(
+                "flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full text-[11px] sm:text-xs font-bold",
+                invoice.status === 'paid' ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-500"
+              )}>3</span>
+              <span className="truncate">Paid</span>
+            </div>
+          </div>
+        </div>
 
         <div className={cn(compactView && 'pt-2')}>
           <InvoicePreview

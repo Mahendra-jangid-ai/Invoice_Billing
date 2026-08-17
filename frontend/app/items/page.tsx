@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useMemo, useState, Suspense } from 'react'
+import { useCallback, useEffect, useMemo, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useBilling, Item } from '@/lib/context'
 import { apiFetch } from '@/lib/api-client'
@@ -78,6 +78,13 @@ function ItemsPageContent() {
   const [formData, setFormData] = useState<Partial<Item>>(EMPTY_FORM)
   const [errors, setErrors] = useState<FieldErrors>({})
   const [saving, setSaving] = useState(false)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (showForm) {
+      setTimeout(() => nameInputRef.current?.focus(), 50)
+    }
+  }, [showForm])
 
   useEffect(() => {
     setDraftFilters(appliedFilters)
@@ -268,10 +275,17 @@ function ItemsPageContent() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form
+              onSubmit={handleSubmit}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') handleCancel()
+              }}
+              className="space-y-5"
+            >
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <FormField label="Item Name" required error={errors.name}>
                   <input
+                    ref={nameInputRef}
                     type="text"
                     value={formData.name || ''}
                     onChange={(e) => {

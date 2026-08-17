@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useMemo, useState, Suspense } from 'react'
+import { useCallback, useEffect, useMemo, useState, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useBilling, Customer } from '@/lib/context'
 import { apiFetch } from '@/lib/api-client'
@@ -81,6 +81,13 @@ function CustomersPageContent() {
   const [formData, setFormData] = useState<Partial<Customer>>(EMPTY_FORM)
   const [errors, setErrors] = useState<FieldErrors>({})
   const [saving, setSaving] = useState(false)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (showForm) {
+      setTimeout(() => nameInputRef.current?.focus(), 50)
+    }
+  }, [showForm])
 
   useEffect(() => {
     setDraftFilters(appliedFilters)
@@ -306,9 +313,27 @@ function CustomersPageContent() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form
+              onSubmit={handleSubmit}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') handleCancel()
+              }}
+              className="space-y-5"
+            >
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {field('Name',        'name',      { required: true,  placeholder: CUSTOMER_PLACEHOLDERS.name })}
+                <FormField label="Customer / Company Name" required error={errors.name}>
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    value={formData.name || ''}
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value })
+                      if (errors.name) setErrors((prev) => ({ ...prev, name: '' }))
+                    }}
+                    className={fieldClassName(errors.name)}
+                    placeholder={CUSTOMER_PLACEHOLDERS.name}
+                  />
+                </FormField>
                 {field('Email',       'email',     { type: 'email', required: true, placeholder: CUSTOMER_PLACEHOLDERS.email })}
                 {field('Phone',       'phone',     { type: 'tel',  placeholder: CUSTOMER_PLACEHOLDERS.phone })}
                 {field('GST Number',  'gstnumber', { placeholder: CUSTOMER_PLACEHOLDERS.gstnumber })}
