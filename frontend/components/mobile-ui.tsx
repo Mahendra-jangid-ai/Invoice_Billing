@@ -12,7 +12,7 @@ export function MobileCardList({
   children: React.ReactNode
   className?: string
 }) {
-  return <div className={cn('pwa-shell-only space-y-2.5 md:hidden', className)}>{children}</div>
+  return <div className={cn('space-y-2.5 md:hidden', className)}>{children}</div>
 }
 
 export function MobileCard({
@@ -220,7 +220,7 @@ export function MobileStatGrid({
   children: React.ReactNode
   className?: string
 }) {
-  return <div className={cn('pwa-shell-only grid grid-cols-2 gap-2.5 md:hidden', className)}>{children}</div>
+  return <div className={cn('grid grid-cols-2 gap-2.5 md:hidden', className)}>{children}</div>
 }
 
 export function MobileStatCard({

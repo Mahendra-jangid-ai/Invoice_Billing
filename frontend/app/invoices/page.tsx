@@ -300,7 +300,7 @@ function InvoicesPageContent() {
             </MobileCardList>
 
             {/* Desktop table */}
-            <div className="table-scroll browser-table-shell">
+            <div className="table-scroll hidden md:block">
               <table className="min-w-full">
                 <thead className="bg-slate-50">
                   <tr>

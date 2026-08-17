@@ -690,7 +690,11 @@ export function InvoiceHtmlViewer({
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <InvoiceHtmlContent data={displayData} />
+          <div className="mx-auto w-full max-w-[210mm] overflow-x-auto">
+            <div className="min-w-[620px] md:min-w-0">
+              <InvoiceHtmlContent data={displayData} />
+            </div>
+          </div>
         </div>
       </div>
     </>,

@@ -25,11 +25,8 @@ const LINKS = [
 ] as const
 
 export function MobileMoreHub({ className }: { className?: string }) {
-  const isInstalledPwa = useIsInstalledPwa()
   const { logout } = useAuth()
   const router = useRouter()
-
-  if (!isInstalledPwa) return null
 
   return (
     <div className={cn('space-y-3 md:hidden', className)}>

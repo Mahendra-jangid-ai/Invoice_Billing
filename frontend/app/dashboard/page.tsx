@@ -145,8 +145,8 @@ export default function DashboardPage() {
           })}
         </MobileStatGrid>
 
-        {/* ── Stat cards (browser mobile + desktop) ── */}
-        <div className="browser-shell-only browser-shell-md-up hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-4 stagger">
+        {/* ── Stat cards (desktop) ── */}
+        <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-4 stagger">
           {stats.map((stat) => {
             const Icon = stat.icon
             return (
@@ -320,7 +320,7 @@ export default function DashboardPage() {
                 })}
               </MobileCardList>
 
-              <div className="table-scroll browser-table-shell">
+              <div className="table-scroll hidden md:block">
               <table className="min-w-full">
                 <thead>
                   <tr>

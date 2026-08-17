@@ -434,52 +434,22 @@
     padding-bottom: calc(var(--invoice-detail-footer-h) + var(--mobile-safe-bottom));
   }
 
-  html[data-pwa-shell='true'] .invoice-detail-footer {
+  .invoice-detail-footer {
     display: block;
   }
 
   @media (min-width: 768px) {
-    html:not([data-pwa-shell='true']) .invoice-detail-footer {
+    .invoice-detail-footer {
       display: none;
     }
 
-    html:not([data-pwa-shell='true']) .invoice-detail-mobile {
+    .invoice-detail-mobile {
       padding-bottom: 0;
     }
   }
 
-  html:not([data-pwa-shell='true']) .pwa-shell-only {
-    display: none !important;
-  }
-
-  html[data-pwa-shell='true'] .browser-shell-only {
-    display: none !important;
-  }
-
-  html[data-pwa-shell='true'] .browser-table-shell {
-    display: none;
-  }
-
-  @media (min-width: 768px) {
-    html[data-pwa-shell='true'] .browser-shell-only.browser-shell-md-up {
-      display: grid !important;
-    }
-
-    html[data-pwa-shell='true'] .browser-table-shell {
-      display: block;
-    }
-  }
-
-  html:not([data-pwa-shell='true']) .hero-description {
-    display: block;
-  }
-
-  html[data-pwa-shell='true'] .hero-description {
-    display: none;
-  }
-
   @media (min-width: 640px) {
-    html[data-pwa-shell='true'] .hero-description {
+    .hero-description {
       display: block;
     }
   }

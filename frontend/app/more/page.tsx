@@ -8,16 +8,13 @@ import { PageHero } from '@/components/page-hero'
 import { useIsInstalledPwa } from '@/lib/use-installed-pwa'
 
 export default function MorePage() {
-  const isInstalledPwa = useIsInstalledPwa()
   const router = useRouter()
 
   useEffect(() => {
-    if (!isInstalledPwa) {
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
       router.replace('/setting')
     }
-  }, [isInstalledPwa, router])
-
-  if (!isInstalledPwa) return null
+  }, [router])
 
   return (
     <AppLayout>
