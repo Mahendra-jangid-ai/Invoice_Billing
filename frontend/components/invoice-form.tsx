@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useBilling, Invoice, InvoiceLineItem, InvoiceParty } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { FormActions } from '@/components/form-actions'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { INVOICE_PLACEHOLDERS } from '@/lib/form-placeholders'
 import { useConfirm, useFeedback } from '@/components/confirm-provider'
 import { StateCodeFields } from '@/components/state-select'
@@ -12,7 +12,7 @@ import { fieldClassName } from '@/components/form-field'
 import { type FieldErrors, formatFieldErrors, hasErrors, validateInvoiceForm } from '@/lib/validation'
 
 interface InvoiceFormProps {
-  onSubmit: (invoice: Invoice) => void
+  onSubmit: (invoice: Invoice) => Promise<void> | void
   initialInvoice?: Invoice
 }
 
@@ -54,6 +54,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   const [cashDiscount, setCashDiscount] = useState(0)
   const [notes, setNotes] = useState('')
   const [errors, setErrors] = useState<FieldErrors>({})
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (initialInvoice) {
@@ -176,7 +177,7 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   const grandTotal = subtotal + totalTax
   const totalAfterDiscount = Math.max(grandTotal - discountAmount, 0)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     const nextErrors = validateInvoiceForm({
@@ -236,7 +237,12 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       status: initialInvoice?.status || 'draft',
     }
 
-    onSubmit(invoice)
+    try {
+      setSubmitting(true)
+      await onSubmit(invoice)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -731,8 +737,15 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       </div>
 
       <FormActions className="is-sticky">
-        <Button type="submit" className="gap-2">
-          {initialInvoice ? 'Update invoice' : 'Save invoice'}
+        <Button type="submit" disabled={submitting} className="gap-2">
+          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {submitting
+            ? initialInvoice
+              ? 'Updating invoice…'
+              : 'Saving invoice…'
+            : initialInvoice
+              ? 'Update invoice'
+              : 'Save invoice'}
         </Button>
       </FormActions>
     </form>

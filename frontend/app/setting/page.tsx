@@ -20,6 +20,7 @@ import {
   Users,
   Package,
   FileText,
+  Loader2,
 } from 'lucide-react'
 import { AppLayout } from '@/app/app-layout'
 import { Button } from '@/components/ui/button'
@@ -569,9 +570,10 @@ export default function SettingsPage() {
                       type="button"
                       onClick={saveProfile}
                       disabled={savingProfile || profileName.trim() === user?.name}
-                      className="shrink-0"
+                      className="shrink-0 gap-2"
                     >
-                      {savingProfile ? 'Saving…' : 'Save name'}
+                      {savingProfile && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {savingProfile ? 'Saving name…' : 'Save name'}
                     </Button>
                   </div>
                 </SettingsRow>
@@ -699,8 +701,9 @@ export default function SettingsPage() {
               </div>
             </SettingsRow>
             <div className="pt-2">
-              <Button type="button" onClick={saveInvoiceDefaults} disabled={savingInvoiceDefaults}>
-                {savingInvoiceDefaults ? 'Saving…' : 'Save invoice defaults'}
+              <Button type="button" onClick={saveInvoiceDefaults} disabled={savingInvoiceDefaults} className="gap-2">
+                {savingInvoiceDefaults && <Loader2 className="h-4 w-4 animate-spin" />}
+                {savingInvoiceDefaults ? 'Saving defaults…' : 'Save invoice defaults'}
               </Button>
             </div>
           </SettingsSection>
@@ -747,8 +750,8 @@ export default function SettingsPage() {
               </FormField>
               <div className="flex flex-wrap items-center gap-3">
                 <Button type="submit" disabled={savingPassword} className="gap-2">
-                  <KeyRound className="h-4 w-4" />
-                  {savingPassword ? 'Updating…' : 'Update password'}
+                  {savingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+                  {savingPassword ? 'Updating password…' : 'Update password'}
                 </Button>
                 <Link
                   href="/forgot-password"
@@ -777,8 +780,8 @@ export default function SettingsPage() {
                     disabled={revokingOthers}
                     className="gap-1.5"
                   >
-                    <LogOut className="h-3.5 w-3.5" />
-                    {revokingOthers ? 'Signing out…' : `Sign out others (${otherSessionCount})`}
+                    {revokingOthers ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LogOut className="h-3.5 w-3.5" />}
+                    {revokingOthers ? 'Signing out…' : 'Sign out other devices'}
                   </Button>
                 )}
                 <Button type="button" variant="outline" size="sm" onClick={loadSessions} className="gap-1.5">
@@ -840,7 +843,7 @@ export default function SettingsPage() {
                           disabled={revokingSessionId === session.sessionId}
                           className="gap-1.5"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          {revokingSessionId === session.sessionId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                           {revokingSessionId === session.sessionId ? 'Signing out…' : 'Sign out device'}
                         </Button>
                       </div>
@@ -857,7 +860,7 @@ export default function SettingsPage() {
               Exports company profile, customers, items, and invoices as a JSON file for your records.
             </p>
             <Button type="button" variant="outline" onClick={exportData} disabled={exporting} className="gap-2">
-              <HardDriveDownload className="h-4 w-4" />
+              {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <HardDriveDownload className="h-4 w-4" />}
               {exporting ? 'Preparing export…' : 'Download backup (JSON)'}
             </Button>
           </SettingsSection>
@@ -899,7 +902,9 @@ export default function SettingsPage() {
                 size="sm"
                 onClick={handleClearCache}
                 disabled={clearingCache}
+                className="gap-1.5"
               >
+                {clearingCache && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 {clearingCache ? 'Clearing…' : 'Clear cache'}
               </Button>
             </SettingsRow>

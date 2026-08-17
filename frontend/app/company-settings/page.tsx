@@ -6,7 +6,7 @@ import { AppLayout } from '@/app/app-layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Upload, Trash2 } from 'lucide-react'
+import { Upload, Trash2, Loader2 } from 'lucide-react'
 import { getErrorMessage } from '@/lib/api-client'
 import { COMPANY_PLACEHOLDERS } from '@/lib/form-placeholders'
 import { PageHero } from '@/components/page-hero'
@@ -22,6 +22,7 @@ export default function CompanySettingsPage() {
   const { warning, success, error: showError } = useFeedback()
   const [formData, setFormData] = useState(company)
   const [errors, setErrors] = useState<FieldErrors>({})
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setFormData(company)
@@ -90,6 +91,7 @@ export default function CompanySettingsPage() {
     }
 
     try {
+      setSaving(true)
       await updateCompany(formData)
       success({
         title: 'Saved successfully',
@@ -100,6 +102,8 @@ export default function CompanySettingsPage() {
         title: 'Save failed',
         description: getErrorMessage(err, 'Failed to save company profile'),
       })
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -225,8 +229,9 @@ export default function CompanySettingsPage() {
           </div>
 
           <FormActions className="is-sticky mt-6">
-            <Button type="submit" className="gap-2">
-              Save changes
+            <Button type="submit" disabled={saving} className="gap-2">
+              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {saving ? 'Saving changes…' : 'Save changes'}
             </Button>
           </FormActions>
         </div>

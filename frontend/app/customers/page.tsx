@@ -80,6 +80,7 @@ function CustomersPageContent() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Customer>>(EMPTY_FORM)
   const [errors, setErrors] = useState<FieldErrors>({})
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setDraftFilters(appliedFilters)
@@ -148,6 +149,7 @@ function CustomersPageContent() {
     }
 
     try {
+      setSaving(true)
       if (editingId) {
         await updateCustomer(editingId, formData as Customer)
         setEditingId(null)
@@ -160,6 +162,8 @@ function CustomersPageContent() {
       await loadCustomers()
     } catch {
       // Error shown via billing context banner
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -330,10 +334,17 @@ function CustomersPageContent() {
                 </div>
               </div>
               <FormActions className="is-sticky">
-                <Button type="submit" className="gap-2">
-                  {editingId ? 'Update customer' : 'Save customer'}
+                <Button type="submit" disabled={saving} className="gap-2">
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {saving
+                    ? editingId
+                      ? 'Updating customer…'
+                      : 'Saving customer…'
+                    : editingId
+                      ? 'Update customer'
+                      : 'Save customer'}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleCancel}>
+                <Button type="button" variant="outline" onClick={handleCancel} disabled={saving}>
                   Cancel
                 </Button>
               </FormActions>

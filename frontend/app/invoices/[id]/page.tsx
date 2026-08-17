@@ -245,14 +245,14 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
                 <span className={statusBadge.cls}>{statusBadge.label}</span>
                 {invoice.status === 'draft' && (
                   <Button onClick={handleFinalize} disabled={saving} size="sm" className="gap-2">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Mark as Finalized
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                    {saving ? 'Finalizing…' : 'Mark as Finalized'}
                   </Button>
                 )}
                 {invoice.status === 'finalized' && (
                   <Button onClick={handleMarkPaid} disabled={saving} size="sm" className="gap-2">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Mark as Paid
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                    {saving ? 'Recording payment…' : 'Mark as Paid'}
                   </Button>
                 )}
               </div>
@@ -304,15 +304,15 @@ function InvoiceDetailContent({ params: paramsPromise }: PageProps) {
                       </Button>
                     </Link>
                     <Button onClick={handleFinalize} disabled={saving} className="h-11 min-w-0 flex-[1.2] gap-2">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Finalize
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                      {saving ? 'Finalizing…' : 'Finalize'}
                     </Button>
                   </>
                 )}
                 {invoice.status === 'finalized' && (
                   <Button onClick={handleMarkPaid} disabled={saving} className="h-11 flex-1 gap-2">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Mark Paid
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                    {saving ? 'Updating…' : 'Mark Paid'}
                   </Button>
                 )}
                 {invoice.status === 'paid' && (
