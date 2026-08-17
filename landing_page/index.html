@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Billing Studio — Next-Gen GST Billing for Modern India</title>
+  <meta name="description" content="Experience lightning-fast GST invoicing, automated e-Way bills, instant WhatsApp sharing, and real-time financial telemetry. Built with extreme precision.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="studio-body">
+
+  <!-- Fixed ThreeJS Canvas (Behind text, strictly managed in right/center 3D viewports) -->
+  <div id="canvas-container">
+    <canvas id="canvas3d"></canvas>
+  </div>
+
+  <!-- Ambient Light Orbs & Subtle Grid -->
+  <div class="ambient-glow glow-top"></div>
+  <div class="ambient-glow glow-bottom"></div>
+  <div class="studio-grid-overlay"></div>
+
+  <!-- ════════════════════════════════════════
+       STUDIO NAVIGATION
+  ════════════════════════════════════════ -->
+  <header class="studio-nav" id="studioNav">
+    <div class="nav-container">
+      <a href="#" class="brand-group">
+        <div class="brand-symbol">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Billing Studio</span>
+          <span class="brand-chip">PRO EDITION</span>
+        </div>
+      </a>
+
+      <nav class="nav-menu">
+        <a href="#product-story" class="nav-link">Overview</a>
+        <a href="#features-specs" class="nav-link">Capabilities</a>
+        <a href="#architecture" class="nav-link">Workflow</a>
+        <a href="#pricing-matrix" class="nav-link">Plans</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="http://localhost:3000/login" class="btn btn-ghost-nav">Sign In</a>
+        <a href="http://localhost:3000/signup" class="btn btn-primary-nav">
+          <span>Launch Studio</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════════
+       APPLE-STYLE SCROLL STORY (STICKY VIEWPORT)
+  ════════════════════════════════════════ -->
+  <main id="product-story" class="story-track">
+    
+    <!-- Sticky Stage Container -->
+    <div class="story-sticky-stage">
+      
+      <!-- Stage HUD Overlay -->
+      <div class="stage-hud">
+        <div class="hud-pill">
+          <span class="pulse-indicator"></span>
+          <span id="hud-mode-text">3D EXPLODED INVOICE ENGINE</span>
+        </div>
+        <div class="scroll-telemetry">
+          <span class="telemetry-label">INSPECTION STEP</span>
+          <span id="step-counter" class="telemetry-value">01 / 05</span>
+        </div>
+      </div>
+
+      <!-- Content Panels (Clean left/right separation, zero overlap with 3D model) -->
+      <div class="panels-container">
+        
+        <!-- STEP 0: HERO INTRODUCTION -->
+        <section class="story-panel panel-hero active" data-step="0">
+          <div class="panel-content">
+            <div class="eyebrow-tag">
+              <span class="tag-sparkle">✦</span>
+              <span>ENGINEERED FOR INDIAN ENTERPRISES</span>
+            </div>
+            <h1 class="headline-hero">
+              Precision billing.<br>
+              <span class="gradient-text">Zero friction.</span>
+            </h1>
+            <p class="desc-lead">
+              A bespoke GST billing architecture designed from first principles. Fast as a local spreadsheet, powerful as an enterprise ERP.
+            </p>
+            <div class="hero-actions">
+              <a href="http://localhost:3000/signup" class="btn btn-primary-action">
+                <span>Start Free Trial</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+              <div class="scroll-down-prompt">
+                <div class="mouse-icon"><div class="wheel"></div></div>
+                <span>Scroll to deconstruct</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 1: DECONSTRUCTION / LINE ITEMS -->
+        <section class="story-panel panel-left" data-step="1">
+          <div class="panel-content">
+            <div class="step-badge">01 — STRUCTURAL ENGINE</div>
+            <h2 class="headline-section">
+              Deconstructed<br>
+              <span class="gradient-text">item catalog.</span>
+            </h2>
+            <p class="desc-lead">
+              Add products and SAC/HSN codes on the fly. Units, discount matrices, and tiered pricing calculate effortlessly in microseconds without reload cycles.
+            </p>
+            <div class="feature-metrics">
+              <div class="metric-card">
+                <span class="metric-val">&lt; 0.2s</span>
+                <span class="metric-desc">Item calculation latency</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-val">100%</span>
+                <span class="metric-desc">HSN code compliance</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 2: TAX INTELLIGENCE & GST SPLITS -->
+        <section class="story-panel panel-right" data-step="2">
+          <div class="panel-content">
+            <div class="step-badge">02 — TAX TELEMETRY</div>
+            <h2 class="headline-section">
+              Autonomous<br>
+              <span class="gradient-text">GST intelligence.</span>
+            </h2>
+            <p class="desc-lead">
+              Inter-state IGST vs Intra-state CGST & SGST determined from the recipient's GSTIN state code automatically. Zero miscalculations, zero tax notices.
+            </p>
+            <div class="pill-list">
+              <div class="pill-item">✓ Reverse Charge Detection</div>
+              <div class="pill-item">✓ Automated State POS Code</div>
+              <div class="pill-item">✓ B2B vs B2C Auto-formatting</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 3: DISPATCH & INSTANT SHARING -->
+        <section class="story-panel panel-left" data-step="3">
+          <div class="panel-content">
+            <div class="step-badge">03 — INSTANT DISPATCH</div>
+            <h2 class="headline-section">
+              Vector PDF to<br>
+              <span class="gradient-text">WhatsApp instant.</span>
+            </h2>
+            <p class="desc-lead">
+              Razor-sharp vectorized PDFs rendered client-side. One-click direct dispatch to your client's WhatsApp with dynamic payment QR stamps.
+            </p>
+            <div class="feature-metrics">
+              <div class="metric-card">
+                <span class="metric-val">0 Kb</span>
+                <span class="metric-desc">Server PDF generation delay</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-val">UPI QR</span>
+                <span class="metric-desc">Dynamic payment embeds</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 4: REVENUE RADAR & METRICS -->
+        <section class="story-panel panel-right" data-step="4">
+          <div class="panel-content">
+            <div class="step-badge">04 — CASH FLOW RADAR</div>
+            <h2 class="headline-section">
+              Real-time<br>
+              <span class="gradient-text">ledger clarity.</span>
+            </h2>
+            <p class="desc-lead">
+              Paid settlements, pending dues, and draft pipelines aggregated into high-clarity telemetry. Never wonder where your cash flow stands.
+            </p>
+            <div class="hero-actions">
+              <a href="http://localhost:3000/signup" class="btn btn-primary-action">
+                <span>Experience Billing Studio</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Navigation Stepper Dots -->
+      <div class="story-stepper">
+        <button class="step-dot active" data-index="0" aria-label="Step 1"></button>
+        <button class="step-dot" data-index="1" aria-label="Step 2"></button>
+        <button class="step-dot" data-index="2" aria-label="Step 3"></button>
+        <button class="step-dot" data-index="3" aria-label="Step 4"></button>
+        <button class="step-dot" data-index="4" aria-label="Step 5"></button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ════════════════════════════════════════
+       ENTERPRISE CAPABILITIES GRID
+  ════════════════════════════════════════ -->
+  <section id="features-specs" class="specs-section">
+    <div class="studio-container">
+      
+      <div class="section-header-centered">
+        <span class="section-kicker">SYSTEM CAPABILITIES</span>
+        <h2 class="section-title">Built with architectural rigor</h2>
+        <p class="section-subtitle">Every micro-interaction is optimized for speed, clarity, and reliability.</p>
+      </div>
+
+      <div class="bento-grid">
+        
+        <!-- Bento Card 1 -->
+        <div class="bento-card bento-large">
+          <div class="bento-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <div class="bento-content">
+            <h3 class="bento-title">Sub-Second Reactive Billing</h3>
+            <p class="bento-desc">Form line-items auto-save without button presses. Client-side memory ensures zero data loss even if your browser disconnects.</p>
+          </div>
+          <div class="bento-visual visual-speed">
+            <div class="speed-badge">⚡ 60 FPS Fluid Forms</div>
+          </div>
+        </div>
+
+        <!-- Bento Card 2 -->
+        <div class="bento-card">
+          <div class="bento-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="bento-content">
+            <h3 class="bento-title">Native PWA Offline Engine</h3>
+            <p class="bento-desc">Installable on macOS, Windows, iOS, and Android. Create invoices on customer sites without active WiFi.</p>
+          </div>
+        </div>
+
+        <!-- Bento Card 3 -->
+        <div class="bento-card">
+          <div class="bento-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="bento-content">
+            <h3 class="bento-title">Cryptographic Data Isolation</h3>
+            <p class="bento-desc">JWT tokenized sessions, bcrypt multi-round password hashing, and role-based access control.</p>
+          </div>
+        </div>
+
+        <!-- Bento Card 4 -->
+        <div class="bento-card bento-wide">
+          <div class="bento-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="bento-content">
+            <h3 class="bento-title">Omnichannel WhatsApp Dispatch</h3>
+            <p class="bento-desc">Direct PDF transmission with deep-link WhatsApp payload. Your clients receive formatted invoices without app installations.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       TRANSPARENT PRICING MATRIX
+  ════════════════════════════════════════ -->
+  <section id="pricing-matrix" class="pricing-section">
+    <div class="studio-container">
+      
+      <div class="section-header-centered">
+        <span class="section-kicker">PRICING TRANSPARENCY</span>
+        <h2 class="section-title">Scale as your revenue grows</h2>
+        <p class="section-subtitle">No hidden surcharge fees, no surprise overages. 100% upfront.</p>
+      </div>
+
+      <div class="pricing-tier-grid">
+        
+        <!-- Tier 1 -->
+        <div class="pricing-tier">
+          <div class="tier-head">
+            <span class="tier-label">STARTER</span>
+            <div class="tier-price">
+              <span class="currency">₹</span>
+              <span class="amount">0</span>
+              <span class="cycle">/ month</span>
+            </div>
+            <p class="tier-summary">Essential invoicing for solo freelancers & early consultancies.</p>
+          </div>
+          <div class="tier-divider"></div>
+          <ul class="tier-features">
+            <li><span class="check">✓</span> Up to 20 invoices / mo</li>
+            <li><span class="check">✓</span> Dynamic GST auto-split</li>
+            <li><span class="check">✓</span> Client directory & Item catalog</li>
+            <li><span class="check">✓</span> Vector PDF downloads</li>
+          </ul>
+          <a href="http://localhost:3000/signup" class="btn btn-tier-secondary">Get Started Free</a>
+        </div>
+
+        <!-- Tier 2 (Highlighted) -->
+        <div class="pricing-tier tier-featured">
+          <div class="featured-badge">MOST POPULAR</div>
+          <div class="tier-head">
+            <span class="tier-label">PROFESSIONAL</span>
+            <div class="tier-price">
+              <span class="currency">₹</span>
+              <span class="amount">499</span>
+              <span class="cycle">/ month</span>
+            </div>
+            <p class="tier-summary">Complete studio power for growing businesses and agencies.</p>
+          </div>
+          <div class="tier-divider"></div>
+          <ul class="tier-features">
+            <li><span class="check">✓</span> <strong>Unlimited</strong> invoices & customers</li>
+            <li><span class="check">✓</span> 1-Click WhatsApp PDF dispatch</li>
+            <li><span class="check">✓</span> Real-time cashflow analytics</li>
+            <li><span class="check">✓</span> Custom branding & UPI QR stamps</li>
+            <li><span class="check">✓</span> Full Offline PWA installation</li>
+          </ul>
+          <a href="http://localhost:3000/signup" class="btn btn-tier-primary">Start 14-Day Trial</a>
+        </div>
+
+        <!-- Tier 3 -->
+        <div class="pricing-tier">
+          <div class="tier-head">
+            <span class="tier-label">ENTERPRISE</span>
+            <div class="tier-price">
+              <span class="currency">₹</span>
+              <span class="amount">999</span>
+              <span class="cycle">/ month</span>
+            </div>
+            <p class="tier-summary">Multi-user governance, audit logs, and priority throughput.</p>
+          </div>
+          <div class="tier-divider"></div>
+          <ul class="tier-features">
+            <li><span class="check">✓</span> Everything in Professional</li>
+            <li><span class="check">✓</span> Up to 5 team member seats</li>
+            <li><span class="check">✓</span> E-Way bill generation support</li>
+            <li><span class="check">✓</span> Dedicated compliance manager</li>
+          </ul>
+          <a href="http://localhost:3000/signup" class="btn btn-tier-secondary">Upgrade to Enterprise</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       FINAL CALL TO ACTION
+  ════════════════════════════════════════ -->
+  <section class="final-cta-section">
+    <div class="studio-container">
+      <div class="cta-banner">
+        <div class="cta-glow"></div>
+        <h2 class="cta-heading">Ready to transform your billing workflow?</h2>
+        <p class="cta-sub">Create your first GST-compliant invoice in under 30 seconds. No credit card required.</p>
+        <div class="cta-actions">
+          <a href="http://localhost:3000/signup" class="btn btn-cta-main">
+            <span>Create Free Account</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="http://localhost:3000/login" class="btn btn-cta-sub">Sign In to Dashboard →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════ -->
+  <footer class="studio-footer">
+    <div class="studio-container">
+      <div class="footer-grid">
+        
+        <div class="footer-brand-col">
+          <div class="brand-group">
+            <div class="brand-symbol">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <span class="brand-title">Billing Studio</span>
+          </div>
+          <p class="footer-tagline">Architected with uncompromising attention to detail for modern Indian business owners.</p>
+        </div>
+
+        <div class="footer-links-col">
+          <h4>Product</h4>
+          <a href="#product-story">Deconstructed Engine</a>
+          <a href="#features-specs">System Specs</a>
+          <a href="#pricing-matrix">Pricing Plans</a>
+          <a href="http://localhost:3000/signup">App Console</a>
+        </div>
+
+        <div class="footer-links-col">
+          <h4>GST Compliance</h4>
+          <a href="#">SAC / HSN Directory</a>
+          <a href="#">State POS Codes</a>
+          <a href="#">Reverse Charge Rules</a>
+          <a href="#">E-Invoice Protocols</a>
+        </div>
+
+        <div class="footer-links-col">
+          <h4>Security & Legal</h4>
+          <a href="#">Data Privacy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">System Uptime</a>
+          <a href="#">Security Overview</a>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom-bar">
+        <p>© 2026 Billing Studio Technologies. All rights reserved.</p>
+        <p class="india-badge">Crafted with precision in India 🇮🇳</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ThreeJS Core + OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="three-scene.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

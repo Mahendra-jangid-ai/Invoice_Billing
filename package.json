@@ -3,10 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "landing": "npx serve -l 8080 landing_page",
+    "dev:landing": "npx serve -l 8080 landing_page",
     "install:all": "npm install --prefix backend && npm install --prefix frontend",
     "build": "npm run build --prefix backend && npm run build --prefix frontend"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.2.4"
   }
 }

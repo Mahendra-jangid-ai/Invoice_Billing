@@ -1,0 +1,12 @@
+{
+  "name": "capsi-books-showcase",
+  "version": "1.0.0",
+  "description": "Capsi Books - 3D Animated Company Showcase Landing Page",
+  "scripts": {
+    "dev": "npx serve -l 8080 .",
+    "start": "npx serve -l 8080 ."
+  },
+  "keywords": ["showcase", "landing-page", "threejs", "invoicing"],
+  "author": "",
+  "license": "ISC"
+}
