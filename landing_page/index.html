@@ -28,7 +28,7 @@
        STUDIO NAVIGATION
   ════════════════════════════════════════ -->
   <header class="studio-nav" id="studioNav">
-    <div class="nav-container">
+    <div class="wrap">
       <a href="#" class="brand-group">
         <div class="brand-symbol">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -74,6 +74,12 @@
         <div class="hud-pill">
           <span class="pulse-indicator"></span>
           <span id="hud-mode-text">3D EXPLODED INVOICE ENGINE</span>
+          <div class="hud-audio-bars">
+            <span class="bar bar-1"></span>
+            <span class="bar bar-2"></span>
+            <span class="bar bar-3"></span>
+            <span class="bar bar-4"></span>
+          </div>
         </div>
         <div class="scroll-telemetry">
           <span class="telemetry-label">INSPECTION STEP</span>
@@ -216,7 +222,7 @@
        ENTERPRISE CAPABILITIES GRID
   ════════════════════════════════════════ -->
   <section id="features-specs" class="specs-section">
-    <div class="studio-container">
+    <div class="wrap">
       
       <div class="section-header-centered">
         <span class="section-kicker">SYSTEM CAPABILITIES</span>
@@ -281,7 +287,7 @@
        TRANSPARENT PRICING MATRIX
   ════════════════════════════════════════ -->
   <section id="pricing-matrix" class="pricing-section">
-    <div class="studio-container">
+    <div class="wrap">
       
       <div class="section-header-centered">
         <span class="section-kicker">PRICING TRANSPARENCY</span>
@@ -364,7 +370,7 @@
        FINAL CALL TO ACTION
   ════════════════════════════════════════ -->
   <section class="final-cta-section">
-    <div class="studio-container">
+    <div class="wrap">
       <div class="cta-banner">
         <div class="cta-glow"></div>
         <h2 class="cta-heading">Ready to transform your billing workflow?</h2>
@@ -384,7 +390,7 @@
        FOOTER
   ════════════════════════════════════════ -->
   <footer class="studio-footer">
-    <div class="studio-container">
+    <div class="wrap">
       <div class="footer-grid">
         
         <div class="footer-brand-col">
@@ -430,8 +436,9 @@
     </div>
   </footer>
 
-  <!-- ThreeJS Core + OrbitControls -->
+  <!-- ThreeJS Core & Anime.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <script src="three-scene.js"></script>
   <script src="app.js"></script>
 </body>

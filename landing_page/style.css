@@ -122,15 +122,41 @@ body.studio-body {
   mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
 }
 
-/* ── Reusable Studio Containers ── */
-.studio-container {
-  max-width: 1240px;
+/* ── HUD Telemetry Equalizer ── */
+.hud-audio-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+  margin-left: 6px;
+}
+
+.hud-audio-bars .bar {
+  width: 2.5px;
+  background: var(--brand-blue);
+  border-radius: 2px;
+  animation: barPulse 1.2s infinite ease-in-out alternate;
+}
+
+.hud-audio-bars .bar-1 { height: 4px; animation-delay: 0.1s; }
+.hud-audio-bars .bar-2 { height: 12px; animation-delay: 0.3s; }
+.hud-audio-bars .bar-3 { height: 7px; animation-delay: 0.2s; }
+.hud-audio-bars .bar-4 { height: 10px; animation-delay: 0.4s; }
+
+@keyframes barPulse {
+  0% { transform: scaleY(0.3); }
+  100% { transform: scaleY(1.0); }
+}
+
+/* ── Reusable Container (Pahale Wala Clean Container) ── */
+.wrap {
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 24px;
 }
 
 /* ════════════════════════════════════════
-   STUDIO NAVIGATION (Crisp Glassmorphism)
+   STUDIO NAVIGATION
 ════════════════════════════════════════ */
 .studio-nav {
   position: fixed;
@@ -151,10 +177,7 @@ body.studio-body {
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
 }
 
-.nav-container {
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 0 32px;
+.studio-nav .wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -313,9 +336,9 @@ body.studio-body {
   top: 90px;
   left: 0;
   right: 0;
-  max-width: 1240px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -373,12 +396,12 @@ body.studio-body {
   border: 1px solid var(--brand-blue-border);
 }
 
-/* ── Content Panels Isolation (Zero Overlap Guaranteed) ── */
+/* ── Content Panels Isolation ── */
 .panels-container {
   width: 100%;
-  max-width: 1240px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 24px;
   position: relative;
   height: 100%;
   display: flex;
@@ -676,7 +699,21 @@ body.studio-body {
   padding: 36px;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-card::before, .pricing-tier::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(400px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(37, 99, 235, 0.08), transparent 80%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .bento-card:hover {
@@ -1046,6 +1083,8 @@ body.studio-body {
 /* ════════════════════════════════════════
    RESPONSIVE BREAKPOINTS
 ════════════════════════════════════════ */
+
+/* ── Tablet ── */
 @media (max-width: 1080px) {
   .bento-grid {
     grid-template-columns: 1fr 1fr;
@@ -1068,33 +1107,177 @@ body.studio-body {
   }
 }
 
-@media (max-width: 768px) {
+/* ── Tablet Portrait & small laptops ── */
+@media (max-width: 860px) {
+  .wrap {
+    padding: 0 20px;
+  }
+
+  /* Nav */
   .nav-menu { display: none; }
-  .stage-hud { top: 75px; }
+  .nav-actions .btn-ghost-nav { display: none; }
+
+  /* HUD */
+  .stage-hud {
+    top: 72px;
+    padding: 0 16px;
+  }
+  .hud-pill { font-size: 0.62rem; padding: 5px 10px; }
+  .scroll-telemetry { font-size: 0.62rem; }
+
+  /* Stepper */
   .story-stepper { display: none; }
-  
-  .panel-hero, .panel-left, .panel-right {
-    position: relative;
+
+  /* Story panels — collapse to full-width centered */
+  .panel-hero,
+  .panel-left,
+  .panel-right {
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    transform: translateX(-50%) !important;
+    max-width: min(480px, calc(100vw - 32px));
+    width: 100%;
+  }
+
+  .story-panel {
     top: auto;
-    left: auto;
-    right: auto;
-    transform: none !important;
-    max-width: 100%;
+    bottom: 10vh;
+    transform: translateX(-50%) translate3d(0, 30px, 0);
+  }
+  .story-panel.active {
+    transform: translateX(-50%) translate3d(0, 0, 0);
+  }
+  .story-panel.exiting-up {
+    transform: translateX(-50%) translate3d(0, -30px, 0);
+  }
+
+  .panels-container {
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 10vh;
   }
 
   .panel-content {
     padding: 24px;
   }
 
+  /* Typography */
+  .headline-hero {
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+  }
+  .headline-section {
+    font-size: clamp(1.6rem, 4.5vw, 2.2rem);
+  }
+  .desc-lead {
+    font-size: 0.95rem;
+  }
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  /* Navigation */
+  .studio-nav { padding: 14px 0; }
+  .brand-title { font-size: 1rem; }
+  .nav-actions { gap: 8px; }
+  .btn-primary-nav { padding: 7px 14px; font-size: 0.82rem; }
+
+  /* HUD — hide secondary telemetry on small screens */
+  .stage-hud { top: 65px; }
+  .hud-right-group { display: none; }
+
+  /* Hero panels */
+  .panel-hero,
+  .panel-left,
+  .panel-right {
+    max-width: calc(100vw - 28px);
+  }
+  .panel-content {
+    padding: 20px;
+    border-radius: 18px;
+  }
+  .eyebrow-tag { font-size: 0.65rem; padding: 3px 10px; }
+  .step-badge  { font-size: 0.68rem; }
+  .headline-hero    { font-size: clamp(1.5rem, 6vw, 2.1rem); margin-bottom: 12px; }
+  .headline-section { font-size: clamp(1.4rem, 5.5vw, 1.9rem); margin-bottom: 12px; }
+  .desc-lead { font-size: 0.88rem; line-height: 1.6; margin-bottom: 18px; }
+
+  /* Buttons */
+  .btn-primary-action { padding: 12px 24px; font-size: 0.9rem; }
+  .btn-cta-main       { padding: 12px 24px; font-size: 0.9rem; }
+  .hero-actions { gap: 12px; }
+
+  /* Metric cards inside panels */
+  .metric-card { padding: 14px 16px; }
+  .metric-val  { font-size: 1.6rem; }
+
+  /* Bento */
   .bento-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
   .bento-large, .bento-wide {
     grid-column: span 1;
   }
 
+  /* Pricing */
+  .pricing-tier-grid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  /* Footer */
   .footer-grid {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 28px;
   }
+
+  /* Section headings */
+  .section-headline-xl {
+    font-size: clamp(1.8rem, 7vw, 2.4rem);
+  }
+  .section-sub { font-size: 0.92rem; }
+
+  /* Pill items */
+  .pill-item { padding: 10px 16px; font-size: 0.82rem; }
+
+  /* Sticky story height still 500vh — 3D canvas scales itself */
 }
+
+/* ── Small Mobile ── */
+@media (max-width: 480px) {
+  .wrap { padding: 0 14px; }
+
+  /* Nav */
+  .brand-chip { display: none; }
+
+  /* HUD — minimal */
+  .stage-hud { gap: 8px; }
+  .hud-pill  { font-size: 0.58rem; padding: 4px 8px; gap: 5px; }
+  .hud-audio-bars { display: none; }
+
+  /* Panel */
+  .panel-content { padding: 16px; border-radius: 14px; }
+  .headline-hero    { font-size: clamp(1.3rem, 7.5vw, 1.8rem); }
+  .headline-section { font-size: clamp(1.2rem, 7vw, 1.6rem); }
+  .desc-lead { font-size: 0.84rem; }
+
+  /* Metric grid */
+  .panel-metric-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .metric-card { padding: 10px 12px; }
+  .metric-val  { font-size: 1.35rem; }
+  .metric-label { font-size: 0.68rem; }
+
+  /* Buttons */
+  .btn-primary-action { padding: 10px 20px; font-size: 0.84rem; }
+  .hero-actions { gap: 10px; }
+
+  /* Bento */
+  .bento-card { padding: 20px; }
+  .bento-icon { font-size: 1.6rem; }
+  .bento-title { font-size: 1rem; }
+}
+
