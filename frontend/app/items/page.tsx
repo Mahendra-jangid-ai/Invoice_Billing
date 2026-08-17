@@ -63,7 +63,7 @@ function ItemsPageContent() {
   const searchParams = useSearchParams()
   const { loading: billingLoading, addItem, updateItem, deleteItem } = useBilling()
   const { confirm } = useConfirm()
-  const { warning, error: showError } = useFeedback()
+  const { warning, success, error: showError } = useFeedback()
 
   const appliedFilters = useMemo(
     () => parseItemFiltersFromParams(searchParams),
@@ -144,12 +144,20 @@ function ItemsPageContent() {
       if (editingId) {
         await updateItem(editingId, formData as Item)
         setEditingId(null)
+        success({
+          title: 'Item updated',
+          description: `Updated "${formData.name || 'item'}" successfully.`,
+        })
       } else {
         await addItem(formData as Item)
+        success({
+          title: 'Item added',
+          description: `Added "${formData.name || 'item'}" to catalog.`,
+        })
       }
       setFormData(EMPTY_FORM)
       setErrors({})
-      setShowForm(false)
+      setShowForm(true)
       await loadItems()
     } catch {
       // Error shown via billing context banner

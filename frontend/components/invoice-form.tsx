@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react'
 import { useBilling, Invoice, InvoiceLineItem, InvoiceParty } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { FormActions } from '@/components/form-actions'
-import { Plus, Trash2, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Edit, Check, X, Loader2 } from 'lucide-react'
 import { INVOICE_PLACEHOLDERS } from '@/lib/form-placeholders'
 import { useConfirm, useFeedback } from '@/components/confirm-provider'
 import { StateCodeFields } from '@/components/state-select'
 import { fieldClassName } from '@/components/form-field'
 import { type FieldErrors, formatFieldErrors, hasErrors, validateInvoiceForm } from '@/lib/validation'
+import { cn } from '@/lib/utils'
 
 interface InvoiceFormProps {
   onSubmit: (invoice: Invoice) => Promise<void> | void
@@ -50,6 +51,23 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
   })
 
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([])
+  const [currentLineItem, setCurrentLineItem] = useState<{
+    itemId: string
+    description: string
+    sacCode: string
+    unit: string
+    quantity: number | string
+    rate: number | string
+  }>({
+    itemId: '',
+    description: '',
+    sacCode: '9954',
+    unit: 'Nos',
+    quantity: 1,
+    rate: '',
+  })
+  const [editingLineIndex, setEditingLineIndex] = useState<number | null>(null)
+  const [lineItemError, setLineItemError] = useState<string | null>(null)
   const [taxPercentage, setTaxPercentage] = useState(18)
   const [cashDiscount, setCashDiscount] = useState(0)
   const [notes, setNotes] = useState('')
@@ -119,19 +137,106 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
     setShipTo({ ...billTo })
   }
 
-  const addLineItem = () => {
-    setLineItems([
-      ...lineItems,
-      {
-        itemId: '',
-        description: '',
-        sacCode: '9954',
-        unit: 'Nos',
-        quantity: 1,
-        rate: 0,
-        taxRate: taxPercentage,
-      },
-    ])
+  const handleCatalogItemSelect = (selectedItemId: string) => {
+    if (!selectedItemId) {
+      setCurrentLineItem((prev) => ({ ...prev, itemId: '' }))
+      return
+    }
+    const catalogItem = items.find((i) => String(i.id) === String(selectedItemId))
+    if (catalogItem) {
+      setCurrentLineItem((prev) => ({
+        ...prev,
+        itemId: selectedItemId,
+        description: catalogItem.name + (catalogItem.description ? ` - ${catalogItem.description}` : ''),
+        sacCode: catalogItem.hsnsac || '9954',
+        unit: prev.unit || 'Nos',
+        rate: Number(catalogItem.unitprice) || 0,
+      }))
+      setLineItemError(null)
+    }
+  }
+
+  const handleAddOrUpdateLineItem = () => {
+    if (!currentLineItem.description.trim()) {
+      setLineItemError('Please enter a product or service description')
+      return
+    }
+    const qty = Number(currentLineItem.quantity)
+    if (isNaN(qty) || qty <= 0) {
+      setLineItemError('Quantity must be greater than 0')
+      return
+    }
+    const rate = Number(currentLineItem.rate)
+    if (isNaN(rate) || rate < 0) {
+      setLineItemError('Rate must be 0 or greater')
+      return
+    }
+
+    const newItem: InvoiceLineItem = {
+      itemId: currentLineItem.itemId || '',
+      description: currentLineItem.description.trim(),
+      sacCode: currentLineItem.sacCode.trim() || undefined,
+      unit: currentLineItem.unit.trim() || undefined,
+      quantity: qty,
+      rate: rate,
+    }
+
+    if (editingLineIndex !== null) {
+      setLineItems((prev) => {
+        const next = [...prev]
+        next[editingLineIndex] = newItem
+        return next
+      })
+      setEditingLineIndex(null)
+    } else {
+      setLineItems((prev) => [...prev, newItem])
+    }
+
+    // Reset single item form so user can immediately type the next item
+    setCurrentLineItem({
+      itemId: '',
+      description: '',
+      sacCode: '9954',
+      unit: 'Nos',
+      quantity: 1,
+      rate: '',
+    })
+    setLineItemError(null)
+
+    if (errors.lineItems) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next.lineItems
+        return next
+      })
+    }
+  }
+
+  const handleEditLineItem = (index: number) => {
+    const itm = lineItems[index]
+    setCurrentLineItem({
+      itemId: itm.itemId || '',
+      description: itm.description || '',
+      sacCode: itm.sacCode || '',
+      unit: itm.unit || '',
+      quantity: itm.quantity,
+      rate: itm.rate,
+    })
+    setEditingLineIndex(index)
+    setLineItemError(null)
+  }
+
+  const handleCancelLineEdit = () => {
+    setCurrentLineItem({
+      itemId: '',
+      description: '',
+      sacCode: '9954',
+      unit: 'Nos',
+      quantity: 1,
+      rate: '',
+    })
+    setEditingLineIndex(null)
+    setLineItemError(null)
   }
 
   const removeLineItem = (index: number) => {
@@ -141,29 +246,14 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
       confirmText: 'Yes',
       cancelText: 'No',
       onConfirm: () => {
-        setLineItems(lineItems.filter((_, i) => i !== index))
+        setLineItems((prev) => prev.filter((_, i) => i !== index))
+        if (editingLineIndex === index) {
+          handleCancelLineEdit()
+        } else if (editingLineIndex !== null && editingLineIndex > index) {
+          setEditingLineIndex(editingLineIndex - 1)
+        }
       },
     })
-  }
-
-  const updateLineItem = (index: number, updates: Partial<InvoiceLineItem>) => {
-    const updated = [...lineItems]
-    updated[index] = { ...updated[index], ...updates }
-    setLineItems(updated)
-  }
-
-  const handleCatalogItemSelect = (index: number, selectedItemId: string) => {
-    const catalogItem = items.find((i) => String(i.id) === String(selectedItemId))
-    if (catalogItem) {
-      updateLineItem(index, {
-        itemId: selectedItemId,
-        description: catalogItem.name + (catalogItem.description ? ` - ${catalogItem.description}` : ''),
-        sacCode: catalogItem.hsnsac || '9954',
-        rate: Number(catalogItem.unitprice) || 0,
-      })
-    } else {
-      updateLineItem(index, { itemId: selectedItemId })
-    }
   }
 
   const subtotal = lineItems.reduce((sum, item) => {
@@ -496,149 +586,303 @@ export function InvoiceForm({ onSubmit, initialInvoice }: InvoiceFormProps) {
         </div>
       </div>
 
-      {/* Line items */}
-      <div className="premium-card p-6 space-y-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Products & Services</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Add line items with SAC/HSN codes, quantity, and rates.</p>
-          </div>
-          <Button type="button" onClick={addLineItem} variant="outline" className="gap-2 self-start">
-            <Plus className="h-4 w-4" />
-            Add Row
-          </Button>
+      {/* Line items section */}
+      <div className="premium-card p-4 sm:p-6 space-y-6">
+        <div>
+          <h2 className="text-base font-bold text-slate-900">Products & Services</h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Add items to your invoice. Fill the details below and click &quot;Add Item&quot;.
+          </p>
         </div>
 
-        {lineItems.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-12 text-center">
-            <p className="text-sm text-slate-500">No items yet. Click &quot;Add Row&quot; to add a line item.</p>
-            {errors.lineItems && <p className="mt-2 text-xs text-red-600">{errors.lineItems}</p>}
+        {/* Single Item Input Form */}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 sm:p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-bold text-white">
+                {editingLineIndex !== null ? editingLineIndex + 1 : '+'}
+              </span>
+              <h3 className="text-sm font-bold text-slate-900">
+                {editingLineIndex !== null ? `Edit Item #${editingLineIndex + 1}` : 'Add Item'}
+              </h3>
+            </div>
+            {editingLineIndex !== null && (
+              <button
+                type="button"
+                onClick={handleCancelLineEdit}
+                className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 transition"
+              >
+                <X className="h-3.5 w-3.5" /> Cancel edit
+              </button>
+            )}
           </div>
-        ) : (
-          <div className="space-y-4">
-            {lineItems.map((item, index) => {
-              const qty = Number(item.quantity) || 0
-              const rate = Number(item.rate) || 0
-              const lineAmount = qty * rate
 
-              return (
-                <div
-                  key={index}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-4"
-                >
-                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                    <span className="text-xs font-semibold text-slate-500">Item #{index + 1}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeLineItem(index)}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-red-600 transition"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Remove
-                    </button>
-                  </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <label className={labelClass}>Catalog Item (Optional)</label>
+              <select
+                value={currentLineItem.itemId}
+                onChange={(e) => handleCatalogItemSelect(e.target.value)}
+                className="field-input"
+              >
+                <option value="">— Select from catalog (auto-fill) —</option>
+                {items.map((itm) => (
+                  <option key={itm.id} value={itm.id}>
+                    {itm.name} (₹{itm.unitprice})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <div>
-                      <label className={labelClass}>Catalog Item</label>
-                      <select
-                        value={item.itemId}
-                        onChange={(e) => handleCatalogItemSelect(index, e.target.value)}
-                        className="field-input"
-                      >
-                        <option value="">Custom item</option>
-                        {items.map((itm) => (
-                          <option key={itm.id} value={itm.id}>
-                            {itm.name} (₹{itm.unitprice})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+            <div className="sm:col-span-2">
+              <label className={labelClass}>
+                Description <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={currentLineItem.description}
+                onChange={(e) => {
+                  setCurrentLineItem((prev) => ({ ...prev, description: e.target.value }))
+                  if (lineItemError) setLineItemError(null)
+                }}
+                placeholder={INVOICE_PLACEHOLDERS.lineDescription}
+                className={fieldClassName(lineItemError && !currentLineItem.description.trim() ? lineItemError : undefined)}
+              />
+            </div>
 
-                    <div className="sm:col-span-2">
-                      <label className={labelClass}>
-                        Description <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={item.description || ''}
-                        onChange={(e) => updateLineItem(index, { description: e.target.value })}
-                        placeholder={INVOICE_PLACEHOLDERS.lineDescription}
-                        className={fieldClassName(errors[`lineItems.${index}.description`])}
-                      />
-                      {errors[`lineItems.${index}.description`] && (
-                        <p className="mt-1 text-xs text-red-600">{errors[`lineItems.${index}.description`]}</p>
+            <div>
+              <label className={labelClass}>SAC / HSN Code</label>
+              <input
+                type="text"
+                value={currentLineItem.sacCode}
+                onChange={(e) => setCurrentLineItem((prev) => ({ ...prev, sacCode: e.target.value }))}
+                placeholder={INVOICE_PLACEHOLDERS.sacCode}
+                className="field-input"
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Unit</label>
+              <input
+                type="text"
+                value={currentLineItem.unit}
+                onChange={(e) => setCurrentLineItem((prev) => ({ ...prev, unit: e.target.value }))}
+                placeholder={INVOICE_PLACEHOLDERS.unit}
+                className="field-input"
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>
+                Quantity <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                min="0.01"
+                step="any"
+                value={currentLineItem.quantity}
+                onChange={(e) => {
+                  setCurrentLineItem((prev) => ({ ...prev, quantity: e.target.value }))
+                  if (lineItemError) setLineItemError(null)
+                }}
+                className="field-input"
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>
+                Rate (₹) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={currentLineItem.rate}
+                onChange={(e) => {
+                  setCurrentLineItem((prev) => ({ ...prev, rate: e.target.value }))
+                  if (lineItemError) setLineItemError(null)
+                }}
+                placeholder="0.00"
+                className="field-input"
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Amount (₹)</label>
+              <div className="field-input bg-white font-semibold text-slate-900">
+                ₹{((Number(currentLineItem.quantity) || 0) * (Number(currentLineItem.rate) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+          </div>
+
+          {lineItemError && (
+            <p className="text-xs font-semibold text-red-600">{lineItemError}</p>
+          )}
+
+          <div className="flex justify-end gap-2 pt-1">
+            {editingLineIndex !== null && (
+              <Button type="button" variant="outline" size="sm" onClick={handleCancelLineEdit}>
+                Cancel
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleAddOrUpdateLineItem}
+              className="gap-1.5"
+            >
+              {editingLineIndex !== null ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  Update Item
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Add Item
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Added Items List */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900">
+              Added Items ({lineItems.length})
+            </h3>
+            {errors.lineItems && (
+              <p className="text-xs font-semibold text-red-600">{errors.lineItems}</p>
+            )}
+          </div>
+
+          {lineItems.length === 0 ? (
+            <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-8 text-center">
+              <p className="text-sm font-medium text-slate-500">No items added to invoice yet</p>
+              <p className="mt-1 text-xs text-slate-400">Fill the item details above and click &quot;Add Item&quot;.</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <table className="min-w-full divide-y divide-slate-200 text-sm">
+                  <thead className="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3 text-left w-12">#</th>
+                      <th className="px-4 py-3 text-left">Description</th>
+                      <th className="px-4 py-3 text-left">SAC/HSN</th>
+                      <th className="px-4 py-3 text-left">Unit</th>
+                      <th className="px-4 py-3 text-right">Qty</th>
+                      <th className="px-4 py-3 text-right">Rate</th>
+                      <th className="px-4 py-3 text-right">Amount</th>
+                      <th className="px-4 py-3 text-center w-24">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {lineItems.map((item, idx) => {
+                      const qty = Number(item.quantity) || 0
+                      const rate = Number(item.rate) || 0
+                      const lineTotal = qty * rate
+                      const isEditing = editingLineIndex === idx
+
+                      return (
+                        <tr
+                          key={idx}
+                          className={cn('transition-colors', isEditing ? 'bg-blue-50/60' : 'hover:bg-slate-50/60')}
+                        >
+                          <td className="px-4 py-3 font-semibold text-slate-400">{idx + 1}</td>
+                          <td className="px-4 py-3 font-semibold text-slate-900">{item.description}</td>
+                          <td className="px-4 py-3 text-slate-500 font-mono text-xs">{item.sacCode || '—'}</td>
+                          <td className="px-4 py-3 text-slate-500">{item.unit || '—'}</td>
+                          <td className="px-4 py-3 text-right tabular-nums text-slate-800">{qty}</td>
+                          <td className="px-4 py-3 text-right tabular-nums text-slate-800">₹{rate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                          <td className="px-4 py-3 text-right tabular-nums font-bold text-slate-900">₹{lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                          <td className="px-4 py-3 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleEditLineItem(idx)}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-amber-50 hover:text-amber-600 transition"
+                                title="Edit item"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeLineItem(idx)}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 transition"
+                                title="Remove item"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards View */}
+              <div className="space-y-2.5 md:hidden">
+                {lineItems.map((item, idx) => {
+                  const qty = Number(item.quantity) || 0
+                  const rate = Number(item.rate) || 0
+                  const lineTotal = qty * rate
+                  const isEditing = editingLineIndex === idx
+
+                  return (
+                    <div
+                      key={idx}
+                      className={cn(
+                        'rounded-2xl border p-3.5 shadow-sm transition-colors',
+                        isEditing ? 'border-blue-300 bg-blue-50/50 ring-1 ring-blue-300' : 'border-slate-200/80 bg-white',
                       )}
-                    </div>
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-slate-100 text-[10px] font-bold text-slate-600">
+                              #{idx + 1}
+                            </span>
+                            <p className="truncate font-semibold text-slate-900 text-sm">{item.description}</p>
+                          </div>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            {item.sacCode && <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px]">SAC: {item.sacCode}</span>}
+                            {item.unit && <span>Unit: {item.unit}</span>}
+                            <span>Qty: {qty} × ₹{rate}</span>
+                          </div>
+                        </div>
+                        <p className="text-base font-bold tabular-nums text-slate-900 shrink-0">
+                          ₹{lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
 
-                    <div>
-                      <label className={labelClass}>SAC / HSN Code</label>
-                      <input
-                        type="text"
-                        value={item.sacCode || ''}
-                        onChange={(e) => updateLineItem(index, { sacCode: e.target.value })}
-                        placeholder={INVOICE_PLACEHOLDERS.sacCode}
-                        className="field-input"
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>Unit</label>
-                      <input
-                        type="text"
-                        value={item.unit || ''}
-                        onChange={(e) => updateLineItem(index, { unit: e.target.value })}
-                        placeholder={INVOICE_PLACEHOLDERS.unit}
-                        className="field-input"
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>
-                        Quantity <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        min="0.01"
-                        step="any"
-                        value={item.quantity}
-                        onChange={(e) =>
-                          updateLineItem(index, { quantity: parseFloat(e.target.value) || 0 })
-                        }
-                        className="field-input"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>
-                        Rate (₹) <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={item.rate}
-                        onChange={(e) =>
-                          updateLineItem(index, { rate: parseFloat(e.target.value) || 0 })
-                        }
-                        className="field-input"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>Amount (₹)</label>
-                      <div className="field-input bg-white font-semibold text-slate-900">
-                        ₹{lineAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      <div className="mt-3 flex items-center justify-end gap-2 border-t border-slate-100 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => handleEditLineItem(idx)}
+                          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 transition"
+                        >
+                          <Edit className="h-3.5 w-3.5" /> Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeLineItem(idx)}
+                          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Remove
+                        </button>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Tax, notes & summary */}
